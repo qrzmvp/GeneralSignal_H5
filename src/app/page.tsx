@@ -23,13 +23,13 @@ function LoginForm({ loginType }: { loginType: "username" | "email" }) {
     <div className="grid gap-4">
       <div className="grid gap-2">
         <Label htmlFor={loginType}>
-          {loginType === "username" ? "Username" : "Email"}
+          {loginType === "username" ? "用户名" : "邮箱"}
         </Label>
         <Input
           id={loginType}
           type={loginType === "email" ? "email" : "text"}
           placeholder={
-            loginType === "username" ? "your_username" : "m@example.com"
+            loginType === "username" ? "您的用户名" : "m@example.com"
           }
           required
           autoComplete={loginType}
@@ -37,7 +37,7 @@ function LoginForm({ loginType }: { loginType: "username" | "email" }) {
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">密码</Label>
         <Input 
           id="password" 
           type="password" 
@@ -62,26 +62,26 @@ export default function SignalAuthPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+    <main className="flex min-h-screen w-full items-center justify-center bg-transparent p-4">
       <Tabs defaultValue="username" className="w-full max-w-sm">
-        <Card className="rounded-lg shadow-2xl">
+        <Card className="rounded-lg shadow-2xl bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-3xl font-headline font-bold">
-              GeneralSignal_H5
+              通用信号
             </CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              输入您的凭据以访问您的帐户
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="username">
                 <User className="mr-2 h-4 w-4" />
-                Username
+                用户名
               </TabsTrigger>
               <TabsTrigger value="email">
                 <Mail className="mr-2 h-4 w-4" />
-                Email
+                邮箱
               </TabsTrigger>
             </TabsList>
             <form onSubmit={handleSubmit}>
@@ -95,15 +95,15 @@ export default function SignalAuthPage() {
                 {loading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Login
+                登录
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              还没有帐户？{" "}
               <Link href="#" className="underline underline-offset-4 hover:text-primary transition-colors">
-                Register
+                注册
               </Link>
             </p>
           </CardFooter>
