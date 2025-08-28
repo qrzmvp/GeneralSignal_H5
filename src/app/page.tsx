@@ -32,7 +32,7 @@ export default function App() {
   }
 
   return (
-    <main className="min-h-screen relative flex items-center justify-center">
+    <main className="min-h-screen relative flex justify-center pt-32">
       <CryptoBackground />
       
       <div className="relative z-10 w-full max-w-sm px-4 py-8 sm:px-6 md:px-8">
