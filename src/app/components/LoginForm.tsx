@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Mail, User, Loader2 } from "lucide-react";
+import { Mail, User, Loader2, Coins } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -39,8 +39,9 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
       <Tabs defaultValue="username" className="w-full">
         <Card className="rounded-lg shadow-2xl bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-3xl font-headline font-bold">
-              通用信号
+            <CardTitle className="text-3xl font-headline font-bold flex items-center justify-center">
+              <Coins className="mr-2 h-8 w-8" />
+              将军令
             </CardTitle>
             <CardDescription>
               输入您的凭据以访问您的帐户
