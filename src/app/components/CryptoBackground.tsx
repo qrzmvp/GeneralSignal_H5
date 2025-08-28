@@ -2,24 +2,28 @@
 
 import { useState, useEffect } from 'react';
 
-function Candlestick({ type = 'up', style }: { type: 'up' | 'down', style: React.CSSProperties }) {
-  const color = type === 'up' ? 'hsl(140 100% 30%)' : 'hsl(0 100% 40%)';
-  const shadowColor = type === 'up' ? 'hsl(140 100% 40% / 0.7)' : 'hsl(0 100% 50% / 0.7)';
+function LineChart({ style }: { style: React.CSSProperties }) {
+  const color = 'hsl(var(--foreground))';
+  const shadowColor = 'hsl(var(--foreground) / 0.6)';
+
   return (
-    <svg width="30" height="60" viewBox="0 0 30 60" style={style} className="floating-candlestick">
-       <defs>
-        <filter id={`shadow-${type}`} x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={shadowColor} />
+    <svg width="150" height="80" viewBox="0 0 150 80" style={style} className="floating-candlestick">
+      <defs>
+        <filter id="line-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor={shadowColor} />
         </filter>
       </defs>
-      <g filter={`url(#shadow-${type})`}>
-        <line x1="15" y1="0" x2="15" y2="10" stroke={color} strokeWidth="2" />
-        <rect x="10" y="10" width="10" height="30" fill={color} />
-        <line x1="15" y1="40" x2="15" y2="60" stroke={color} strokeWidth="2" />
-      </g>
+      <path
+        d="M 0 40 Q 15 60, 30 40 T 60 50 T 90 30 T 120 45 T 150 40"
+        stroke={color}
+        strokeWidth="2"
+        fill="none"
+        filter="url(#line-shadow)"
+      />
     </svg>
   );
 }
+
 
 export function CryptoBackground() {
   const [isMounted, setIsMounted] = useState(false);
@@ -50,10 +54,11 @@ export function CryptoBackground() {
         <div className="floating-text" style={{ top: '80%', left: '70%', animationDuration: '8s' }}>BNB +110%</div>
         <div className="floating-text" style={{ top: '90%', left: '10%', animationDuration: '11s' }}>ADA -130%</div>
 
-        <Candlestick type="up" style={{ top: '15%', left: '45%', animationDuration: '7s' }} />
-        <Candlestick type="down" style={{ top: '70%', left: '85%', animationDuration: '9s' }} />
-        <Candlestick type="up" style={{ top: '40%', left: '90%', animationDuration: '6s' }} />
-        <Candlestick type="down" style={{ top: '85%', left: '30%', animationDuration: '8s' }} />
+        <LineChart style={{ top: '15%', left: '45%', animationDuration: '7s' }} />
+        <LineChart style={{ top: '70%', left: '85%', animationDuration: '9s', transform: 'scaleX(-1)' }} />
+        <LineChart style={{ top: '40%', left: '90%', animationDuration: '6s' }} />
+        <LineChart style={{ top: '85%', left: '30%', animationDuration: '8s', transform: 'scaleX(-1)' }} />
+        <LineChart style={{ top: '55%', left: '5%', animationDuration: '12s' }} />
       </div>
     </div>
   );
