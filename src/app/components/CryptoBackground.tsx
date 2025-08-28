@@ -2,24 +2,50 @@
 
 import { useState, useEffect } from 'react';
 
-function LineChart({ style }: { style: React.CSSProperties }) {
+function CandlestickChart({ style, pattern = 1 }: { style: React.CSSProperties, pattern?: number }) {
   const color = 'hsl(var(--foreground))';
   const shadowColor = 'hsl(var(--foreground) / 0.6)';
 
+  const patterns = [
+    // Pattern 1: Upward trend
+    <g key="p1">
+      <line x1="10" y1="10" x2="10" y2="45" stroke={color} strokeWidth="1.5" />
+      <rect x="5" y="25" width="10" height="15" fill={color} />
+      <line x1="30" y1="5" x2="30" y2="40" stroke={color} strokeWidth="1.5" />
+      <rect x="25" y="15" width="10" height="20" fill={color} />
+      <line x1="50" y1="2" x2="50" y2="35" stroke={color} strokeWidth="1.5" />
+      <rect x="45" y="8" width="10" height="18" fill={color} />
+    </g>,
+    // Pattern 2: Downward trend
+    <g key="p2">
+      <line x1="10" y1="2" x2="10" y2="35" stroke={color} strokeWidth="1.5" />
+      <rect x="5" y="8" width="10" height="18" fill="none" stroke={color} strokeWidth="1.5" />
+      <line x1="30" y1="5" x2="30" y2="40" stroke={color} strokeWidth="1.5" />
+      <rect x="25" y="15" width="10" height="20" fill="none" stroke={color} strokeWidth="1.5" />
+      <line x1="50" y1="10" x2="50" y2="45" stroke={color} strokeWidth="1.5" />
+      <rect x="45" y="25" width="10" height="15" fill="none" stroke={color} strokeWidth="1.5" />
+    </g>,
+    // Pattern 3: Volatile / Sideways
+    <g key="p3">
+       <line x1="10" y1="5" x2="10" y2="45" stroke={color} strokeWidth="1.5" />
+       <rect x="5" y="15" width="10" height="20" fill={color} />
+       <line x1="30" y1="10" x2="30" y2="40" stroke={color} strokeWidth="1.5" />
+       <rect x="25" y="25" width="10" height="10" fill="none" stroke={color} strokeWidth="1.5" />
+       <line x1="50" y1="2" x2="50" y2="38" stroke={color} strokeWidth="1.5" />
+       <rect x="45" y="10" width="10" height="15" fill={color} />
+    </g>
+  ];
+
   return (
-    <svg width="150" height="80" viewBox="0 0 150 80" style={style} className="floating-candlestick">
+    <svg width="60" height="50" viewBox="0 0 60 50" style={style} className="floating-candlestick">
       <defs>
-        <filter id="line-shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor={shadowColor} />
+        <filter id="candlestick-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor={shadowColor} />
         </filter>
       </defs>
-      <path
-        d="M 0 40 Q 15 60, 30 40 T 60 50 T 90 30 T 120 45 T 150 40"
-        stroke={color}
-        strokeWidth="2"
-        fill="none"
-        filter="url(#line-shadow)"
-      />
+      <g filter="url(#candlestick-shadow)">
+        {patterns[pattern]}
+      </g>
     </svg>
   );
 }
@@ -54,11 +80,13 @@ export function CryptoBackground() {
         <div className="floating-text" style={{ top: '80%', left: '70%', animationDuration: '8s' }}>BNB +110%</div>
         <div className="floating-text" style={{ top: '90%', left: '10%', animationDuration: '11s' }}>ADA -130%</div>
 
-        <LineChart style={{ top: '15%', left: '45%', animationDuration: '7s' }} />
-        <LineChart style={{ top: '70%', left: '85%', animationDuration: '9s', transform: 'scaleX(-1)' }} />
-        <LineChart style={{ top: '40%', left: '90%', animationDuration: '6s' }} />
-        <LineChart style={{ top: '85%', left: '30%', animationDuration: '8s', transform: 'scaleX(-1)' }} />
-        <LineChart style={{ top: '55%', left: '5%', animationDuration: '12s' }} />
+        <CandlestickChart style={{ top: '15%', left: '45%', animationDuration: '7s' }} pattern={0} />
+        <CandlestickChart style={{ top: '70%', left: '85%', animationDuration: '9s', transform: 'scaleX(-1)' }} pattern={1} />
+        <CandlestickChart style={{ top: '40%', left: '90%', animationDuration: '6s' }} pattern={2}/>
+        <CandlestickChart style={{ top: '85%', left: '30%', animationDuration: '8s', transform: 'scaleX(-1)' }} pattern={0} />
+        <CandlestickChart style={{ top: '55%', left: '5%', animationDuration: '12s' }} pattern={1} />
+        <CandlestickChart style={{ top: '5%', left: '70%', animationDuration: '10s', transform: 'scaleX(-1)' }} pattern={2} />
+        <CandlestickChart style={{ top: '25%', left: '30%', animationDuration: '8s' }} pattern={1} />
       </div>
     </div>
   );
