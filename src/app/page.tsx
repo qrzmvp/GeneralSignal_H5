@@ -35,7 +35,7 @@ export default function App() {
     <main className="min-h-screen relative flex items-center justify-center">
       <CryptoBackground />
       
-      <div className="relative z-10 w-full max-w-lg px-4 py-8 sm:px-6 md:px-8">
+      <div className="relative z-10 w-full max-w-md px-4 py-8 sm:px-6 md:px-8">
         <div className="space-y-6">
           {currentPage === 'login' && (
             <LoginForm 
