@@ -33,7 +33,7 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFor
   };
 
   return (
-    <Card className="rounded-lg shadow-2xl bg-card/80 backdrop-blur-sm border-0">
+    <Card className="rounded-lg shadow-2xl bg-transparent backdrop-blur-md border-0">
       <CardHeader className="text-center space-y-2">
         <CardTitle className="text-3xl font-headline font-bold">创建账户</CardTitle>
         <CardDescription>输入您的信息以创建一个新帐户</CardDescription>

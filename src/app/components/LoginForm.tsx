@@ -37,7 +37,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
 
   return (
       <Tabs defaultValue="username" className="w-full">
-        <Card className="rounded-lg shadow-2xl bg-card/80 backdrop-blur-sm border-0">
+        <Card className="rounded-lg shadow-2xl bg-transparent backdrop-blur-md border-0">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-3xl font-headline font-bold flex items-center justify-center">
               <div className="bg-primary text-primary-foreground p-1.5 rounded-md mr-3">
