@@ -40,18 +40,20 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
         <Card className="rounded-lg shadow-2xl bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-3xl font-headline font-bold flex items-center justify-center">
-              <Bitcoin className="mr-2 h-8 w-8" />
+              <div className="bg-primary text-primary-foreground p-1.5 rounded-md mr-3">
+                <Bitcoin className="h-6 w-6" />
+              </div>
               将军令
             </CardTitle>
             <CardDescription>
-              输入您的凭据以访问您的帐户
+              币圈跟单神器
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="username">
                 <User className="mr-2 h-4 w-4" />
-                用户名
+                账号
               </TabsTrigger>
               <TabsTrigger value="email">
                 <Mail className="mr-2 h-4 w-4" />
@@ -63,12 +65,12 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="username">
-                      用户名
+                      账号
                     </Label>
                     <Input
                       id="username"
                       type="text"
-                      placeholder="您的用户名"
+                      placeholder="请输入您的账号"
                       required
                       autoComplete="username"
                       className="bg-background/50"
@@ -79,6 +81,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
                     <Input 
                       id="password-login" 
                       type="password" 
+                      placeholder="请输入您的密码"
                       required 
                       autoComplete="current-password"
                       className="bg-background/50"
@@ -106,6 +109,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
                     <Input 
                       id="password-email" 
                       type="password" 
+                      placeholder="请输入您的密码"
                       required 
                       autoComplete="current-password"
                       className="bg-background/50"
