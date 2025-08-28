@@ -86,39 +86,42 @@
 
 @keyframes float {
   0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0.1;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
   }
   25% {
-    opacity: 0.4;
+    opacity: 0.6;
   }
   50% {
-    transform: translateY(-20px) translateX(10px);
-    opacity: 0.2;
+    transform: translateY(-25px) translateX(15px) scale(1.05);
+    opacity: 0.1;
   }
   75% {
     opacity: 0.5;
   }
   100% {
-    transform: translateY(0) translateX(0);
-    opacity: 0.1;
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
   }
 }
 
-.floating-text-container {
+.floating-container {
   position: absolute;
   inset: 0;
   overflow: hidden;
   z-index: 0;
 }
 
-.floating-text {
+.floating-text, .floating-candlestick {
   position: absolute;
-  color: hsl(var(--foreground));
-  font-size: 1.25rem;
-  font-weight: 600;
+  animation: float ease-in-out infinite;
   opacity: 0;
-  animation: float 15s ease-in-out infinite;
-  text-shadow: 0 0 10px hsl(var(--foreground) / 0.5);
+}
+
+.floating-text {
+  color: hsl(var(--foreground));
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 15px hsl(var(--foreground) / 0.6);
   white-space: nowrap;
 }
