@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Avatar,
   AvatarFallback,
@@ -15,23 +16,37 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { BarChart, ChevronRight, Copy, Edit, Headset, KeyRound, Mail, Settings, User, Wallet } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
-function ProfileItem({ icon, label, value, action }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode }) {
+
+function ProfileItem({ icon, label, value, action, onClick }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void }) {
+    const isClickable = !!onClick;
+    const Component = isClickable ? 'button' : 'div';
+
     return (
-        <div className="flex items-center p-4">
+        <Component onClick={onClick} className={`flex items-center p-4 w-full text-left ${isClickable ? 'hover:bg-accent/50 transition-colors' : ''}`}>
             {icon}
             <span className="ml-4 text-sm font-medium">{label}</span>
             <div className="ml-auto flex items-center gap-2">
                 {value && <span className="text-sm text-muted-foreground">{value}</span>}
                 {action}
             </div>
-        </div>
+        </Component>
     )
 }
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState('profile');
+    const { toast } = useToast();
 
     // Mock data
     const user = {
@@ -39,6 +54,14 @@ export default function ProfilePage() {
         id: '88888888',
         email: 'crypto.king@example.com',
         avatar: 'https://i.pravatar.cc/150?u=cryptoking'
+    }
+
+    const handleCopyId = () => {
+        navigator.clipboard.writeText(user.id);
+        toast({
+            title: "复制成功",
+            description: `ID ${user.id} 已复制到剪贴板。`,
+        });
     }
 
   return (
@@ -66,7 +89,7 @@ export default function ProfilePage() {
                         <h2 className="text-xl font-bold">{user.name}</h2>
                         <div className="flex items-center text-xs text-muted-foreground">
                             <span>ID: {user.id}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={handleCopyId}>
                                 <Copy className="h-3 w-3" />
                             </Button>
                         </div>
@@ -102,13 +125,41 @@ export default function ProfilePage() {
 
 
              {/* Support */}
-             <Card className="bg-card/50 border-border/30">
-                 <CardContent className="p-0">
-                    <div className="divide-y divide-border/30">
-                        <ProfileItem icon={<Headset className="text-primary"/>} label="联系客服" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+             <Dialog>
+                <Card className="bg-card/50 border-border/30">
+                    <CardContent className="p-0">
+                        <DialogTrigger asChild>
+                            <div className="divide-y divide-border/30">
+                                <ProfileItem icon={<Headset className="text-primary"/>} label="联系客服" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
+                            </div>
+                        </DialogTrigger>
+                    </CardContent>
+                </Card>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                    <DialogTitle>联系客服</DialogTitle>
+                    <DialogDescription>
+                        通过Telegram联系我们的客服团队。
+                    </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="flex flex-col items-center justify-center gap-4">
+                             <Image
+                                src="https://picsum.photos/200/200"
+                                alt="Telegram QR Code"
+                                width={200}
+                                height={200}
+                                data-ai-hint="qr code"
+                                className="rounded-md"
+                            />
+                            <div className="text-center">
+                                <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
+                                <p className="font-mono text-lg text-primary mt-2">@SignalAuthSupport</p>
+                            </div>
+                        </div>
                     </div>
-                 </CardContent>
-            </Card>
+                </DialogContent>
+            </Dialog>
         </div>
       </main>
 
