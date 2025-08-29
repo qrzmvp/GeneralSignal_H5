@@ -4,97 +4,100 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, ChevronLeft, Star, XCircle } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, Zap, Bot, BarChart4, TrendingUp, Gem } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from '@/components/ui/label';
 
 interface Plan {
   id: string;
-  name: string;
+  duration: string;
   price: string;
-  originalPrice?: string;
+  originalPrice: string;
   description: string;
 }
 
 const manualPlans: Plan[] = [
-  { id: 'manual-monthly', name: '月度会员', price: '9.9/月', description: '适合短期体验' },
-  { id: 'manual-quarterly', name: '季度会员', price: '29.9/季', originalPrice: '¥210', description: '最具性价比' },
-  { id: 'manual-yearly', name: '年度会员', price: '119.9/年', description: '长期投资者的选择' },
+  { id: 'manual-yearly', duration: '1年', price: '119.9', originalPrice: '140', description: '长期投资者的选择' },
+  { id: 'manual-quarterly', duration: '3个月', price: '29.9', originalPrice: '35', description: '最具性价比' },
+  { id: 'manual-monthly', duration: '1个月', price: '9.9', originalPrice: '12', description: '适合短期体验' },
 ];
 
 const autoPlans: Plan[] = [
-  { id: 'auto-monthly', name: '月度会员', price: '20/月', description: '灵活的自动跟单' },
-  { id: 'auto-quarterly', name: '季度会员', price: '60/季', description: '省心省力的选择' },
-  { id: 'auto-yearly', name: '年度会员', price: '240/年', description: '一劳永逸，全年无忧' },
+  { id: 'auto-yearly', duration: '1年', price: '240', originalPrice: '280', description: '一劳永逸，全年无忧' },
+  { id: 'auto-quarterly', duration: '3个月', price: '60', originalPrice: '70', description: '省心省力的选择' },
+  { id: 'auto-monthly', duration: '1个月', price: '20', originalPrice: '25', description: '灵活的自动跟单' },
 ];
 
-const features = [
-  { feature: '信号来源', manual: '专业交易员', auto: 'AI策略+专业交易员' },
-  { feature: '执行方式', manual: '手动点击跟单', auto: '全自动跟单' },
-  { feature: '跟单速度', manual: '取决于用户操作', auto: '毫秒级响应' },
-  { feature: '仓位管理', manual: '用户自行决定', auto: '智能仓位分配' },
-  { feature: '风险控制', manual: '用户自行设置止盈止损', auto: '动态风控模型' },
-  { feature: '交易对数量', manual: '无限制', auto: '根据策略自动筛选' },
-  { feature: '适用人群', manual: '有经验的交易者', auto: '所有用户，尤其适合新手' },
+const memberPrivileges = [
+    { icon: <TrendingUp className="w-6 h-6 text-primary" />, title: '专业交易信号' },
+    { icon: <BarChart4 className="w-6 h-6 text-primary" />, title: '大师策略分析' },
+    { icon: <ShieldCheck className="w-6 h-6 text-primary" />, title: '主流币种覆盖' },
+    { icon: <Gem className="w-6 h-6 text-primary" />, title: '社区专属活动' },
+]
+
+const superMemberPrivileges = [
+    ...memberPrivileges,
+    { icon: <Zap className="w-6 h-6 text-yellow-400" />, title: '毫秒级自动跟单' },
+    { icon: <Bot className="w-6 h-6 text-yellow-400" />, title: 'AI智能仓位管理' },
 ];
 
 
-function PlanCard({ plan }: { plan: Plan }) {
-  return (
-    <Card className="flex flex-col text-center transition-all duration-300 border-border/50">
-      <CardHeader className="pt-8 pb-4">
-        <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-        <CardDescription>{plan.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <p className="text-4xl font-extrabold text-primary">
-          <span className="text-2xl font-normal">U$</span>
-          {plan.price.split('/')[0]}
-          <span className="text-base font-normal text-muted-foreground">/{plan.price.split('/')[1]}</span>
-        </p>
-        {plan.originalPrice && (
-            <p className="text-sm text-muted-foreground line-through mt-1">原价: {plan.originalPrice}</p>
-        )}
-      </CardContent>
-      <CardFooter>
-        <Button className="w-full font-bold">
-          立即订阅
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: string }) {
+    const [selectedPlan, setSelectedPlan] = useState(defaultPlanId);
+    return (
+        <div className="w-full space-y-6">
+            <RadioGroup
+                defaultValue={selectedPlan}
+                onValueChange={setSelectedPlan}
+                className="grid grid-cols-3 gap-3"
+            >
+                {plans.map((plan) => (
+                    <Label
+                        key={plan.id}
+                        htmlFor={plan.id}
+                        className={cn(
+                            'block rounded-lg border-2 p-3 text-center cursor-pointer transition-all',
+                            'bg-muted/30 border-transparent',
+                            'has-[:checked]:bg-primary/10 has-[:checked]:border-primary'
+                        )}
+                    >
+                        <RadioGroupItem value={plan.id} id={plan.id} className="sr-only" />
+                        <p className="text-xl font-bold text-primary">
+                            <span className="text-sm">U$</span>{plan.price}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-through">
+                           U${plan.originalPrice}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-foreground">{plan.duration}</p>
+                    </Label>
+                ))}
+            </RadioGroup>
+            <Button className="w-full h-12 text-base font-bold">
+                立即开通
+            </Button>
+        </div>
+    );
 }
 
-function FeatureComparison() {
-  return (
-    <Card className="bg-card/80 border-border/50">
-      <CardHeader>
-        <CardTitle>功能对比</CardTitle>
-        <CardDescription>查看不同跟单类型的详细功能差异</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex justify-around items-center bg-muted/50 p-3 rounded-lg">
-            <span className="w-1/3"></span>
-            <h4 className="w-1/3 text-center font-semibold">手动跟单</h4>
-            <h4 className="w-1/3 text-center font-semibold text-primary">自动跟单</h4>
+function PrivilegesSection({ title, privileges }: { title: string, privileges: { icon: React.ReactNode, title: string }[] }) {
+    return (
+        <div className="space-y-4">
+            <h3 className="font-bold text-foreground">{title}</h3>
+            <div className="grid grid-cols-4 gap-4 text-center">
+                {privileges.map(({ icon, title }, index) => (
+                    <div key={index} className="flex flex-col items-center space-y-2">
+                        <div className="flex items-center justify-center h-12 w-12 rounded-full bg-muted/50">
+                            {icon}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{title}</p>
+                    </div>
+                ))}
+            </div>
         </div>
-        {features.map((item, index) => (
-          <div key={item.feature} className={cn("flex items-center border-b pb-4", index === features.length - 1 ? 'border-none pb-0' : 'border-border/50')}>
-            <span className="w-1/3 text-sm font-medium">{item.feature}</span>
-            <div className="w-1/3 text-center text-muted-foreground flex items-center justify-center">
-              <XCircle className="w-4 h-4 mr-2 text-red-500/70" />
-              <span>{item.manual}</span>
-            </div>
-            <div className="w-1/3 text-center text-primary font-semibold flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              <span>{item.auto}</span>
-            </div>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
+    )
 }
 
 export default function MembershipPage() {
@@ -106,30 +109,29 @@ export default function MembershipPage() {
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ChevronLeft className="h-6 w-6" />
                 </Button>
-                <h1 className="text-lg font-bold">会员套餐</h1>
+                <h1 className="text-lg font-bold">会员中心</h1>
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
 
-            <main className="flex-grow overflow-auto p-4 space-y-6">
+            <main className="flex-grow overflow-auto p-4 space-y-8">
                 <Tabs defaultValue="manual" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="manual">手动跟单</TabsTrigger>
-                        <TabsTrigger value="auto">自动跟单</TabsTrigger>
+                        <TabsTrigger value="manual" className="data-[state=active]:text-yellow-700 data-[state=active]:border-b-yellow-600">会员</TabsTrigger>
+                        <TabsTrigger value="auto" className="data-[state=active]:text-yellow-700 data-[state=active]:border-b-yellow-600">超级会员</TabsTrigger>
                     </TabsList>
                     <TabsContent value="manual" className="mt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {manualPlans.map(plan => <PlanCard key={plan.id} plan={plan} />)}
+                        <PlanSelector plans={manualPlans} defaultPlanId="manual-yearly"/>
+                        <div className="mt-8">
+                           <PrivilegesSection title="会员尊享特权" privileges={memberPrivileges} />
                         </div>
                     </TabsContent>
                     <TabsContent value="auto" className="mt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                             {autoPlans.map(plan => <PlanCard key={plan.id} plan={plan} />)}
+                        <PlanSelector plans={autoPlans} defaultPlanId="auto-yearly"/>
+                         <div className="mt-8">
+                           <PrivilegesSection title="超级会员尊享特权" privileges={superMemberPrivileges} />
                         </div>
                     </TabsContent>
                 </Tabs>
-
-                <FeatureComparison />
-
             </main>
         </div>
     )

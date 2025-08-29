@@ -126,3 +126,17 @@
   text-shadow: 0 0 15px hsl(var(--foreground) / 0.6);
   white-space: nowrap;
 }
+
+/* Custom styles for reference image */
+@layer components {
+    .tabs-trigger-style {
+        @apply relative pb-2 text-muted-foreground transition-colors data-[state=active]:text-primary;
+    }
+    .tabs-trigger-style::after {
+        content: '';
+        @apply absolute bottom-0 left-0 right-0 h-0.5 bg-transparent transition-colors;
+    }
+    .tabs-trigger-style[data-state=active]::after {
+        @apply bg-primary;
+    }
+}
