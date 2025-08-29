@@ -162,6 +162,34 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                             )}
                         </div>
 
+                        {/* Fund Management */}
+                        <div className="space-y-3">
+                            <Label>资金管理</Label>
+                            <RadioGroup value={fundStrategy} onValueChange={setFundStrategy}>
+                                <div className="flex items-center justify-between p-3 rounded-md border has-[:checked]:border-primary">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="ratio" id="ratio" />
+                                        <Label htmlFor="ratio" className="font-normal">按比例复投</Label>
+                                    </div>
+                                    {fundStrategy === 'ratio' && (
+                                        <div className="relative w-24">
+                                            <Input 
+                                                type="number" 
+                                                className="pr-6" 
+                                                value={ratioAmount}
+                                                onChange={(e) => setRatioAmount(e.target.value)}
+                                            />
+                                            <span className="absolute inset-y-0 right-2 flex items-center text-muted-foreground">%</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex items-center space-x-2 p-3 rounded-md border has-[:checked]:border-primary">
+                                    <RadioGroupItem value="fixed" id="fixed" />
+                                    <Label htmlFor="fixed" className="font-normal">按固定金额</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+
                         {/* Trading Pairs */}
                         <div className="space-y-4">
                             <Label>交易对设置</Label>
@@ -208,34 +236,6 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                                 <Plus className="mr-2 h-4 w-4" />
                                 添加交易对
                             </Button>
-                        </div>
-
-                        {/* Fund Management */}
-                        <div className="space-y-3">
-                            <Label>资金管理</Label>
-                            <RadioGroup value={fundStrategy} onValueChange={setFundStrategy}>
-                                <div className="flex items-center justify-between p-3 rounded-md border has-[:checked]:border-primary">
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="ratio" id="ratio" />
-                                        <Label htmlFor="ratio" className="font-normal">按比例复投</Label>
-                                    </div>
-                                    {fundStrategy === 'ratio' && (
-                                        <div className="relative w-24">
-                                            <Input 
-                                                type="number" 
-                                                className="pr-6" 
-                                                value={ratioAmount}
-                                                onChange={(e) => setRatioAmount(e.target.value)}
-                                            />
-                                            <span className="absolute inset-y-0 right-2 flex items-center text-muted-foreground">%</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex items-center space-x-2 p-3 rounded-md border has-[:checked]:border-primary">
-                                    <RadioGroupItem value="fixed" id="fixed" />
-                                    <Label htmlFor="fixed" className="font-normal">按固定金额</Label>
-                                </div>
-                            </RadioGroup>
                         </div>
                     </div>
                 </div>
