@@ -101,13 +101,13 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] flex flex-col p-0">
-                <SheetHeader className="text-center p-4 border-b">
+            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] p-0">
+                <SheetHeader className="text-center p-4 border-b absolute top-0 left-0 right-0 bg-background z-10 rounded-t-lg">
                     <SheetTitle>跟单设置</SheetTitle>
                 </SheetHeader>
-
-                <ScrollArea className="flex-grow [&>div]:!h-full">
-                    <div className="p-4 space-y-6 h-full">
+                
+                <ScrollArea className="h-full">
+                    <div className="pt-20 pb-24 px-4 space-y-4">
                         {/* Trader Selection */}
                         <div className="space-y-2">
                             <Label>交易信号</Label>
@@ -168,7 +168,7 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                         <div className="space-y-4">
                             <Label>交易对设置</Label>
                             <div className="space-y-4">
-                                {tradingPairs.map((tp, index) => (
+                                {tradingPairs.map((tp) => (
                                     <div key={tp.id} className="p-3 rounded-md border space-y-4 relative">
                                         {tradingPairs.length > 1 && (
                                             <Button 
@@ -241,12 +241,10 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                         </div>
                     </div>
                 </ScrollArea>
-                <SheetFooter className="p-4 border-t">
+                <SheetFooter className="p-4 border-t absolute bottom-0 left-0 right-0 bg-background z-10">
                     <Button type="submit" className="w-full h-11" onClick={() => onOpenChange(false)}>确认</Button>
                 </SheetFooter>
             </SheetContent>
         </Sheet>
     )
 }
-
-    
