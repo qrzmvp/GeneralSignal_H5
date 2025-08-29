@@ -397,12 +397,13 @@ export default function LeaderboardPage() {
       <main ref={mainContentRef} className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="space-y-3">
             {filteredTraders.map((trader, index) => (
+              <Link href={`/trader/${trader.id}`} key={trader.id}>
                 <TraderCard 
-                    key={trader.id} 
                     trader={trader} 
                     rank={index + 1}
                     is综合排序={!searchQuery} // Only show ranks if not searching
                 />
+              </Link>
             ))}
         </div>
         {!searchQuery && (
@@ -450,5 +451,3 @@ export default function LeaderboardPage() {
     </div>
   )
 }
-
-    
