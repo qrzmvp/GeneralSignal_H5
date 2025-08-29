@@ -121,11 +121,9 @@ export default function MembershipPage() {
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-                <Link href="/" passHref>
-                  <Button variant="ghost" size="icon">
-                      <ChevronLeft className="h-6 w-6" />
-                  </Button>
-                </Link>
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                    <ChevronLeft className="h-6 w-6" />
+                </Button>
                 <h1 className="text-lg font-bold">会员中心</h1>
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
