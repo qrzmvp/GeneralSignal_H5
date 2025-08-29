@@ -300,7 +300,7 @@ export default function LeaderboardPage() {
     const [activeTab, setActiveTab] = useState('leaderboard');
     const [page, setPage] = useState(1);
     const [traders, setTraders] = useState<Trader[]>([]);
-    const [loading, setLoading] = useState(true); // Start with loading true
+    const [loading, setLoading] = useState(true);
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
@@ -309,16 +309,18 @@ export default function LeaderboardPage() {
     const [sortedTraders, setSortedTraders] = useState<Trader[]>([]);
 
     useEffect(() => {
+        // Start with loading true
+        setLoading(true);
         const sorted = [...allTraders].sort((a, b) => b.yield - a.yield);
         setSortedTraders(sorted);
         // Directly load the first page of traders
         const initialTraders = sorted.slice(0, PAGE_SIZE);
         setTraders(initialTraders);
         setPage(2); // Next page to load will be page 2
-        setLoading(false);
         if (initialTraders.length >= sorted.length) {
             setHasMore(false);
         }
+        setLoading(false);
     }, []);
 
     const loadMoreTraders = () => {
@@ -330,10 +332,9 @@ export default function LeaderboardPage() {
             if (newTraders.length > 0) {
                 setTraders(prev => [...prev, ...newTraders]);
                 setPage(prev => prev + 1);
-            } else {
-                setHasMore(false);
             }
-             // This check should use the most up-to-date state
+            
+            // This check should use the most up-to-date state
             setTraders(currentTraders => {
                  if (currentTraders.length >= sortedTraders.length) {
                     setHasMore(false);
@@ -424,7 +425,7 @@ export default function LeaderboardPage() {
 
       {/* Trader List */}
       <main ref={mainContentRef} className="flex-grow overflow-auto px-4 pt-2 pb-24">
-        <div className="space-y-6">
+        <div className="space-y-8">
             {filteredTraders.map((trader, index) => (
               <Link href={`/trader/${trader.id}`} key={`${trader.id}-${index}`}>
                 <TraderCard 
