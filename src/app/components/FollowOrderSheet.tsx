@@ -101,13 +101,13 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] p-0">
-                <SheetHeader className="text-center p-4 border-b absolute top-0 left-0 right-0 bg-background z-10 rounded-t-lg">
+            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] p-0 flex flex-col">
+                <SheetHeader className="text-center p-4 border-b flex-shrink-0">
                     <SheetTitle>跟单设置</SheetTitle>
                 </SheetHeader>
                 
-                <ScrollArea className="h-full">
-                    <div className="pt-20 pb-24 px-4 space-y-4">
+                <ScrollArea className="flex-grow">
+                    <div className="px-4 space-y-4 pt-4 pb-20"> {/* Add padding for footer */}
                         {/* Trader Selection */}
                         <div className="space-y-2">
                             <Label>交易信号</Label>
@@ -118,7 +118,6 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                                 <SelectContent>
                                     {traders.map(trader => (
                                         <div key={trader.id} className="flex items-center px-2 py-1.5"
-                                            // Prevent dropdown from closing when clicking checkbox
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <Checkbox
@@ -241,7 +240,7 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                         </div>
                     </div>
                 </ScrollArea>
-                <SheetFooter className="p-4 border-t absolute bottom-0 left-0 right-0 bg-background z-10">
+                <SheetFooter className="p-4 border-t flex-shrink-0 absolute bottom-0 left-0 right-0 bg-background">
                     <Button type="submit" className="w-full h-11" onClick={() => onOpenChange(false)}>确认</Button>
                 </SheetFooter>
             </SheetContent>
