@@ -182,30 +182,29 @@ const allTraders: Trader[] = [
 ];
 
 const PAGE_SIZE = 10;
-const RANK_BADGES: {[key: number]: {text: string, color: string}} = {
-    1: { text: "冠军", color: "bg-yellow-500/80 border-yellow-400 text-yellow-50" },
-    2: { text: "亚军", color: "bg-gray-400/80 border-gray-300 text-gray-50" },
-    3: { text: "季军", color: "bg-yellow-700/80 border-yellow-600 text-yellow-100" },
+const RANK_BADGES: {[key: number]: { color: string, shadow: string }} = {
+    1: { color: "bg-yellow-400 text-yellow-900", shadow: "shadow-yellow-400/50" },
+    2: { color: "bg-gray-300 text-gray-800", shadow: "shadow-gray-300/50" },
+    3: { color: "bg-yellow-600 text-yellow-100", shadow: "shadow-yellow-600/50" },
 }
 
 function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: number, is综合排序: boolean }) {
     const badge = is综合排序 && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
     return (
-        <Card className="bg-card/80 backdrop-blur-sm border-border/50 relative overflow-hidden">
-        {badge && (
-            <div className="absolute top-2 right-2">
-            <Badge variant="outline" className={`flex items-center gap-1.5 border-2 ${badge.color}`}>
-                <Crown className="w-4 h-4" />
-                <span className="font-bold">{badge.text}</span>
-            </Badge>
-            </div>
-        )}
+        <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden">
         <CardContent className="p-4">
             <div className="flex items-start gap-4">
-            <Avatar>
-                <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+            <div className="relative shrink-0">
+                <Avatar>
+                    <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                {badge && (
+                    <div className={`absolute -bottom-1 -right-1 z-10 rounded-full p-0.5 ${badge.color} shadow-lg ${badge.shadow}`}>
+                        <Crown className="w-4 h-4" />
+                    </div>
+                )}
+            </div>
             <div className="flex-grow">
                 <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg text-foreground">{trader.name}</h3>
@@ -213,7 +212,7 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
                     跟单
                 </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 pr-16">{trader.description}</p>
+                <p className="text-xs text-muted-foreground mt-1">{trader.description}</p>
             </div>
             </div>
 
@@ -449,3 +448,5 @@ export default function LeaderboardPage() {
     </div>
   )
 }
+
+    
