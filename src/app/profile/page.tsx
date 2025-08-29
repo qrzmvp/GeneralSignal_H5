@@ -12,13 +12,10 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { BarChart, ChevronRight, Copy, Headset, Settings, User, Wallet } from 'lucide-react';
+import { BarChart, ChevronRight, Copy, Edit, Headset, KeyRound, Mail, Settings, User, Wallet } from 'lucide-react';
 
 function ProfileItem({ icon, label, value, action }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode }) {
     return (
@@ -40,6 +37,7 @@ export default function ProfilePage() {
     const user = {
         name: 'CryptoKing',
         id: '88888888',
+        email: 'crypto.king@example.com',
         avatar: 'https://i.pravatar.cc/150?u=cryptoking'
     }
 
@@ -54,10 +52,16 @@ export default function ProfilePage() {
             {/* User Info Card */}
             <Card className="bg-card/50 border-0 shadow-none">
                 <CardContent className="p-4 flex items-center gap-4">
-                    <Avatar className="h-16 w-16 border-2 border-primary/50">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                        <Avatar className="h-16 w-16 border-2 border-primary/50">
+                            <AvatarImage src={user.avatar} alt={user.name} />
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <button className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1.5 hover:bg-primary/80 transition-colors">
+                            <Edit className="h-3 w-3" />
+                            <span className="sr-only">编辑头像</span>
+                        </button>
+                    </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold">{user.name}</h2>
                         <div className="flex items-center text-xs text-muted-foreground">
@@ -65,6 +69,9 @@ export default function ProfilePage() {
                             <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
                                 <Copy className="h-3 w-3" />
                             </Button>
+                        </div>
+                         <div className="flex items-center text-xs text-muted-foreground">
+                            <span>邮箱: {user.email || '--'}</span>
                         </div>
                     </div>
                 </CardContent>
@@ -79,6 +86,20 @@ export default function ProfilePage() {
                     </div>
                  </CardContent>
             </Card>
+
+            {/* Account & Security */}
+            <Card className="bg-card/50 border-border/30">
+                <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-base">账户与安全</CardTitle>
+                </CardHeader>
+                 <CardContent className="p-0">
+                    <div className="divide-y divide-border/30">
+                        <ProfileItem icon={<Mail className="text-primary"/>} label="修改邮箱" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+                        <ProfileItem icon={<KeyRound className="text-primary"/>} label="修改密码" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+                    </div>
+                 </CardContent>
+            </Card>
+
 
              {/* Support */}
              <Card className="bg-card/50 border-border/30">
