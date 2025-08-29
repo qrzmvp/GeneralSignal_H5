@@ -217,15 +217,17 @@ const allSignals = Array.from({ length: 25 }, (_, i) => {
   const isLong = Math.random() > 0.5;
   const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
   const entryPrice = Math.random() * 50000 + 20000;
+  const useRange = Math.random() > 0.7;
   return {
     id: i + 1,
     pair: `${pair}-USDT-SWAP`,
     direction: isLong ? '做多' : '做空',
     directionColor: isLong ? 'text-green-400' : 'text-red-400',
-    entryPrice: entryPrice.toFixed(2),
-    takeProfit1: (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
-    takeProfit2: (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
+    entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
+    takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
+    takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
     stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
+    pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
     createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
   };
 });
@@ -245,6 +247,7 @@ const allHistoricalSignals = Array.from({ length: 30 }, (_, i) => {
     takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
     takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
     stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
+    pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
     createdAt: createTime.toISOString().replace('T', ' ').substring(0, 19),
     endedAt: endTime.toISOString().replace('T', ' ').substring(0, 19),
   };
@@ -254,7 +257,6 @@ const allFollowers = Array.from({ length: 40 }, (_, i) => {
   const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
   return {
       id: i + 200,
-      avatar: `https://i.pravatar.cc/150?u=follower${i}`,
       name: `***${name.slice(-4)}`,
       profit: (Math.random() * 5000).toFixed(2),
       duration: Math.floor(Math.random() * 365) + 1,
@@ -265,11 +267,11 @@ const allFollowers = Array.from({ length: 40 }, (_, i) => {
 const PAGE_SIZE = 5;
 
 
-function InfoPill({ label, value }: { label: string; value: string }) {
+function InfoPill({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="flex items-center justify-between text-sm py-2">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground">{value}</span>
+      <span className="font-medium text-foreground">{value || '--'}</span>
     </div>
   )
 }
@@ -288,7 +290,7 @@ function SignalCard({ signal }: { signal: typeof allSignals[0] }) {
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <Badge variant="secondary" className="font-mono">{signal.pair}</Badge>
+                    <Badge variant="outline" className="font-mono text-base border-primary/50 text-primary">{signal.pair}</Badge>
                     <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
                 </div>
                 <div className="space-y-2 border-t border-border/50 pt-3">
@@ -296,6 +298,7 @@ function SignalCard({ signal }: { signal: typeof allSignals[0] }) {
                     <InfoPill label="止盈点位 1" value={signal.takeProfit1} />
                     <InfoPill label="止盈点位 2" value={signal.takeProfit2} />
                     <InfoPill label="止损点位" value={signal.stopLoss} />
+                    <InfoPill label="建议盈亏比" value={signal.pnlRatio} />
                 </div>
                 <div className="flex justify-between items-end mt-3 pt-3 border-t border-border/50">
                     <div className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -314,7 +317,7 @@ function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <Badge variant="secondary" className="font-mono">{signal.pair}</Badge>
+                    <Badge variant="outline" className="font-mono text-base border-muted-foreground/50 text-muted-foreground">{signal.pair}</Badge>
                     <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
                 </div>
                 <div className="space-y-2 border-t border-border/50 pt-3">
@@ -322,6 +325,7 @@ function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[
                     <InfoPill label="止盈点位 1" value={signal.takeProfit1} />
                     <InfoPill label="止盈点位 2" value={signal.takeProfit2} />
                     <InfoPill label="止损点位" value={signal.stopLoss} />
+                    <InfoPill label="平仓盈亏比" value={signal.pnlRatio} />
                 </div>
                 <div className="space-y-2 mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
                    <div className="flex items-center justify-between">
@@ -682,7 +686,7 @@ export default function TraderDetailPage() {
         </Card>
 
         {/* Signals Section */}
-         <Tabs defaultValue={TABS[0].value} value={TABS[selectedIndex].value} className="w-full">
+        <Tabs value={TABS[selectedIndex].value} className="w-full">
             <div className="px-1">
                 <TabsList className="grid w-full grid-cols-3">
                     {TABS.map((tab, index) => (
@@ -699,7 +703,11 @@ export default function TraderDetailPage() {
 
             <div className="overflow-hidden mt-4" ref={emblaRef}>
                 <div className="flex">
-                    {SLIDES}
+                    {SLIDES.map((slide, index) => (
+                        <div key={index} className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
+                            {slide}
+                        </div>
+                    ))}
                 </div>
             </div>
         </Tabs>
@@ -712,5 +720,3 @@ export default function TraderDetailPage() {
     </div>
   )
 }
-
-    
