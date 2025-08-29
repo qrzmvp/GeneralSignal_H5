@@ -157,7 +157,7 @@ function FeedbackDialog() {
                          <Input id="file-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/jpg" multiple onChange={handleFileChange} />
                     </div>
                 </div>
-                <DialogFooter>
+                <DialogFooter className="flex-row justify-end gap-2">
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">取消</Button>
                     </DialogClose>
@@ -183,8 +183,10 @@ export default function ProfilePage() {
     }
 
     const handleCopyId = () => {
-        navigator.clipboard.writeText(user.id);
-        setShowToast(true);
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(user.id);
+            setShowToast(true);
+        }
     }
 
   return (
@@ -204,8 +206,8 @@ export default function ProfilePage() {
                             <AvatarImage src={user.avatar} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <button className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1.5 hover:bg-accent/80 transition-colors border-2 border-card">
-                            <Edit className="h-3 w-3" />
+                        <button className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors border-2 border-card">
+                            <Edit className="h-4 w-4" />
                             <span className="sr-only">编辑头像</span>
                         </button>
                     </div>
@@ -258,7 +260,7 @@ export default function ProfilePage() {
                                     <ProfileItem icon={<Headset className="text-primary"/>} label="联系客服" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
                                 </div>
                             </DialogTrigger>
-                             <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
+                             <DialogContent className="max-w-[90vw] sm:max-w-xs rounded-lg">
                                 <DialogHeader>
                                 <DialogTitle>联系客服</DialogTitle>
                                 <DialogDescription>
@@ -270,8 +272,8 @@ export default function ProfilePage() {
                                         <Image
                                             src="https://picsum.photos/200/200"
                                             alt="Telegram QR Code"
-                                            width={200}
-                                            height={200}
+                                            width={160}
+                                            height={160}
                                             data-ai-hint="qr code"
                                             className="rounded-md"
                                         />
@@ -321,5 +323,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
