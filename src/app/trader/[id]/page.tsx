@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation'
 import {
   ChevronLeft,
@@ -213,56 +213,6 @@ const traders = [
   }
 ];
 
-const allSignals = Array.from({ length: 25 }, (_, i) => {
-  const isLong = Math.random() > 0.5;
-  const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
-  const entryPrice = Math.random() * 50000 + 20000;
-  const useRange = Math.random() > 0.7;
-  return {
-    id: i + 1,
-    pair: `${pair}-USDT-SWAP`,
-    direction: isLong ? '做多' : '做空',
-    directionColor: isLong ? 'text-green-400' : 'text-red-400',
-    entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
-    takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
-    takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
-    stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
-    pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-    createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
-  };
-});
-
-const allHistoricalSignals = Array.from({ length: 30 }, (_, i) => {
-  const isLong = Math.random() > 0.5;
-  const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
-  const entryPrice = Math.random() * 500 + 100;
-  const createTime = new Date(Date.now() - (i + 25) * 1000 * 60 * 60 * 8); // Start from after current signals
-  const endTime = new Date(createTime.getTime() + Math.random() * 1000 * 60 * 60 * 24);
-  return {
-    id: i + 100, // Avoid key collision
-    pair: `${pair}-USDT-SWAP`,
-    direction: isLong ? '做多' : '做空',
-    directionColor: isLong ? 'text-green-400' : 'text-red-400',
-    entryPrice: entryPrice.toFixed(3),
-    takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
-    takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
-    stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
-    pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-    createdAt: createTime.toISOString().replace('T', ' ').substring(0, 19),
-    endedAt: endTime.toISOString().replace('T', ' ').substring(0, 19),
-  };
-});
-
-const allFollowers = Array.from({ length: 40 }, (_, i) => {
-  const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
-  return {
-      id: i + 200,
-      name: `***${name.slice(-4)}`,
-      profit: (Math.random() * 5000).toFixed(2),
-      duration: Math.floor(Math.random() * 365) + 1,
-  };
-});
-
 
 const PAGE_SIZE = 5;
 
@@ -285,7 +235,7 @@ function MetricItem({ label, value, valueClassName }: { label: string; value: st
     )
 }
 
-function SignalCard({ signal }: { signal: typeof allSignals[0] }) {
+function SignalCard({ signal }: { signal: any }) {
     return (
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
@@ -312,7 +262,7 @@ function SignalCard({ signal }: { signal: typeof allSignals[0] }) {
     );
 }
 
-function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[0] }) {
+function HistoricalSignalCard({ signal }: { signal: any }) {
     return (
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
@@ -329,9 +279,7 @@ function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[
                 </div>
                 <div className="space-y-2 mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
                    <div className="flex items-center justify-between">
-                       <div className="flex items-center gap-1.5">
-                           <span>{signal.createdAt} - {signal.endedAt}</span>
-                       </div>
+                       <span>{signal.createdAt}</span>
                    </div>
                 </div>
             </CardContent>
@@ -339,7 +287,7 @@ function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[
     );
 }
 
-function FollowerCard({ follower }: { follower: typeof allFollowers[0] }) {
+function FollowerCard({ follower }: { follower: any }) {
     return (
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4 flex items-center gap-4">
@@ -398,6 +346,56 @@ export default function TraderDetailPage() {
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const allSignals = useMemo(() => Array.from({ length: 25 }, (_, i) => {
+    const isLong = Math.random() > 0.5;
+    const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
+    const entryPrice = Math.random() * 50000 + 20000;
+    const useRange = Math.random() > 0.7;
+    return {
+      id: i + 1,
+      pair: `${pair}-USDT-SWAP`,
+      direction: isLong ? '做多' : '做空',
+      directionColor: isLong ? 'text-green-400' : 'text-red-400',
+      entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
+      takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
+      takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
+      stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
+      pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+      createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
+    };
+  }), []);
+
+  const allHistoricalSignals = useMemo(() => Array.from({ length: 30 }, (_, i) => {
+    const isLong = Math.random() > 0.5;
+    const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
+    const entryPrice = Math.random() * 500 + 100;
+    const createTime = new Date(Date.now() - (i + 25) * 1000 * 60 * 60 * 8); // Start from after current signals
+    const endTime = new Date(createTime.getTime() + Math.random() * 1000 * 60 * 60 * 24);
+    return {
+      id: i + 100, // Avoid key collision
+      pair: `${pair}-USDT-SWAP`,
+      direction: isLong ? '做多' : '做空',
+      directionColor: isLong ? 'text-green-400' : 'text-red-400',
+      entryPrice: entryPrice.toFixed(3),
+      takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
+      takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
+      stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
+      pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+      createdAt: `${createTime.toISOString().replace('T', ' ').substring(0, 19)} - ${endTime.toISOString().replace('T', ' ').substring(0, 19)}`,
+    };
+  }), []);
+
+  const allFollowers = useMemo(() => Array.from({ length: 40 }, (_, i) => {
+    const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
+    return {
+        id: i + 200,
+        name: `***${name.slice(-4)}`,
+        profit: (Math.random() * 5000).toFixed(2),
+        duration: Math.floor(Math.random() * 365) + 1,
+    };
+  }), []);
+
 
   const [currentSignals, setCurrentSignals] = useState<(typeof allSignals[0])[]>([]);
   const [currentSignalsPage, setCurrentSignalsPage] = useState(1);
@@ -478,41 +476,39 @@ export default function TraderDetailPage() {
         }, 1000);
     }
   }, [
-      currentSignalsLoading, currentSignalsHasMore, currentSignalsPage,
-      historicalSignalsLoading, historicalSignalsHasMore, historicalSignalsPage,
-      followersLoading, followersHasMore, followersPage
+      currentSignalsLoading, currentSignalsHasMore, currentSignalsPage, allSignals,
+      historicalSignalsLoading, historicalSignalsHasMore, historicalSignalsPage, allHistoricalSignals,
+      followersLoading, followersHasMore, followersPage, allFollowers
   ]);
   
   useEffect(() => {
     // This effect is responsible for the initial data load for all three tabs.
     const initialLoad = (type: 'current' | 'historical' | 'followers') => {
-        setTimeout(() => {
-            if (type === 'current') {
-                const newSignals = allSignals.slice(0, PAGE_SIZE);
-                setCurrentSignals(newSignals);
-                setCurrentSignalsPage(2);
-                setCurrentSignalsHasMore(PAGE_SIZE < allSignals.length);
-                setCurrentSignalsLoading(false);
-            } else if (type === 'historical') {
-                const newSignals = allHistoricalSignals.slice(0, PAGE_SIZE);
-                setHistoricalSignals(newSignals);
-                setHistoricalSignalsPage(2);
-                setHistoricalSignalsHasMore(PAGE_SIZE < allHistoricalSignals.length);
-                setHistoricalSignalsLoading(false);
-            } else if (type === 'followers') {
-                const newFollowers = allFollowers.slice(0, PAGE_SIZE);
-                setFollowers(newFollowers);
-                setFollowersPage(2);
-                setFollowersHasMore(PAGE_SIZE < allFollowers.length);
-                setFollowersLoading(false);
-            }
-        }, 500); // Simulate network delay
+        if (type === 'current') {
+            const newSignals = allSignals.slice(0, PAGE_SIZE);
+            setCurrentSignals(newSignals);
+            setCurrentSignalsPage(2);
+            setCurrentSignalsHasMore(PAGE_SIZE < allSignals.length);
+            setCurrentSignalsLoading(false);
+        } else if (type === 'historical') {
+            const newSignals = allHistoricalSignals.slice(0, PAGE_SIZE);
+            setHistoricalSignals(newSignals);
+            setHistoricalSignalsPage(2);
+            setHistoricalSignalsHasMore(PAGE_SIZE < allHistoricalSignals.length);
+            setHistoricalSignalsLoading(false);
+        } else if (type === 'followers') {
+            const newFollowers = allFollowers.slice(0, PAGE_SIZE);
+            setFollowers(newFollowers);
+            setFollowersPage(2);
+            setFollowersHasMore(PAGE_SIZE < allFollowers.length);
+            setFollowersLoading(false);
+        }
     };
 
     initialLoad('current');
     initialLoad('historical');
     initialLoad('followers');
-  }, []);
+  }, [allSignals, allHistoricalSignals, allFollowers]);
 
   useEffect(() => {
     if (currentInView && !currentSignalsLoading) loadMore('current');
@@ -716,3 +712,5 @@ export default function TraderDetailPage() {
     </div>
   )
 }
+
+    
