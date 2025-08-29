@@ -327,7 +327,7 @@ export default function TraderDetailPage() {
 
        {/* Floating Footer */}
       <footer className="fixed bottom-0 left-0 right-0 z-10 bg-background/80 border-t border-border/50 backdrop-blur-sm p-4">
-        <Button className="w-full font-bold text-lg h-12">立即跟单</Button>
+        <Button className="w-full font-bold text-lg h-11 rounded-full">立即跟单</Button>
       </footer>
     </div>
   )

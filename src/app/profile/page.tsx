@@ -48,7 +48,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 
 
 function ProfileItem({ icon, label, value, action, onClick }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void }) {
@@ -218,19 +217,24 @@ export default function ProfilePage() {
       <main className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="space-y-6">
             {/* User Info Card */}
-            <Card className="bg-card/50 border-0 shadow-none">
+            <Card className="bg-card/50 border-0 shadow-none relative overflow-hidden">
+                 {user.membership && (
+                    <div className="absolute top-0 right-0 h-20 w-20">
+                        <div className="absolute transform rotate-45 bg-yellow-400 text-center text-yellow-900 font-semibold py-1 right-[-45px] top-[20px] w-[120px] shadow-lg shadow-yellow-400/30">
+                            <div className='flex items-center justify-center'>
+                                <Crown className="w-3 h-3 mr-1" />
+                                {user.membership}
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <CardContent className="p-4 flex items-center gap-4">
                     <div className="relative">
                         <Avatar className="h-16 w-16 border-2 border-primary/50">
                             <AvatarImage src={user.avatar} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        {user.membership && (
-                           <Badge className="absolute -top-2 -right-8 bg-yellow-400 text-yellow-900 shadow-lg shadow-yellow-400/50 hover:bg-yellow-400">
-                                <Crown className="w-3 h-3 mr-1" />
-                                {user.membership}
-                           </Badge>
-                        )}
+                        
                         <button className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors border-2 border-card">
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">编辑头像</span>
