@@ -247,7 +247,10 @@ function SignalCard({ signal }: { signal: any }) {
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <Badge variant="outline" className="font-mono text-base border-primary/50 text-primary">{signal.pair}</Badge>
+                    <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-base border-primary/50 text-primary">{signal.pair}</Badge>
+                        <Badge variant="secondary">限价单</Badge>
+                    </div>
                     <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
                 </div>
                 <div className="space-y-2 border-t border-border/50 pt-3">
@@ -274,7 +277,10 @@ function HistoricalSignalCard({ signal }: { signal: any }) {
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
                 <div className="flex justify-between items-center mb-3">
-                    <Badge variant="outline" className="font-mono text-base border-muted-foreground/50 text-muted-foreground">{signal.pair}</Badge>
+                     <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-base border-muted-foreground/50 text-muted-foreground">{signal.pair}</Badge>
+                         <Badge variant="secondary">限价单</Badge>
+                    </div>
                     <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
                 </div>
                 <div className="space-y-2 border-t border-border/50 pt-3">
@@ -325,7 +331,7 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm p-0 h-auto">
           {label}
           <ChevronDown className="w-4 h-4 ml-1" />
         </Button>

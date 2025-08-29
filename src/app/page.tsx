@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Card,
   CardContent,
@@ -39,6 +39,7 @@ import { Badge } from '@/components/ui/badge'
 interface Trader {
   id: number
   name: string
+  avatar: string
   description: string
   yield: number
   winRate: number
@@ -51,6 +52,7 @@ const allTraders: Trader[] = [
     {
     id: 1,
     name: 'WWG-Woods',
+    avatar: 'https://i.pravatar.cc/150?u=wwg-woods',
     description: '盈亏同源高收益追涨模式采用指数级复利操作',
     yield: 288.0,
     winRate: 95.0,
@@ -61,6 +63,7 @@ const allTraders: Trader[] = [
   {
     id: 2,
     name: 'WWG-Jonh',
+    avatar: 'https://i.pravatar.cc/150?u=jonh',
     description: '寻找超额收益，多策略组合',
     yield: 265.0,
     winRate: 98.0,
@@ -71,6 +74,7 @@ const allTraders: Trader[] = [
   {
     id: 3,
     name: 'WWG-Hbj',
+    avatar: 'https://i.pravatar.cc/150?u=hbj',
     description: '深耕以太坊生态，价值发现',
     yield: 250.0,
     winRate: 90.1,
@@ -81,6 +85,7 @@ const allTraders: Trader[] = [
     {
     id: 4,
     name: '量化大师',
+    avatar: 'https://i.pravatar.cc/150?u=quant',
     description: '高频交易，算法驱动',
     yield: 150.7,
     winRate: 65.7,
@@ -91,6 +96,7 @@ const allTraders: Trader[] = [
   {
     id: 5,
     name: '趋势猎人',
+    avatar: 'https://i.pravatar.cc/150?u=hunter',
     description: '顺势而为，捕捉大趋势行情',
     yield: 120.4,
     winRate: 76.8,
@@ -101,6 +107,7 @@ const allTraders: Trader[] = [
   {
     id: 6,
     name: '波段之王',
+    avatar: 'https://i.pravatar.cc/150?u=swing',
     description: '高抛低吸，精通市场情绪',
     yield: 95.6,
     winRate: 89.1,
@@ -111,6 +118,7 @@ const allTraders: Trader[] = [
   {
     id: 7,
     name: '合约常胜军',
+    avatar: 'https://i.pravatar.cc/150?u=futures',
     description: '杠杆艺术，风险控制大师',
     yield: 88.0,
     winRate: 95.0,
@@ -121,6 +129,7 @@ const allTraders: Trader[] = [
   {
     id: 8,
     name: 'BTC信仰者',
+    avatar: 'https://i.pravatar.cc/150?u=btc',
     description: '只做比特币，长期持有',
     yield: 75.1,
     winRate: 85.3,
@@ -131,6 +140,7 @@ const allTraders: Trader[] = [
   {
     id: 9,
     name: '短线快枪手',
+    avatar: 'https://i.pravatar.cc/150?u=quick',
     description: '超短线交易，积少成多',
     yield: 68.5,
     winRate: 92.84,
@@ -144,6 +154,7 @@ const allTraders: Trader[] = [
   {
     id: 10,
     name: 'ETH布道者',
+    avatar: 'https://i.pravatar.cc/150?u=eth',
     description: '深耕以太坊生态，价值发现',
     yield: 63.2,
     winRate: 82.4,
@@ -154,6 +165,7 @@ const allTraders: Trader[] = [
   {
     id: 11,
     name: 'Alpha Seeker',
+    avatar: 'https://i.pravatar.cc/150?u=alpha',
     description: '寻找超额收益，多策略组合',
     yield: 52.3,
     winRate: 87.92,
@@ -167,6 +179,7 @@ const allTraders: Trader[] = [
   {
     id: 12,
     name: '狙击涨停板',
+    avatar: 'https://i.pravatar.cc/150?u=limit-up',
     description: '专注强势币种，高风险高回报',
     yield: 48.9,
     winRate: 91.5,
@@ -177,6 +190,7 @@ const allTraders: Trader[] = [
   {
     id: 13,
     name: '抄底王',
+    avatar: 'https://i.pravatar.cc/150?u=dip',
     description: '左侧交易，逆势布局',
     yield: 45.5,
     winRate: 88.0,
@@ -187,6 +201,7 @@ const allTraders: Trader[] = [
   {
     id: 14,
     name: '币圈巴菲特',
+    avatar: 'https://i.pravatar.cc/150?u=buffett',
     description: '屯币不动，穿越牛熊',
     yield: 41.6,
     winRate: 78.45,
@@ -215,6 +230,7 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
             <div className="flex items-start gap-4">
              <div className="relative shrink-0">
                 <Avatar className="h-16 w-16">
+                    <AvatarImage src={trader.avatar} alt={trader.name} />
                     <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {badge && (
