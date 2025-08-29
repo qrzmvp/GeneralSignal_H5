@@ -425,7 +425,7 @@ export default function LeaderboardPage() {
 
       {/* Trader List */}
       <main ref={mainContentRef} className="flex-grow overflow-auto px-4 pt-2 pb-24">
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-3">
             {filteredTraders.map((trader, index) => (
               <Link href={`/trader/${trader.id}`} key={`${trader.id}-${index}`}>
                 <TraderCard 
@@ -481,5 +481,3 @@ export default function LeaderboardPage() {
     </div>
   )
 }
-
-    

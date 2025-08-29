@@ -246,8 +246,9 @@ export default function ProfilePage() {
                                 <Copy className="h-3 w-3" />
                             </Button>
                         </div>
-                         <div className="flex items-center text-xs text-muted-foreground">
-                            <span>邮箱: {user.email || '--'}</span>
+                         <div className="flex items-center text-xs text-muted-foreground gap-1">
+                            <Mail className="w-3 h-3" />
+                            <span>{user.email || '--'}</span>
                         </div>
                     </div>
                 </CardContent>
