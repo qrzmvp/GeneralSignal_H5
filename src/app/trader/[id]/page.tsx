@@ -396,21 +396,21 @@ export default function TraderDetailPage() {
 
   const [currentSignals, setCurrentSignals] = useState<(typeof allSignals[0])[]>([]);
   const [currentSignalsPage, setCurrentSignalsPage] = useState(1);
-  const [currentSignalsLoading, setCurrentSignalsLoading] = useState(false);
+  const [currentSignalsLoading, setCurrentSignalsLoading] = useState(true);
   const [currentSignalsHasMore, setCurrentSignalsHasMore] = useState(true);
   const { ref: currentLoadMoreRef, inView: currentInView } = useInView({ threshold: 0.1 });
   const [currentFilterLabel, setCurrentFilterLabel] = useState('近三个月');
 
   const [historicalSignals, setHistoricalSignals] = useState<(typeof allHistoricalSignals[0])[]>([]);
   const [historicalSignalsPage, setHistoricalSignalsPage] = useState(1);
-  const [historicalSignalsLoading, setHistoricalSignalsLoading] = useState(false);
+  const [historicalSignalsLoading, setHistoricalSignalsLoading] = useState(true);
   const [historicalSignalsHasMore, setHistoricalSignalsHasMore] = useState(true);
   const { ref: historicalLoadMoreRef, inView: historicalInView } = useInView({ threshold: 0.1 });
   const [historicalFilterLabel, setHistoricalFilterLabel] = useState('近三个月');
 
   const [followers, setFollowers] = useState<(typeof allFollowers[0])[]>([]);
   const [followersPage, setFollowersPage] = useState(1);
-  const [followersLoading, setFollowersLoading] = useState(false);
+  const [followersLoading, setFollowersLoading] = useState(true);
   const [followersHasMore, setFollowersHasMore] = useState(true);
   const { ref: followersLoadMoreRef, inView: followersInView } = useInView({ threshold: 0.1 });
 
@@ -484,16 +484,16 @@ export default function TraderDetailPage() {
   }, []);
 
   useEffect(() => {
-    if (currentInView) loadMore('current');
-  }, [currentInView, loadMore]);
+    if (currentInView && !currentSignalsLoading) loadMore('current');
+  }, [currentInView, currentSignalsLoading, loadMore]);
 
   useEffect(() => {
-    if (historicalInView) loadMore('historical');
-  }, [historicalInView, loadMore]);
+    if (historicalInView && !historicalSignalsLoading) loadMore('historical');
+  }, [historicalInView, historicalSignalsLoading, loadMore]);
   
   useEffect(() => {
-    if (followersInView) loadMore('followers');
-  }, [followersInView, loadMore]);
+    if (followersInView && !followersLoading) loadMore('followers');
+  }, [followersInView, followersLoading, loadMore]);
 
 
   if (!trader) {
@@ -554,7 +554,7 @@ export default function TraderDetailPage() {
         </Card>
 
         {/* Signals Section */}
-        <div>
+        <Tabs defaultValue={TABS[0].value} className="w-full">
             <div className="px-1">
                 <TabsList className="grid w-full grid-cols-3">
                     {TABS.map((tab, index) => (
@@ -600,7 +600,13 @@ export default function TraderDetailPage() {
                             ))}
                         </div>
                         <div ref={currentLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                            {currentSignalsLoading && (
+                            {currentSignalsLoading && currentSignals.length === 0 &&(
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <span>加载中...</span>
+                                </>
+                            )}
+                            {currentSignalsLoading && currentSignals.length > 0 && (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     <span>加载中...</span>
@@ -661,7 +667,7 @@ export default function TraderDetailPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </Tabs>
       </main>
 
        {/* Floating Footer */}
@@ -671,5 +677,3 @@ export default function TraderDetailPage() {
     </div>
   )
 }
-
-    
