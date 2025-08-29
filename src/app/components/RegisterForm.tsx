@@ -26,6 +26,7 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFor
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
+    // Simulate API call
     setTimeout(() => {
       setLoading(false);
       onRegisterSuccess();
@@ -42,30 +43,30 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFor
         <CardContent className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="username-register">用户名</Label>
-            <Input id="username-register" required autoComplete="username" />
+            <Input id="username-register" required autoComplete="username" className="bg-background/50"/>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email-register">邮箱</Label>
-            <Input id="email-register" type="email" required autoComplete="email"/>
+            <Input id="email-register" type="email" required autoComplete="email" className="bg-background/50"/>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password-register">密码</Label>
-            <Input id="password-register" type="password" required autoComplete="new-password"/>
+            <Input id="password-register" type="password" required autoComplete="new-password" className="bg-background/50"/>
           </div>
+        </CardContent>
+        <CardFooter className="flex-col gap-4">
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             注册
           </Button>
-        </CardContent>
+          <p className="text-sm text-muted-foreground">
+            已经有帐户了？{" "}
+            <button type="button" onClick={onSwitchToLogin} className="underline underline-offset-4 hover:text-primary transition-colors">
+              登录
+            </button>
+          </p>
+        </CardFooter>
       </form>
-      <CardFooter className="flex justify-center">
-        <p className="text-sm text-muted-foreground">
-          已经有帐户了？{" "}
-          <button onClick={onSwitchToLogin} className="underline underline-offset-4 hover:text-primary transition-colors">
-            登录
-          </button>
-        </p>
-      </CardFooter>
     </Card>
   );
 }
