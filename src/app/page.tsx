@@ -358,7 +358,7 @@ export default function LeaderboardPage() {
       
       <header className="flex-shrink-0">
         <div ref={headerTitleRef} className="flex items-center justify-center p-4 h-14 transition-all duration-300 ease-in-out overflow-hidden">
-          <h1 className="font-bold text-lg">牛人榜单</h1>
+          <h1 className="font-bold text-lg">将军榜单</h1>
         </div>
 
         <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm">
@@ -430,7 +430,7 @@ export default function LeaderboardPage() {
                 }`}
             >
                 <BarChart className="h-6 w-6" />
-                <span className="text-xs font-medium">牛人榜</span>
+                <span className="text-xs font-medium">将军榜</span>
             </button>
             <Link href="/login" passHref className="flex-1 contents">
               <button
