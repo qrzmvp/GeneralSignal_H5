@@ -28,6 +28,8 @@ import {
   Line,
   ResponsiveContainer,
   YAxis,
+  Area,
+  AreaChart
 } from 'recharts'
 import { useInView } from 'react-intersection-observer'
 
@@ -177,7 +179,7 @@ const allTraders: Trader[] = [
   },
 ];
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 function TraderCard({ trader }: { trader: Trader }) {
   return (
@@ -190,8 +192,8 @@ function TraderCard({ trader }: { trader: Trader }) {
           <div className="flex-grow">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg text-foreground">{trader.name}</h3>
-              <Button size="icon" variant="outline" className="bg-transparent text-primary border-primary hover:bg-primary/10 rounded-full h-8 w-8">
-                <Plus className="h-4 w-4" />
+              <Button size="sm" variant="outline" className="bg-transparent text-primary border-primary hover:bg-primary/10 rounded-full px-4">
+                跟单
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{trader.description}</p>
@@ -219,7 +221,7 @@ function TraderCard({ trader }: { trader: Trader }) {
 
         <div className="h-20 mt-2 -mb-2 -ml-4 -mr-4">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trader.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+            <AreaChart data={trader.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
               <defs>
                   <linearGradient id={`gradient-${trader.id}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -227,15 +229,15 @@ function TraderCard({ trader }: { trader: Trader }) {
                   </linearGradient>
                 </defs>
               <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide={true} />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="value"
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
-                dot={false}
                 fill={`url(#gradient-${trader.id})`}
+                fillOpacity={1}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
@@ -276,9 +278,13 @@ export default function LeaderboardPage() {
 
         setTimeout(() => {
             const newTraders = allTraders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-            setTraders(prev => [...prev, ...newTraders]);
-            setPage(prev => prev + 1);
-            setHasMore(traders.length + newTraders.length < allTraders.length);
+            if (newTraders.length > 0) {
+                setTraders(prev => [...prev, ...newTraders]);
+                setPage(prev => prev + 1);
+            }
+            if (traders.length + newTraders.length >= allTraders.length) {
+                setHasMore(false);
+            }
             setLoading(false);
         }, 1000); // Simulate network delay
     };
@@ -288,10 +294,10 @@ export default function LeaderboardPage() {
     }, []);
 
     useEffect(() => {
-        if (inView) {
+        if (inView && hasMore) {
             loadMoreTraders();
         }
-    }, [inView]);
+    }, [inView, hasMore]);
     
     useEffect(() => {
         const headerTitle = headerTitleRef.current;
@@ -361,14 +367,13 @@ export default function LeaderboardPage() {
             ))}
         </div>
         <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-            {loading ? (
+            {loading && (
                 <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     <span>加载中...</span>
                 </>
-            ) : hasMore ? (
-               null
-            ) : (
+            )}
+            {!loading && !hasMore && (
                 <span>已经到底了</span>
             )}
         </div>
