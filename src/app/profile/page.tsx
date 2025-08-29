@@ -80,7 +80,7 @@ export default function ProfilePage() {
                             <AvatarImage src={user.avatar} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <button className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1.5 hover:bg-primary/80 transition-colors">
+                        <button className="absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors">
                             <Edit className="h-3 w-3" />
                             <span className="sr-only">编辑头像</span>
                         </button>
@@ -135,7 +135,7 @@ export default function ProfilePage() {
                         </DialogTrigger>
                     </CardContent>
                 </Card>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
                     <DialogHeader>
                     <DialogTitle>联系客服</DialogTitle>
                     <DialogDescription>
