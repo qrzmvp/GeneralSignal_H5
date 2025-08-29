@@ -328,37 +328,23 @@ export default function LeaderboardPage() {
             } else {
                 setHasMore(false);
             }
-            if (traders.length + newTraders.length >= sortedTraders.length) {
-                setHasMore(false);
-            }
+            // This check should use the most up-to-date state
+            setTraders(currentTraders => {
+                 if (currentTraders.length >= sortedTraders.length) {
+                    setHasMore(false);
+                }
+                return currentTraders;
+            });
             setLoading(false);
         }, 1000); 
     };
 
     useEffect(() => {
-        if (!searchQuery) {
-            // Reset and load initial traders
-            setTraders([]);
-            setPage(1);
-            setHasMore(true);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchQuery]);
-
-    useEffect(() => {
-        if (!searchQuery) {
+        if (inView && hasMore && !loading && !searchQuery) {
             loadMoreTraders();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchQuery, sortedTraders]);
-
-
-    useEffect(() => {
-        if (inView && hasMore && !searchQuery) {
-            loadMoreTraders();
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [inView, hasMore, searchQuery]);
+    }, [inView, hasMore, loading, searchQuery]);
     
     useEffect(() => {
         const headerTitle = headerTitleRef.current;
@@ -438,7 +424,7 @@ export default function LeaderboardPage() {
               <Link href={`/trader/${trader.id}`} key={`${trader.id}-${index}`}>
                 <TraderCard 
                     trader={trader} 
-                    rank={traders.findIndex(t => t.id === trader.id) + 1}
+                    rank={sortedTraders.findIndex(t => t.id === trader.id) + 1}
                     is综合排序={!searchQuery} // Only show ranks if not searching
                 />
               </Link>
@@ -452,7 +438,7 @@ export default function LeaderboardPage() {
                         <span>加载中...</span>
                     </>
                 )}
-                {!loading && !hasMore && (
+                {!loading && !hasMore && traders.length > 0 && (
                     <span>已经到底了</span>
                 )}
             </div>
