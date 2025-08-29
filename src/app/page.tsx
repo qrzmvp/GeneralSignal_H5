@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { LoginForm } from './components/LoginForm'
 import { RegisterForm } from './components/RegisterForm'
 import { WelcomePage } from './components/WelcomePage'
 import { CryptoBackground } from './components/CryptoBackground'
+import { Button } from '@/components/ui/button'
 
 type AppState = 'login' | 'register' | 'welcome'
 
@@ -53,6 +55,14 @@ export default function App() {
           
           {currentPage === 'welcome' && (
             <WelcomePage onLogout={handleLogout} />
+          )}
+
+          {currentPage === 'welcome' && (
+             <div className="text-center">
+                <Link href="/leaderboard" passHref>
+                  <Button variant="link">进入牛人榜</Button>
+                </Link>
+            </div>
           )}
         </div>
       </div>
