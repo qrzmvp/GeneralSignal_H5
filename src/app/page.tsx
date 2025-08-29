@@ -35,6 +35,7 @@ import {
 } from 'recharts'
 import { useInView } from 'react-intersection-observer'
 import { Badge } from '@/components/ui/badge'
+import { FollowOrderSheet } from './components/FollowOrderSheet'
 
 interface Trader {
   id: number
@@ -221,7 +222,7 @@ const RANK_BADGES: {[key: number]: { color: string }} = {
     3: { color: "text-amber-600" },   // Bronze
 }
 
-function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: number, is综合排序: boolean }) {
+function TraderCard({ trader, rank, is综合排序, onFollowClick }: { trader: Trader, rank: number, is综合排序: boolean, onFollowClick: () => void }) {
     const badge = is综合排序 && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
     return (
@@ -239,55 +240,68 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
             </div>
             <div className="flex-grow">
                 <div className="flex justify-between items-center">
-                <h3 className="font-bold text-lg text-foreground">{trader.name}</h3>
-                <Button size="sm" variant="outline" className="bg-transparent text-primary border-primary hover:bg-primary/10 rounded-full px-4">
-                    跟单
-                </Button>
+                    <Link href={{ pathname: `/trader/${trader.id}`, query: { rank } }} className="flex-grow">
+                        <h3 className="font-bold text-lg text-foreground hover:underline">{trader.name}</h3>
+                    </Link>
+                    <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="bg-transparent text-primary border-primary hover:bg-primary/10 rounded-full px-4"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onFollowClick();
+                        }}
+                    >
+                        跟单
+                    </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{trader.description}</p>
+                <Link href={{ pathname: `/trader/${trader.id}`, query: { rank } }}>
+                    <p className="text-xs text-muted-foreground mt-1 hover:underline">{trader.description}</p>
+                </Link>
             </div>
             </div>
+            <Link href={{ pathname: `/trader/${trader.id}`, query: { rank } }}>
+                <div className="grid grid-cols-4 gap-2 text-center mt-4">
+                <div>
+                    <p className="text-xs text-muted-foreground">收益率</p>
+                    <p className="text-sm font-semibold text-green-400 mt-1">+{trader.yield}%</p>
+                </div>
+                <div>
+                    <p className="text-xs text-muted-foreground">胜率</p>
+                    <p className="text-sm font-semibold text-foreground mt-1">{trader.winRate}%</p>
+                </div>
+                <div>
+                    <p className="text-xs text-muted-foreground">盈亏比</p>
+                    <p className="text-sm font-semibold text-foreground mt-1">{trader.pnlRatio}</p>
+                </div>
+                <div>
+                    <p className="text-xs text-muted-foreground">累计信号</p>
+                    <p className="text-sm font-semibold text-foreground mt-1">{trader.totalOrders}</p>
+                </div>
+                </div>
 
-            <div className="grid grid-cols-4 gap-2 text-center mt-4">
-            <div>
-                <p className="text-xs text-muted-foreground">收益率</p>
-                <p className="text-sm font-semibold text-green-400 mt-1">+{trader.yield}%</p>
-            </div>
-            <div>
-                <p className="text-xs text-muted-foreground">胜率</p>
-                <p className="text-sm font-semibold text-foreground mt-1">{trader.winRate}%</p>
-            </div>
-            <div>
-                <p className="text-xs text-muted-foreground">盈亏比</p>
-                <p className="text-sm font-semibold text-foreground mt-1">{trader.pnlRatio}</p>
-            </div>
-            <div>
-                <p className="text-xs text-muted-foreground">累计信号</p>
-                <p className="text-sm font-semibold text-foreground mt-1">{trader.totalOrders}</p>
-            </div>
-            </div>
-
-            <div className="h-20 mt-2 -mb-2 -ml-4 -mr-4">
-            <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trader.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-                <defs>
-                    <linearGradient id={`gradient-${trader.id}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                    </defs>
-                <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide={true} />
-                <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    fill={`url(#gradient-${trader.id})`}
-                    fillOpacity={1}
-                />
-                </AreaChart>
-            </ResponsiveContainer>
-            </div>
+                <div className="h-20 mt-2 -mb-2 -ml-4 -mr-4">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trader.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+                    <defs>
+                        <linearGradient id={`gradient-${trader.id}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        </linearGradient>
+                        </defs>
+                    <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide={true} />
+                    <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        fill={`url(#gradient-${trader.id})`}
+                        fillOpacity={1}
+                    />
+                    </AreaChart>
+                </ResponsiveContainer>
+                </div>
+            </Link>
         </CardContent>
         </Card>
     )
@@ -321,6 +335,8 @@ export default function LeaderboardPage() {
     const headerTitleRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLElement>(null);
     const [sortedTraders, setSortedTraders] = useState<Trader[]>([]);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [selectedTraderId, setSelectedTraderId] = useState<number | null>(null);
 
     useEffect(() => {
         // Start with loading true
@@ -336,6 +352,11 @@ export default function LeaderboardPage() {
         }
         setLoading(false);
     }, []);
+
+    const handleFollowClick = (traderId: number) => {
+        setSelectedTraderId(traderId);
+        setIsSheetOpen(true);
+    };
 
     const loadMoreTraders = () => {
         if (loading || !hasMore || searchQuery) return;
@@ -398,6 +419,7 @@ export default function LeaderboardPage() {
     }, [searchQuery, traders, sortedTraders]);
 
   return (
+    <>
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
       
       <header className="flex-shrink-0">
@@ -443,13 +465,13 @@ export default function LeaderboardPage() {
             {filteredTraders.map((trader) => {
               const rank = sortedTraders.findIndex(t => t.id === trader.id) + 1;
               return (
-                <Link href={{ pathname: `/trader/${trader.id}`, query: { rank } }} key={trader.id}>
-                    <TraderCard 
-                        trader={trader} 
-                        rank={rank}
-                        is综合排序={!searchQuery} // Only show ranks if not searching
-                    />
-                </Link>
+                <TraderCard 
+                    key={trader.id}
+                    trader={trader} 
+                    rank={rank}
+                    is综合排序={!searchQuery} // Only show ranks if not searching
+                    onFollowClick={() => handleFollowClick(trader.id)}
+                />
               )
             })}
         </div>
@@ -496,5 +518,14 @@ export default function LeaderboardPage() {
         </div>
       </nav>
     </div>
+    <FollowOrderSheet 
+        isOpen={isSheetOpen} 
+        onOpenChange={setIsSheetOpen} 
+        traders={allTraders}
+        defaultTraderId={selectedTraderId}
+    />
+    </>
   )
 }
+
+    

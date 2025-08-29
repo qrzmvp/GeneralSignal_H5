@@ -25,8 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useInView } from 'react-intersection-observer'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import useEmblaCarousel from 'embla-carousel-react'
-
+import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
 
 // Mock data - in a real app, you'd fetch this based on the `id` param
 const traders = [
@@ -298,10 +297,12 @@ function HistoricalSignalCard({ signal }: { signal: any }) {
                     <InfoPill label="止损点位" value={signal.stopLoss} />
                     <InfoPill label="平仓盈亏比" value={signal.pnlRatio} />
                 </div>
-                <div className="space-y-2 mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
-                   <div className="flex items-center justify-between">
-                       <span>{signal.createdAt}</span>
-                   </div>
+                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Clock className="w-3 h-3" />
+                        {signal.createdAt}
+                    </div>
+                    <span className="text-sm font-medium text-muted-foreground">{signal.status}</span>
                 </div>
             </CardContent>
         </Card>
@@ -368,8 +369,8 @@ export default function TraderDetailPage() {
   const trader = traders.find(t => t.id === traderId);
   const badge = rank && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedTabIndex, setSelectedIndex] = useState(0);
 
   const { allSignals, allHistoricalSignals, allFollowers } = useMemo(() => {
     const allSignals = Array.from({ length: 25 }, (_, i) => {
@@ -399,19 +400,20 @@ export default function TraderDetailPage() {
         const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
         const entryPrice = Math.random() * 500 + 100;
         return {
-        id: i + 100, // Avoid key collision
-        pair: `${pair}-USDT-SWAP`,
-        direction: isLong ? '做多' : '做空',
-        directionColor: isLong ? 'text-green-400' : 'text-red-400',
-        entryPrice: entryPrice.toFixed(3),
-        takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
-        takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
-        stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
-        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-        createdAt: `2024-04-1${8-i} 18:3${i % 10}:00`,
-        orderType: '限价单',
-        type: '合约',
-        marginMode: '全仓',
+            id: i + 100, // Avoid key collision
+            pair: `${pair}-USDT-SWAP`,
+            direction: isLong ? '做多' : '做空',
+            directionColor: isLong ? 'text-green-400' : 'text-red-400',
+            entryPrice: entryPrice.toFixed(3),
+            takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
+            takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
+            stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
+            pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+            createdAt: `2024-04-1${8 - (i % 9)} 18:3${i % 10}:00`,
+            orderType: '限价单',
+            type: '合约',
+            marginMode: '全仓',
+            status: Math.random() > 0.3 ? '止盈平仓' : '止损平仓',
         };
     });
 
@@ -452,26 +454,18 @@ export default function TraderDetailPage() {
   const [historicalDirectionFilter, setHistoricalDirectionFilter] = useState('全部方向');
   const [historicalPairFilter, setHistoricalPairFilter] = useState('全部币种');
 
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
+  const TABS = [
+    { value: "current", label: "当前信号", icon: User },
+    { value: "historical", label: "历史信号", icon: History },
+    { value: "followers", label: "跟单用户", icon: Users }
+  ];
 
-  useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.on("select", onSelect);
-    return () => {
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi, onSelect]);
-
-  useEffect(() => {
-     if(emblaApi) emblaApi.reInit();
-  }, [emblaApi, currentSignals, historicalSignals, followers]);
-
-  const scrollTo = useCallback((index: number) => {
-    if (emblaApi) emblaApi.scrollTo(index);
-  }, [emblaApi]);
+  const handleTabChange = (value: string) => {
+    const newIndex = TABS.findIndex(tab => tab.value === value);
+    if (newIndex !== -1) {
+        setSelectedIndex(newIndex);
+    }
+  };
   
   const loadMore = useCallback((type: 'current' | 'historical' | 'followers') => {
     if (type === 'current') {
@@ -564,15 +558,10 @@ export default function TraderDetailPage() {
     );
   }
   
-  const TABS = [
-    { value: "current", label: "当前信号", icon: User },
-    { value: "historical", label: "历史信号", icon: History },
-    { value: "followers", label: "跟单用户", icon: Users }
-  ];
-  
-  const SLIDES = [
-    <div key="current-slide">
-        <div className="flex justify-between items-center mb-3">
+  const TABS_CONTENT = [
+    (
+    <div key="current-slide" className="min-w-0 flex-shrink-0 flex-grow-0 basis-full">
+        <div className="flex justify-between items-center mb-3 -mt-2">
              <div className="flex items-center gap-2">
                 <FilterDropdown
                     label={directionFilter}
@@ -610,9 +599,11 @@ export default function TraderDetailPage() {
                 <span>已经到底了</span>
             )}
         </div>
-    </div>,
-    <div key="historical-slide">
-        <div className="flex justify-between items-center mb-3">
+    </div>
+    ),
+    (
+    <div key="historical-slide" className="min-w-0 flex-shrink-0 flex-grow-0 basis-full">
+        <div className="flex justify-between items-center mb-3 -mt-2">
             <div className="flex items-center gap-2">
                 <FilterDropdown
                     label={historicalDirectionFilter}
@@ -650,8 +641,10 @@ export default function TraderDetailPage() {
                 <span>已经到底了</span>
             )}
         </div>
-    </div>,
-    <div key="followers-slide">
+    </div>
+    ),
+    (
+    <div key="followers-slide" className="min-w-0 flex-shrink-0 flex-grow-0 basis-full">
         <div className="space-y-3">
             {followers.map(follower => (
                 <FollowerCard key={follower.id} follower={follower} />
@@ -669,9 +662,11 @@ export default function TraderDetailPage() {
             )}
         </div>
     </div>
+    )
   ];
 
   return (
+    <>
     <div className="bg-background min-h-screen text-foreground flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
@@ -719,7 +714,7 @@ export default function TraderDetailPage() {
         </Card>
 
         {/* Signals Section */}
-         <Tabs value={TABS[selectedIndex].value} onValueChange={(value) => scrollTo(TABS.findIndex(t => t.value === value))} className="w-full">
+         <Tabs value={TABS[selectedTabIndex].value} onValueChange={handleTabChange} className="w-full">
             <div className="px-1">
                 <TabsList className="grid w-full grid-cols-3">
                     {TABS.map((tab) => (
@@ -733,13 +728,12 @@ export default function TraderDetailPage() {
                 </TabsList>
             </div>
 
-            <div className="overflow-hidden mt-4" ref={emblaRef}>
-                <div className="flex">
-                    {SLIDES.map((slide, index) => (
-                        <div key={index} className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
-                            {slide}
-                        </div>
-                    ))}
+            <div className="overflow-hidden mt-4">
+                <div 
+                    className="flex transition-transform duration-300 ease-in-out"
+                    style={{ transform: `translateX(-${selectedTabIndex * 100}%)` }}
+                >
+                    {TABS_CONTENT}
                 </div>
             </div>
         </Tabs>
@@ -747,9 +741,16 @@ export default function TraderDetailPage() {
 
        {/* Floating Footer */}
       <footer className="fixed bottom-0 left-0 right-0 z-10 bg-background/80 border-t border-border/50 backdrop-blur-sm p-4">
-        <Button className="w-full font-bold text-lg h-11 rounded-full">立即跟单</Button>
+        <Button className="w-full font-bold text-lg h-11 rounded-full" onClick={() => setIsSheetOpen(true)}>立即跟单</Button>
       </footer>
     </div>
+    <FollowOrderSheet 
+        isOpen={isSheetOpen} 
+        onOpenChange={setIsSheetOpen} 
+        traders={traders}
+        defaultTraderId={traderId}
+    />
+    </>
   )
 }
 
