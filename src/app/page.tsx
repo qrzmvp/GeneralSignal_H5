@@ -200,10 +200,10 @@ const allTraders: Trader[] = [
 ];
 
 const PAGE_SIZE = 10;
-const RANK_BADGES: {[key: number]: { content: string, color: string }} = {
-    1: { content: "冠军", color: "bg-yellow-400 text-yellow-900" }, // Gold
-    2: { content: "亚军", color: "bg-slate-300 text-slate-800" }, // Silver
-    3: { content: "季军", color: "bg-amber-600 text-amber-100" },   // Bronze
+const RANK_BADGES: {[key: number]: { color: string }} = {
+    1: { color: "text-yellow-400" }, // Gold
+    2: { color: "text-slate-400" }, // Silver
+    3: { color: "text-amber-600" },   // Bronze
 }
 
 function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: number, is综合排序: boolean }) {
@@ -213,16 +213,12 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
         <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden">
         <CardContent className="p-4">
             <div className="flex items-start gap-4">
-            <div className="relative shrink-0">
+             <div className="relative shrink-0">
                 <Avatar className="h-16 w-16">
                     <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {badge && (
-                     <div className="absolute top-0 left-0 -translate-x-1/4 -translate-y-1/4 z-10">
-                        <div className={`w-16 h-8 ${badge.color} transform -rotate-45 flex items-end justify-center`}>
-                             <span className="text-xs font-bold -translate-y-1">{rank}</span>
-                        </div>
-                    </div>
+                     <Crown className={`absolute -top-1 -left-1 h-6 w-6 transform -rotate-12 ${badge.color}`} fill="currentColor" />
                 )}
             </div>
             <div className="flex-grow">

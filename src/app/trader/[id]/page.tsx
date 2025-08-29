@@ -10,7 +10,8 @@ import {
   ChevronDown,
   Loader2,
   History,
-  Users
+  Users,
+  Crown
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -216,10 +217,10 @@ const traders = [
 
 const PAGE_SIZE = 5;
 
-const RANK_BADGES: {[key: number]: { content: string, color: string }} = {
-    1: { content: "冠军", color: "bg-yellow-400 text-yellow-900" },
-    2: { content: "亚军", color: "bg-slate-300 text-slate-800" },
-    3: { content: "季军", color: "bg-amber-600 text-amber-100" },
+const RANK_BADGES: {[key: number]: { color: string }} = {
+    1: { color: "text-yellow-400" }, // Gold
+    2: { color: "text-slate-400" }, // Silver
+    3: { color: "text-amber-600" },   // Bronze
 }
 
 
@@ -669,11 +670,7 @@ export default function TraderDetailPage() {
                     <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                  {badge && (
-                     <div className="absolute top-0 left-0 -translate-x-1/4 -translate-y-1/4 z-10">
-                        <div className={`w-24 h-10 ${badge.color} transform -rotate-45 flex items-end justify-center`}>
-                             <span className="text-base font-bold -translate-y-1">{rank}</span>
-                        </div>
-                    </div>
+                    <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
                 )}
             </div>
             <div className="w-full space-y-3">
