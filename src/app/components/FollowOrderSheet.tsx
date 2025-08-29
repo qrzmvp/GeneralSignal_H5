@@ -113,7 +113,7 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                             <Label>交易信号</Label>
                             <Select>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={selectedTraderNames} />
+                                     <SelectValue placeholder={selectedTraderNames} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {traders.map(trader => (
@@ -248,3 +248,5 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
         </Sheet>
     )
 }
+
+    
