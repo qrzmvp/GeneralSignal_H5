@@ -423,16 +423,18 @@ export default function LeaderboardPage() {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
         <div className="flex justify-around items-center h-full">
-            <button
-                onClick={() => setActiveTab('leaderboard')}
-                className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
-                activeTab === 'leaderboard' ? 'text-primary' : 'text-muted-foreground'
-                }`}
-            >
-                <BarChart className="h-6 w-6" />
-                <span className="text-xs font-medium">将军榜</span>
-            </button>
-            <Link href="/login" passHref className="flex-1 contents">
+            <Link href="/" passHref className="flex-1 contents">
+                <button
+                    onClick={() => setActiveTab('leaderboard')}
+                    className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
+                    activeTab === 'leaderboard' ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                >
+                    <BarChart className="h-6 w-6" />
+                    <span className="text-xs font-medium">将军榜</span>
+                </button>
+            </Link>
+            <Link href="/profile" passHref className="flex-1 contents">
               <button
                   onClick={() => setActiveTab('profile')}
                   className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
