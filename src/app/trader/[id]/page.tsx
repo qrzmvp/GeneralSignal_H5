@@ -573,20 +573,22 @@ export default function TraderDetailPage() {
   ];
   
   const SLIDES = [
-    <div key="current-slide" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
-        <div className="flex justify-start items-center mb-3 -mt-2">
-            <FilterDropdown
-                label={directionFilter}
-                options={['全部方向', '做多', '做空']}
-                onSelect={setDirectionFilter}
-                setLabel={setDirectionFilter}
-            />
-            <FilterDropdown
-                label={pairFilter}
-                options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
-                onSelect={setPairFilter}
-                setLabel={setPairFilter}
-            />
+    <div key="current-slide">
+        <div className="flex justify-between items-center mb-3">
+             <div className="flex items-center gap-2">
+                <FilterDropdown
+                    label={directionFilter}
+                    options={['全部方向', '做多', '做空']}
+                    onSelect={setDirectionFilter}
+                    setLabel={setDirectionFilter}
+                />
+                <FilterDropdown
+                    label={pairFilter}
+                    options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                    onSelect={setPairFilter}
+                    setLabel={setPairFilter}
+                />
+            </div>
             <FilterDropdown
                 label={currentFilterLabel}
                 options={['近三个月', '近半年', '近一年']}
@@ -611,20 +613,22 @@ export default function TraderDetailPage() {
             )}
         </div>
     </div>,
-    <div key="historical-slide" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
-        <div className="flex justify-start items-center mb-3 -mt-2">
-            <FilterDropdown
-                label={historicalDirectionFilter}
-                options={['全部方向', '做多', '做空']}
-                onSelect={setHistoricalDirectionFilter}
-                setLabel={setHistoricalDirectionFilter}
-            />
-            <FilterDropdown
-                label={historicalPairFilter}
-                options={['全部币种', 'ADA', 'XRP', 'BNB', 'LINK']}
-                onSelect={setHistoricalPairFilter}
-                setLabel={setHistoricalPairFilter}
-            />
+    <div key="historical-slide">
+        <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center gap-2">
+                <FilterDropdown
+                    label={historicalDirectionFilter}
+                    options={['全部方向', '做多', '做空']}
+                    onSelect={setHistoricalDirectionFilter}
+                    setLabel={setHistoricalDirectionFilter}
+                />
+                <FilterDropdown
+                    label={historicalPairFilter}
+                    options={['全部币种', 'ADA', 'XRP', 'BNB', 'LINK']}
+                    onSelect={setHistoricalPairFilter}
+                    setLabel={setHistoricalPairFilter}
+                />
+            </div>
             <FilterDropdown
                 label={historicalFilterLabel}
                 options={['近三个月', '近半年', '近一年']}
@@ -649,7 +653,7 @@ export default function TraderDetailPage() {
             )}
         </div>
     </div>,
-    <div key="followers-slide" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
+    <div key="followers-slide">
         <div className="space-y-3">
             {followers.map(follower => (
                 <FollowerCard key={follower.id} follower={follower} />
@@ -731,7 +735,7 @@ export default function TraderDetailPage() {
                 </TabsList>
             </div>
 
-            <div className="mt-4" ref={emblaRef}>
+            <div className="mt-4 overflow-hidden" ref={emblaRef}>
                 <div className="flex">
                     {SLIDES.map((slide, index) => (
                         <div key={index} className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
@@ -750,3 +754,5 @@ export default function TraderDetailPage() {
     </div>
   )
 }
+
+    
