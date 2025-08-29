@@ -10,6 +10,7 @@ import { ChevronLeft, ShieldCheck, Zap, Bot, BarChart4, TrendingUp, Gem, Check, 
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 interface Plan {
   id: string;
@@ -84,7 +85,9 @@ function ComparisonSection() {
                 <div className="grid grid-cols-3 p-4 bg-muted/30 font-semibold">
                     <span className="col-span-1">功能</span>
                     <span className="col-span-1 text-center">手动跟单</span>
-                    <span className="col-span-1 text-center bg-primary/10 rounded-md py-1">自动跟单</span>
+                    <div className="col-span-1 text-center bg-primary/10 rounded-md py-1">
+                        <span>自动跟单</span>
+                    </div>
                 </div>
                 <div className="divide-y divide-border/30">
                     {comparisonData.map(({ feature, manual, auto }, index) => (
@@ -95,10 +98,12 @@ function ComparisonSection() {
                                     manual ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500" />
                                 ) : <span className="text-center">{manual}</span>}
                             </div>
-                            <div className="col-span-1 flex justify-center bg-primary/5 rounded-md py-2">
-                                {typeof auto === 'boolean' ? (
-                                    auto ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500" />
-                                ) : <span className="text-center font-semibold text-primary">{auto}</span>}
+                            <div className="col-span-1 flex justify-center">
+                                <div className="bg-primary/5 rounded-md py-2 px-4 w-full text-center">
+                                    {typeof auto === 'boolean' ? (
+                                        auto ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <X className="w-5 h-5 text-red-500 mx-auto" />
+                                    ) : <span className="font-semibold text-primary">{auto}</span>}
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -116,9 +121,11 @@ export default function MembershipPage() {
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ChevronLeft className="h-6 w-6" />
-                </Button>
+                <Link href="/" passHref>
+                  <Button variant="ghost" size="icon">
+                      <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                </Link>
                 <h1 className="text-lg font-bold">会员中心</h1>
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
