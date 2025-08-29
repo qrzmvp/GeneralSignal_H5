@@ -115,21 +115,24 @@ function ComparisonSection() {
 
 export default function MembershipPage() {
     const router = useRouter();
-    const [autoSelectedPlan, setAutoSelectedPlan] = useState('auto-yearly');
+    const [selectedTab, setSelectedTab] = useState('auto');
     const [manualSelectedPlan, setManualSelectedPlan] = useState('manual-yearly');
+    const [autoSelectedPlan, setAutoSelectedPlan] = useState('auto-yearly');
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ChevronLeft className="h-6 w-6" />
-                </Button>
+                <Link href="/profile" passHref>
+                    <Button variant="ghost" size="icon">
+                        <ChevronLeft className="h-6 w-6" />
+                    </Button>
+                </Link>
                 <h1 className="text-lg font-bold">会员中心</h1>
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-8">
-                <Tabs defaultValue="auto" className="w-full">
+                <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="auto">自动跟单</TabsTrigger>
                         <TabsTrigger value="manual">手动跟单</TabsTrigger>
