@@ -48,10 +48,90 @@ interface Trader {
 }
 
 const allTraders: Trader[] = [
-  {
+    {
     id: 1,
     name: 'WWG-Woods',
     description: '盈亏同源高收益追涨模式采用指数级复利操作',
+    yield: 288.0,
+    winRate: 95.0,
+    pnlRatio: '22:1',
+    totalOrders: 150,
+    chartData: [{ value: 10 }, { value: 20 }, { value: 50 }, { value: 80 }, { value: 120 }, { value: 180 }, { value: 220 }, { value: 288 }],
+  },
+  {
+    id: 2,
+    name: 'WWG-Jonh',
+    description: '寻找超额收益，多策略组合',
+    yield: 265.0,
+    winRate: 98.0,
+    pnlRatio: '20:1',
+    totalOrders: 180,
+    chartData: [{ value: 10 }, { value: 25 }, { value: 55 }, { value: 85 }, { value: 125 }, { value: 185 }, { value: 225 }, { value: 265 }],
+  },
+  {
+    id: 3,
+    name: 'WWG-Hbj',
+    description: '深耕以太坊生态，价值发现',
+    yield: 250.0,
+    winRate: 90.1,
+    pnlRatio: '18.5:1',
+    totalOrders: 888,
+    chartData: [{ value: 10 }, { value: 20 }, { value: 30 }, { value: 45 }, { value: 60 }, { value: 100 }, { value: 180 }, { value: 250 }],
+  },
+    {
+    id: 4,
+    name: '量化大师',
+    description: '高频交易，算法驱动',
+    yield: 150.7,
+    winRate: 65.7,
+    pnlRatio: '11.2:1',
+    totalOrders: 345,
+    chartData: [{ value: 10 }, { value: 40 }, { value: 20 }, { value: 80 }, { value: 50 }, { value: 110 }, { value: 90 }, { value: 150.7 }],
+  },
+  {
+    id: 5,
+    name: '趋势猎人',
+    description: '顺势而为，捕捉大趋势行情',
+    yield: 120.4,
+    winRate: 76.8,
+    pnlRatio: '9.1:1',
+    totalOrders: 780,
+    chartData: [{ value: 10 }, { value: 30 }, { value: 20 }, { value: 50 }, { value: 70 }, { value: 90 }, { value: 110 }, { value: 120.4 }],
+  },
+  {
+    id: 6,
+    name: '波段之王',
+    description: '高抛低吸，精通市场情绪',
+    yield: 95.6,
+    winRate: 89.1,
+    pnlRatio: '8.5:1',
+    totalOrders: 888,
+    chartData: [{ value: 10 }, { value: 20 }, { value: 30 }, { value: 45 }, { value: 60 }, { value: 70 }, { value: 80 }, { value: 95.6 }],
+  },
+  {
+    id: 7,
+    name: '合约常胜军',
+    description: '杠杆艺术，风险控制大师',
+    yield: 88.0,
+    winRate: 95.0,
+    pnlRatio: '10:1',
+    totalOrders: 450,
+    chartData: [{ value: 10 }, { value: 12 }, { value: 20 }, { value: 30 }, { value: 50 }, { value: 60 }, { value: 75 }, { value: 88 }],
+  },
+  {
+    id: 8,
+    name: 'BTC信仰者',
+    description: '只做比特币，长期持有',
+    yield: 75.1,
+    winRate: 85.3,
+    pnlRatio: '7.5:1',
+    totalOrders: 1102,
+    chartData: [{ value: 10 }, { value: 15 }, { value: 25 }, { value: 35 }, { value: 45 }, { value: 55 }, { value: 65 }, { value: 75.1 }],
+  },
+  {
+    id: 9,
+    name: '短线快枪手',
+    description: '超短线交易，积少成多',
     yield: 68.5,
     winRate: 92.84,
     pnlRatio: '8.2:1',
@@ -62,9 +142,19 @@ const allTraders: Trader[] = [
     ],
   },
   {
-    id: 2,
-    name: '金融狙击手',
-    description: '专注短线精准狙击，技术分析与资全管理并重',
+    id: 10,
+    name: 'ETH布道者',
+    description: '深耕以太坊生态，价值发现',
+    yield: 63.2,
+    winRate: 82.4,
+    pnlRatio: '6.2:1',
+    totalOrders: 999,
+    chartData: [{ value: 10 }, { value: 15 }, { value: 22 }, { value: 30 }, { value: 40 }, { value: 45 }, { value: 55 }, { value: 63.2 }],
+  },
+  {
+    id: 11,
+    name: 'Alpha Seeker',
+    description: '寻找超额收益，多策略组合',
     yield: 52.3,
     winRate: 87.92,
     pnlRatio: '6.8:1',
@@ -75,110 +165,14 @@ const allTraders: Trader[] = [
     ],
   },
   {
-    id: 3,
-    name: '稳健投资者',
-    description: '价值投资理念，稳健长期增长策略',
-    yield: 41.6,
-    winRate: 78.45,
-    pnlRatio: '5.2:1',
-    totalOrders: 654,
-    chartData: [
-      { value: 10 }, { value: 11 }, { value: 13 }, { value: 12 }, { value: 15 },
-      { value: 18 }, { value: 22 }, { value: 28 }, { value: 35 }, { value: 41.6 },
-    ],
-  },
-    {
-    id: 4,
-    name: '量化大师',
-    description: '高频交易，算法驱动',
-    yield: 35.2,
-    winRate: 81.2,
-    pnlRatio: '4.1:1',
-    totalOrders: 2310,
-    chartData: [
-      { value: 10 }, { value: 15 }, { value: 12 }, { value: 20 }, { value: 25 },
-      { value: 23 }, { value: 30 }, { value: 28 }, { value: 33 }, { value: 35.2 },
-    ],
-  },
-  {
-    id: 5,
-    name: '趋势猎人',
-    description: '顺势而为，捕捉大趋势行情',
-    yield: 75.1,
-    winRate: 85.3,
-    pnlRatio: '7.5:1',
-    totalOrders: 1102,
-    chartData: [{ value: 10 }, { value: 15 }, { value: 25 }, { value: 35 }, { value: 45 }, { value: 55 }, { value: 65 }, { value: 75.1 }],
-  },
-  {
-    id: 6,
-    name: '波段之王',
-    description: '高抛低吸，精通市场情绪',
+    id: 12,
+    name: '狙击涨停板',
+    description: '专注强势币种，高风险高回报',
     yield: 48.9,
     winRate: 91.5,
     pnlRatio: '5.9:1',
     totalOrders: 1530,
     chartData: [{ value: 10 }, { value: 20 }, { value: 15 }, { value: 30 }, { value: 25 }, { value: 40 }, { value: 35 }, { value: 48.9 }],
-  },
-  {
-    id: 7,
-    name: '合约常胜军',
-    description: '杠杆艺术，风险控制大师',
-    yield: 120.4,
-    winRate: 76.8,
-    pnlRatio: '9.1:1',
-    totalOrders: 780,
-    chartData: [{ value: 10 }, { value: 30 }, { value: 20 }, { value: 50 }, { value: 70 }, { value: 90 }, { value: 110 }, { value: 120.4 }],
-  },
-  {
-    id: 8,
-    name: 'BTC信仰者',
-    description: '只做比特币，长期持有',
-    yield: 88.0,
-    winRate: 95.0,
-    pnlRatio: '10:1',
-    totalOrders: 450,
-    chartData: [{ value: 10 }, { value: 12 }, { value: 20 }, { value: 30 }, { value: 50 }, { value: 60 }, { value: 75 }, { value: 88 }],
-  },
-  {
-    id: 9,
-    name: '短线快枪手',
-    description: '超短线交易，积少成多',
-    yield: 29.8,
-    winRate: 93.2,
-    pnlRatio: '3.5:1',
-    totalOrders: 3201,
-    chartData: [{ value: 5 }, { value: 8 }, { value: 6 }, { value: 12 }, { value: 10 }, { value: 18 }, { value: 15 }, { value: 29.8 }],
-  },
-  {
-    id: 10,
-    name: 'ETH布道者',
-    description: '深耕以太坊生态，价值发现',
-    yield: 95.6,
-    winRate: 89.1,
-    pnlRatio: '8.5:1',
-    totalOrders: 888,
-    chartData: [{ value: 10 }, { value: 20 }, { value: 30 }, { value: 45 }, { value: 60 }, { value: 70 }, { value: 80 }, { value: 95.6 }],
-  },
-  {
-    id: 11,
-    name: 'Alpha Seeker',
-    description: '寻找超额收益，多策略组合',
-    yield: 63.2,
-    winRate: 82.4,
-    pnlRatio: '6.2:1',
-    totalOrders: 999,
-    chartData: [{ value: 10 }, { value: 15 }, { value: 22 }, { value: 30 }, { value: 40 }, { value: 45 }, { value: 55 }, { value: 63.2 }],
-  },
-  {
-    id: 12,
-    name: '狙击涨停板',
-    description: '专注强势币种，高风险高回报',
-    yield: 150.7,
-    winRate: 65.7,
-    pnlRatio: '11.2:1',
-    totalOrders: 345,
-    chartData: [{ value: 10 }, { value: 40 }, { value: 20 }, { value: 80 }, { value: 50 }, { value: 110 }, { value: 90 }, { value: 150.7 }],
   },
   {
     id: 13,
@@ -194,11 +188,14 @@ const allTraders: Trader[] = [
     id: 14,
     name: '币圈巴菲特',
     description: '屯币不动，穿越牛熊',
-    yield: 250.0,
-    winRate: 98.0,
-    pnlRatio: '20:1',
-    totalOrders: 150,
-    chartData: [{ value: 10 }, { value: 20 }, { value: 50 }, { value: 80 }, { value: 120 }, { value: 180 }, { value: 220 }, { value: 250 }],
+    yield: 41.6,
+    winRate: 78.45,
+    pnlRatio: '5.2:1',
+    totalOrders: 654,
+    chartData: [
+      { value: 10 }, { value: 11 }, { value: 13 }, { value: 12 }, { value: 15 },
+      { value: 18 }, { value: 22 }, { value: 28 }, { value: 35 }, { value: 41.6 },
+    ],
   }
 ];
 
@@ -303,7 +300,7 @@ export default function LeaderboardPage() {
     const [activeTab, setActiveTab] = useState('leaderboard');
     const [page, setPage] = useState(1);
     const [traders, setTraders] = useState<Trader[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Start with loading true
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
@@ -312,8 +309,16 @@ export default function LeaderboardPage() {
     const [sortedTraders, setSortedTraders] = useState<Trader[]>([]);
 
     useEffect(() => {
-        // Initial sort when component mounts
-        setSortedTraders([...allTraders].sort((a, b) => b.yield - a.yield));
+        const sorted = [...allTraders].sort((a, b) => b.yield - a.yield);
+        setSortedTraders(sorted);
+        // Directly load the first page of traders
+        const initialTraders = sorted.slice(0, PAGE_SIZE);
+        setTraders(initialTraders);
+        setPage(2); // Next page to load will be page 2
+        setLoading(false);
+        if (initialTraders.length >= sorted.length) {
+            setHasMore(false);
+        }
     }, []);
 
     const loadMoreTraders = () => {
@@ -328,7 +333,7 @@ export default function LeaderboardPage() {
             } else {
                 setHasMore(false);
             }
-            // This check should use the most up-to-date state
+             // This check should use the most up-to-date state
             setTraders(currentTraders => {
                  if (currentTraders.length >= sortedTraders.length) {
                     setHasMore(false);
