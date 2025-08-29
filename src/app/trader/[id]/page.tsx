@@ -552,7 +552,7 @@ export default function TraderDetailPage() {
   ];
   
   const SLIDES = [
-    <div key="current" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
+    <div key="current-slide" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
         <div className="flex justify-start items-center mb-3 -mt-2">
             <FilterDropdown
                 label={directionFilter}
@@ -590,7 +590,7 @@ export default function TraderDetailPage() {
             )}
         </div>
     </div>,
-    <div key="historical" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
+    <div key="historical-slide" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
         <div className="flex justify-start items-center mb-3 -mt-2">
             <FilterDropdown
                 label={historicalDirectionFilter}
@@ -628,7 +628,7 @@ export default function TraderDetailPage() {
             )}
         </div>
     </div>,
-    <div key="followers" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
+    <div key="followers-slide" className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
         <div className="space-y-3">
             {followers.map(follower => (
                 <FollowerCard key={follower.id} follower={follower} />
