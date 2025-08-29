@@ -387,7 +387,7 @@ export default function TraderDetailPage() {
             takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
             stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
             pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-            createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
+            createdAt: `2024-05-2${8-i} 14:0${i % 10}:00`,
             orderType: '限价单',
             type: '合约',
             marginMode: '全仓',
@@ -398,8 +398,6 @@ export default function TraderDetailPage() {
         const isLong = Math.random() > 0.5;
         const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
         const entryPrice = Math.random() * 500 + 100;
-        const createTime = new Date(Date.now() - (i + 25) * 1000 * 60 * 60 * 8); // Start from after current signals
-        const endTime = new Date(createTime.getTime() + Math.random() * 1000 * 60 * 60 * 24);
         return {
         id: i + 100, // Avoid key collision
         pair: `${pair}-USDT-SWAP`,
@@ -410,7 +408,7 @@ export default function TraderDetailPage() {
         takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
         stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
         pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-        createdAt: `${createTime.toISOString().replace('T', ' ').substring(0, 19)} - ${endTime.toISOString().replace('T', ' ').substring(0, 19)}`,
+        createdAt: `2024-04-1${8-i} 18:3${i % 10}:00`,
         orderType: '限价单',
         type: '合约',
         marginMode: '全仓',
@@ -754,3 +752,5 @@ export default function TraderDetailPage() {
     </div>
   )
 }
+
+    
