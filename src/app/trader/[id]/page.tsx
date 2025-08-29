@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
@@ -26,6 +27,7 @@ const traders = [
     winRate: 92.84,
     pnlRatio: '8.2:1',
     totalOrders: 1245,
+    tags: ['波段高手', '高频交易', 'ETH信徒'],
   },
   {
     id: 2,
@@ -36,6 +38,7 @@ const traders = [
     winRate: 87.92,
     pnlRatio: '6.8:1',
     totalOrders: 892,
+    tags: ['狙击BTC专家', '技术分析', '稳健'],
   },
   // Add other traders here...
 ];
@@ -113,20 +116,22 @@ export default function TraderDetailPage() {
         <div className="w-9"></div> {/* Placeholder for spacing */}
       </header>
 
-      <main className="flex-grow overflow-auto p-4 space-y-6 pb-24">
+      <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50">
-          <CardContent className="p-4 flex items-start gap-4">
-            <Avatar className="h-12 w-12 border">
+          <CardContent className="p-4 flex flex-col items-center text-center gap-4">
+            <Avatar className="h-20 w-20 border-2 border-primary">
               <AvatarImage src={trader.avatar} alt={trader.name} />
               <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow">
-              <p className="text-sm text-muted-foreground">{trader.description}</p>
+            <div className="w-full">
+                <p className="text-sm text-muted-foreground">{trader.description}</p>
+                <div className="flex flex-wrap justify-center gap-2 mt-3">
+                    {trader.tags?.map(tag => (
+                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                    ))}
+                </div>
             </div>
-          </CardContent>
-          <CardContent className="p-4 pt-0">
-             <Button className="w-full font-bold">跟单</Button>
           </CardContent>
         </Card>
 
@@ -188,6 +193,11 @@ export default function TraderDetailPage() {
             </div>
         </div>
       </main>
+
+       {/* Floating Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 z-10 bg-background/80 border-t border-border/50 backdrop-blur-sm p-4">
+        <Button className="w-full font-bold text-lg h-12">立即跟单</Button>
+      </footer>
     </div>
   )
 }
