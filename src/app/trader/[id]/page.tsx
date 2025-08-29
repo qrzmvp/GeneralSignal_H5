@@ -340,7 +340,6 @@ function FollowerCard({ follower }: { follower: typeof allFollowers[0] }) {
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4 flex items-center gap-4">
                 <Avatar className="h-12 w-12">
-                    <AvatarImage src={follower.avatar} alt={follower.name} />
                     <AvatarFallback>{follower.name.charAt(3)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-grow grid grid-cols-3 items-center text-sm">
@@ -416,6 +415,8 @@ export default function TraderDetailPage() {
 
   const [directionFilter, setDirectionFilter] = useState('全部方向');
   const [pairFilter, setPairFilter] = useState('全部币种');
+  const [historicalDirectionFilter, setHistoricalDirectionFilter] = useState('全部方向');
+  const [historicalPairFilter, setHistoricalPairFilter] = useState('全部币种');
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -425,13 +426,19 @@ export default function TraderDetailPage() {
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on("select", onSelect);
-    return () => emblaApi.off("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
   }, [emblaApi, onSelect]);
+
+  useEffect(() => {
+     if(emblaApi) emblaApi.reInit();
+  }, [emblaApi, currentSignals, historicalSignals, followers]);
 
   const scrollTo = useCallback((index: number) => {
     if (emblaApi) emblaApi.scrollTo(index);
   }, [emblaApi]);
-
+  
   const loadMore = useCallback((type: 'current' | 'historical' | 'followers') => {
     if (type === 'current') {
         if (currentSignalsLoading || !currentSignalsHasMore) return;
@@ -440,9 +447,7 @@ export default function TraderDetailPage() {
             const newSignals = allSignals.slice((currentSignalsPage - 1) * PAGE_SIZE, currentSignalsPage * PAGE_SIZE);
             setCurrentSignals(prev => [...prev, ...newSignals]);
             setCurrentSignalsPage(prev => prev + 1);
-            if (((currentSignalsPage - 1) * PAGE_SIZE + newSignals.length) >= allSignals.length) {
-                setCurrentSignalsHasMore(false);
-            }
+            setCurrentSignalsHasMore(currentSignalsPage * PAGE_SIZE < allSignals.length);
             setCurrentSignalsLoading(false);
         }, 1000);
     } else if (type === 'historical') {
@@ -452,9 +457,7 @@ export default function TraderDetailPage() {
             const newSignals = allHistoricalSignals.slice((historicalSignalsPage - 1) * PAGE_SIZE, historicalSignalsPage * PAGE_SIZE);
             setHistoricalSignals(prev => [...prev, ...newSignals]);
             setHistoricalSignalsPage(prev => prev + 1);
-            if (((historicalSignalsPage - 1) * PAGE_SIZE + newSignals.length) >= allHistoricalSignals.length) {
-                setHistoricalSignalsHasMore(false);
-            }
+            setHistoricalSignalsHasMore(historicalSignalsPage * PAGE_SIZE < allHistoricalSignals.length);
             setHistoricalSignalsLoading(false);
         }, 1000);
     } else if (type === 'followers') {
@@ -464,9 +467,7 @@ export default function TraderDetailPage() {
             const newFollowers = allFollowers.slice((followersPage - 1) * PAGE_SIZE, followersPage * PAGE_SIZE);
             setFollowers(prev => [...prev, ...newFollowers]);
             setFollowersPage(prev => prev + 1);
-            if (((followersPage - 1) * PAGE_SIZE + newFollowers.length) >= allFollowers.length) {
-                setFollowersHasMore(false);
-            }
+            setFollowersHasMore(followersPage * PAGE_SIZE < allFollowers.length);
             setFollowersLoading(false);
         }, 1000);
     }
@@ -555,7 +556,7 @@ export default function TraderDetailPage() {
         </Card>
 
         {/* Signals Section */}
-         <Tabs defaultValue={TABS[0].value} className="w-full">
+         <Tabs defaultValue={TABS[0].value} value={TABS[selectedIndex].value} className="w-full">
             <div className="px-1">
                 <TabsList className="grid w-full grid-cols-3">
                     {TABS.map((tab, index) => (
@@ -563,7 +564,6 @@ export default function TraderDetailPage() {
                             key={tab.value}
                             value={tab.value} 
                             onClick={() => scrollTo(index)}
-                            data-state={selectedIndex === index ? 'active' : 'inactive'}
                             >
                             <tab.icon className="mr-2 h-4 w-4" /> {tab.label}
                         </TabsTrigger>
@@ -575,7 +575,7 @@ export default function TraderDetailPage() {
                 <div className="flex">
                     {/* Current Signals Slide */}
                     <div className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
-                       <div className="flex justify-end items-center mb-3 -mt-2">
+                       <div className="flex justify-start items-center mb-3 -mt-2">
                            <FilterDropdown 
                                 label={directionFilter} 
                                 options={['全部方向', '做多', '做空']}
@@ -601,13 +601,7 @@ export default function TraderDetailPage() {
                             ))}
                         </div>
                         <div ref={currentLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                            {currentSignalsLoading && currentSignals.length === 0 &&(
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    <span>加载中...</span>
-                                </>
-                            )}
-                             {currentSignalsLoading && currentSignals.length > 0 && (
+                             {currentSignalsLoading && (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     <span>加载中...</span>
@@ -621,7 +615,19 @@ export default function TraderDetailPage() {
 
                     {/* Historical Signals Slide */}
                     <div className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
-                        <div className="flex justify-end items-center mb-3 -mt-2">
+                        <div className="flex justify-start items-center mb-3 -mt-2">
+                           <FilterDropdown 
+                                label={historicalDirectionFilter} 
+                                options={['全部方向', '做多', '做空']}
+                                onSelect={setHistoricalDirectionFilter}
+                                setLabel={setHistoricalDirectionFilter}
+                            />
+                             <FilterDropdown 
+                                label={historicalPairFilter} 
+                                options={['全部币种', 'ADA', 'XRP', 'BNB', 'LINK']}
+                                onSelect={setHistoricalPairFilter}
+                                setLabel={setHistoricalPairFilter}
+                            />
                            <FilterDropdown 
                                 label={historicalFilterLabel} 
                                 options={['近三个月', '近半年', '近一年']}
