@@ -264,7 +264,7 @@ function SignalCard({ signal }: { signal: any }) {
                     <InfoPill label="止损点位" value={signal.stopLoss} />
                     <InfoPill label="建议盈亏比" value={signal.pnlRatio} />
                 </div>
-                <div className="flex justify-between items-end mt-3 pt-3 border-t border-border/50">
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
                     <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <Clock className="w-3 h-3" />
                         {signal.createdAt}
@@ -735,7 +735,7 @@ export default function TraderDetailPage() {
                 </TabsList>
             </div>
 
-            <div className="mt-4 overflow-hidden" ref={emblaRef}>
+            <div className="overflow-hidden mt-4" ref={emblaRef}>
                 <div className="flex">
                     {SLIDES.map((slide, index) => (
                         <div key={index} className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
@@ -754,5 +754,3 @@ export default function TraderDetailPage() {
     </div>
   )
 }
-
-    
