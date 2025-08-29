@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Mail, User, Loader2, Bitcoin } from "lucide-react";
-import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -39,12 +39,14 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
       <Tabs defaultValue="username" className="w-full">
         <Card className="rounded-lg shadow-2xl border-0 bg-transparent">
           <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-3xl font-headline font-bold flex items-center justify-center">
-              <div className="bg-primary text-primary-foreground p-1.5 rounded-md mr-3">
-                <Bitcoin className="h-6 w-6" />
-              </div>
-              将军令
-            </CardTitle>
+            <Link href="/" className="flex items-center justify-center">
+              <CardTitle className="text-3xl font-headline font-bold flex items-center justify-center">
+                <div className="bg-primary text-primary-foreground p-1.5 rounded-md mr-3">
+                  <Bitcoin className="h-6 w-6" />
+                </div>
+                将军令
+              </CardTitle>
+            </Link>
             <CardDescription>
               币圈跟单神器
             </CardDescription>
