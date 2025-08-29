@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Sheet,
   SheetContent,
@@ -60,12 +60,12 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
     const [fundStrategy, setFundStrategy] = useState('ratio');
     const [ratioAmount, setRatioAmount] = useState('100');
 
-    // Effect to set default trader when sheet opens
-    useState(() => {
-        if (defaultTraderId) {
+    useEffect(() => {
+        if (isOpen && defaultTraderId !== null && !selectedTraders.includes(defaultTraderId)) {
             setSelectedTraders([defaultTraderId]);
         }
-    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, defaultTraderId]);
 
      const handleTraderSelectionChange = (traderId: number) => {
         setSelectedTraders(prev => 
@@ -111,13 +111,14 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                         <Label>交易信号</Label>
                          <Select>
                             <SelectTrigger>
-                                <SelectValue asChild>
-                                    <span>{selectedTraderNames}</span>
-                                </SelectValue>
+                                <SelectValue placeholder={selectedTraderNames} />
                             </SelectTrigger>
                             <SelectContent>
                                 {traders.map(trader => (
-                                     <div key={trader.id} className="flex items-center px-2 py-1.5">
+                                     <div key={trader.id} className="flex items-center px-2 py-1.5"
+                                         // Prevent dropdown from closing when clicking checkbox
+                                        onClick={(e) => e.stopPropagation()}
+                                     >
                                         <Checkbox
                                             id={`trader-${trader.id}`}
                                             checked={selectedTraders.includes(trader.id)}
@@ -245,5 +246,3 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
         </Sheet>
     )
 }
-
-    
