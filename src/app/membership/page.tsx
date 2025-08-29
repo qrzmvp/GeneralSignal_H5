@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronLeft, ShieldCheck, Zap, Bot, BarChart4, TrendingUp, Gem } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, Zap, Bot, BarChart4, TrendingUp, Gem, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from '@/components/ui/label';
@@ -31,19 +31,15 @@ const autoPlans: Plan[] = [
   { id: 'auto-monthly', duration: '1个月', price: '20', originalPrice: '25', description: '灵活的自动跟单' },
 ];
 
-const memberPrivileges = [
-    { icon: <TrendingUp className="w-6 h-6 text-primary" />, title: '专业交易信号' },
-    { icon: <BarChart4 className="w-6 h-6 text-primary" />, title: '大师策略分析' },
-    { icon: <ShieldCheck className="w-6 h-6 text-primary" />, title: '主流币种覆盖' },
-    { icon: <Gem className="w-6 h-6 text-primary" />, title: '社区专属活动' },
-]
-
-const superMemberPrivileges = [
-    ...memberPrivileges,
-    { icon: <Zap className="w-6 h-6 text-yellow-400" />, title: '毫秒级自动跟单' },
-    { icon: <Bot className="w-6 h-6 text-yellow-400" />, title: 'AI智能仓位管理' },
+const comparisonData = [
+  { feature: '跟单方式', manual: '手动', auto: '自动' },
+  { feature: '交易延迟', manual: '视手动操作速度', auto: '毫秒级' },
+  { feature: '仓位管理', manual: '手动管理', auto: 'AI智能管理' },
+  { feature: '专业交易信号', manual: true, auto: true },
+  { feature: '大师策略分析', manual: true, auto: true },
+  { feature: '主流币种覆盖', manual: true, auto: true },
+  { feature: '社区专属活动', manual: true, auto: true },
 ];
-
 
 function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: string }) {
     const [selectedPlan, setSelectedPlan] = useState(defaultPlanId);
@@ -82,22 +78,36 @@ function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: 
     );
 }
 
-function PrivilegesSection({ title, privileges }: { title: string, privileges: { icon: React.ReactNode, title: string }[] }) {
+function ComparisonSection() {
     return (
         <div className="space-y-4">
-            <h3 className="font-bold text-foreground">{title}</h3>
-            <div className="grid grid-cols-4 gap-4 text-center">
-                {privileges.map(({ icon, title }, index) => (
-                    <div key={index} className="flex flex-col items-center space-y-2">
-                        <div className="flex items-center justify-center h-12 w-12 rounded-full bg-muted/50">
-                            {icon}
+            <h3 className="text-center font-bold text-lg text-foreground">跟单对比</h3>
+            <div className="rounded-lg border border-border/50 bg-card/50 overflow-hidden">
+                <div className="grid grid-cols-3 p-4 bg-muted/30 font-semibold">
+                    <span className="col-span-1">功能</span>
+                    <span className="col-span-1 text-center">手动跟单</span>
+                    <span className="col-span-1 text-center">自动跟单</span>
+                </div>
+                <div className="divide-y divide-border/30">
+                    {comparisonData.map(({ feature, manual, auto }, index) => (
+                        <div key={index} className="grid grid-cols-3 p-4 text-sm items-center">
+                            <span className="col-span-1 text-muted-foreground">{feature}</span>
+                            <div className="col-span-1 flex justify-center">
+                                {typeof manual === 'boolean' ? (
+                                    manual ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500" />
+                                ) : <span className="text-center">{manual}</span>}
+                            </div>
+                            <div className="col-span-1 flex justify-center">
+                                {typeof auto === 'boolean' ? (
+                                    auto ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500" />
+                                ) : <span className="text-center font-semibold text-primary">{auto}</span>}
+                            </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">{title}</p>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
-    )
+    );
 }
 
 export default function MembershipPage() {
@@ -114,24 +124,19 @@ export default function MembershipPage() {
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-8">
-                <Tabs defaultValue="manual" className="w-full">
+                <Tabs defaultValue="auto" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="manual" className="data-[state=active]:text-yellow-700 data-[state=active]:border-b-yellow-600">会员</TabsTrigger>
-                        <TabsTrigger value="auto" className="data-[state=active]:text-yellow-700 data-[state=active]:border-b-yellow-600">超级会员</TabsTrigger>
+                        <TabsTrigger value="manual">手动跟单</TabsTrigger>
+                        <TabsTrigger value="auto">自动跟单</TabsTrigger>
                     </TabsList>
                     <TabsContent value="manual" className="mt-6">
                         <PlanSelector plans={manualPlans} defaultPlanId="manual-yearly"/>
-                        <div className="mt-8">
-                           <PrivilegesSection title="会员尊享特权" privileges={memberPrivileges} />
-                        </div>
                     </TabsContent>
                     <TabsContent value="auto" className="mt-6">
                         <PlanSelector plans={autoPlans} defaultPlanId="auto-yearly"/>
-                         <div className="mt-8">
-                           <PrivilegesSection title="超级会员尊享特权" privileges={superMemberPrivileges} />
-                        </div>
                     </TabsContent>
                 </Tabs>
+                <ComparisonSection />
             </main>
         </div>
     )
