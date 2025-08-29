@@ -53,12 +53,16 @@ const mockAccounts: ExchangeAccount[] = [
     { id: 'okx-1', name: 'OKX (***5678)' },
 ]
 
+const mockPairs: string[] = ['BTC/USDT 永续', 'ETH/USDT 永续', 'SOL/USDT 永续', 'DOGE/USDT 永续', 'XRP/USDT 永续', 'BNB/USDT 永续'];
+
+
 export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderId }: FollowOrderSheetProps) {
     const [selectedTraders, setSelectedTraders] = useState<number[]>([]);
     const [selectedAccount, setSelectedAccount] = useState<string | undefined>(mockAccounts.length > 0 ? mockAccounts[0].id : undefined);
     const [tradingPairs, setTradingPairs] = useState<TradingPair[]>([{ id: 1, pair: 'BTC/USDT 永续', leverage: 20 }]);
     const [fundStrategy, setFundStrategy] = useState('ratio');
     const [ratioAmount, setRatioAmount] = useState('100');
+    const [fixedAmount, setFixedAmount] = useState('1000');
 
     useEffect(() => {
         if (isOpen && defaultTraderId !== null && !selectedTraders.includes(defaultTraderId)) {
@@ -101,7 +105,7 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] p-0 flex flex-col">
-                <SheetHeader className="text-center p-4 border-b flex-shrink-0">
+                <SheetHeader className="text-center p-4 border-b flex-shrink-0 sticky top-0 bg-background z-10">
                     <SheetTitle>跟单设置</SheetTitle>
                 </SheetHeader>
                 
@@ -161,8 +165,8 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                                 </div>
                             )}
                         </div>
-
-                        {/* Fund Management */}
+                        
+                         {/* Fund Management */}
                         <div className="space-y-3">
                             <Label>资金管理</Label>
                             <RadioGroup value={fundStrategy} onValueChange={setFundStrategy}>
@@ -183,12 +187,26 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex items-center space-x-2 p-3 rounded-md border has-[:checked]:border-primary">
-                                    <RadioGroupItem value="fixed" id="fixed" />
-                                    <Label htmlFor="fixed" className="font-normal">按固定金额</Label>
+                                <div className="flex items-center justify-between p-3 rounded-md border has-[:checked]:border-primary">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="fixed" id="fixed" />
+                                        <Label htmlFor="fixed" className="font-normal">按固定金额</Label>
+                                    </div>
+                                    {fundStrategy === 'fixed' && (
+                                        <div className="relative w-24">
+                                            <Input 
+                                                type="number" 
+                                                className="pr-6"
+                                                value={fixedAmount}
+                                                onChange={(e) => setFixedAmount(e.target.value)}
+                                            />
+                                            <span className="absolute inset-y-0 right-2 flex items-center text-muted-foreground">U</span>
+                                        </div>
+                                     )}
                                 </div>
                             </RadioGroup>
                         </div>
+
 
                         {/* Trading Pairs */}
                         <div className="space-y-4">
@@ -208,12 +226,19 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                                         )}
                                         <div className="space-y-2">
                                             <Label htmlFor={`pair-${tp.id}`}>交易对</Label>
-                                            <Input 
-                                                id={`pair-${tp.id}`} 
-                                                placeholder="例如 BTC/USDT 永续"
+                                            <Select
                                                 value={tp.pair}
-                                                onChange={(e) => handlePairChange(tp.id, e.target.value)}
-                                            />
+                                                onValueChange={(value) => handlePairChange(tp.id, value)}
+                                            >
+                                                <SelectTrigger id={`pair-${tp.id}`}>
+                                                    <SelectValue placeholder="选择交易对" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {mockPairs.map(pair => (
+                                                        <SelectItem key={pair} value={pair}>{pair}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <div className="space-y-2">
                                             <div className="flex justify-between items-center">
@@ -239,7 +264,7 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                         </div>
                     </div>
                 </div>
-                <SheetFooter className="p-4 border-t flex-shrink-0 bg-background">
+                <SheetFooter className="p-4 border-t flex-shrink-0 bg-background sticky bottom-0 z-10">
                     <Button type="submit" className="w-full h-11" onClick={() => onOpenChange(false)}>确认</Button>
                 </SheetFooter>
             </SheetContent>
