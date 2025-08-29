@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   ChevronLeft,
@@ -555,9 +556,9 @@ export default function TraderDetailPage() {
     <div className="bg-background min-h-screen text-foreground flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-        <div role="button" onClick={() => router.back()} className="p-2 -ml-2">
-            <ChevronLeft className="h-6 w-6" />
-        </div>
+        <Link href="/" className="p-2 -ml-2">
+          <ChevronLeft className="h-6 w-6" />
+        </Link>
         <h1 className="text-lg font-bold">{trader.name}</h1>
         <div className="w-9"></div> {/* Placeholder for spacing */}
       </header>
@@ -611,8 +612,8 @@ export default function TraderDetailPage() {
                 ))}
             </TabsList>
             
-            <TabsContent value="current">
-                <div className="flex justify-between items-center mb-3 mt-4">
+            <TabsContent value="current" className="mt-4 space-y-3">
+                <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <FilterDropdown
                             label={directionFilter}
@@ -652,8 +653,8 @@ export default function TraderDetailPage() {
                 </div>
             </TabsContent>
 
-            <TabsContent value="historical">
-                <div className="flex justify-between items-center mb-3 mt-4">
+            <TabsContent value="historical" className="mt-4 space-y-3">
+                <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <FilterDropdown
                             label={historicalDirectionFilter}
@@ -693,8 +694,8 @@ export default function TraderDetailPage() {
                 </div>
             </TabsContent>
             
-            <TabsContent value="followers">
-                 <div className="space-y-3 mt-4">
+            <TabsContent value="followers" className="mt-4 space-y-3">
+                 <div className="space-y-3">
                     {followers.map(follower => (
                         <FollowerCard key={follower.id} follower={follower} />
                     ))}
@@ -728,5 +729,3 @@ export default function TraderDetailPage() {
     </>
   )
 }
-
-    
