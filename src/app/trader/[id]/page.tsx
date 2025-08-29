@@ -313,14 +313,7 @@ function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[
                 <div className="space-y-2 mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
                    <div className="flex items-center justify-between">
                        <div className="flex items-center gap-1.5">
-                           <span>创建:</span>
-                           <span>{signal.createdAt}</span>
-                       </div>
-                   </div>
-                   <div className="flex items-center justify-between">
-                       <div className="flex items-center gap-1.5">
-                           <span>结束:</span>
-                           <span>{signal.endedAt}</span>
+                           <span>{signal.createdAt} - {signal.endedAt}</span>
                        </div>
                    </div>
                 </div>
@@ -329,20 +322,25 @@ function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[
     );
 }
 
-function TimeFilterDropdown({ label, setLabel }: { label: string; setLabel: (label: string) => void; }) {
+function FilterDropdown({ label, options, onSelect, setLabel }: { label: string; options: string[]; onSelect: (option: string) => void; setLabel?: (label: string) => void; }) {
   return (
     <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-            {label}
-            <ChevronDown className="w-4 h-4 ml-1" />
-            </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => setLabel('近三个月')}>近三个月</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setLabel('近半年')}>近半年</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setLabel('近一年')}>近一年</DropdownMenuItem>
-        </DropdownMenuContent>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="text-muted-foreground">
+          {label}
+          <ChevronDown className="w-4 h-4 ml-1" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {options.map((option) => (
+          <DropdownMenuItem key={option} onSelect={() => {
+            onSelect(option);
+            if (setLabel) setLabel(option);
+          }}>
+            {option}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }
@@ -367,6 +365,9 @@ export default function TraderDetailPage() {
   const [historicalSignalsHasMore, setHistoricalSignalsHasMore] = useState(true);
   const { ref: historicalLoadMoreRef, inView: historicalInView } = useInView({ threshold: 0.1 });
   const [historicalFilterLabel, setHistoricalFilterLabel] = useState('近三个月');
+
+  const [directionFilter, setDirectionFilter] = useState('全部方向');
+  const [pairFilter, setPairFilter] = useState('全部币种');
 
 
   const loadMoreCurrentSignals = () => {
@@ -473,7 +474,7 @@ export default function TraderDetailPage() {
                 <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
                 <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
                 <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
-                <MetricItem label="累计天数" value={`${trader.days}天`} valueClassName="text-foreground" />
+                <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
            </CardContent>
         </Card>
 
@@ -489,7 +490,24 @@ export default function TraderDetailPage() {
             </TabsList>
             <TabsContent value="current" className="mt-4">
                 <div className="flex justify-end items-center mb-3 -mt-2">
-                   <TimeFilterDropdown label={currentFilterLabel} setLabel={setCurrentFilterLabel} />
+                   <FilterDropdown 
+                        label={directionFilter} 
+                        options={['全部方向', '做多', '做空']}
+                        onSelect={setDirectionFilter}
+                        setLabel={setDirectionFilter}
+                    />
+                     <FilterDropdown 
+                        label={pairFilter} 
+                        options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                        onSelect={setPairFilter}
+                        setLabel={setPairFilter}
+                    />
+                   <FilterDropdown 
+                        label={currentFilterLabel} 
+                        options={['近三个月', '近半年', '近一年']}
+                        onSelect={setCurrentFilterLabel}
+                        setLabel={setCurrentFilterLabel}
+                    />
                 </div>
                 <div className="space-y-3">
                     {currentSignals.map(signal => (
@@ -510,7 +528,12 @@ export default function TraderDetailPage() {
             </TabsContent>
             <TabsContent value="historical" className="mt-4">
                  <div className="flex justify-end items-center mb-3 -mt-2">
-                   <TimeFilterDropdown label={historicalFilterLabel} setLabel={setHistoricalFilterLabel} />
+                   <FilterDropdown 
+                        label={historicalFilterLabel} 
+                        options={['近三个月', '近半年', '近一年']}
+                        onSelect={setHistoricalFilterLabel}
+                        setLabel={setHistoricalFilterLabel}
+                    />
                 </div>
                  <div className="space-y-3">
                     {historicalSignals.map(signal => (
@@ -539,5 +562,3 @@ export default function TraderDetailPage() {
     </div>
   )
 }
-
-    
