@@ -246,10 +246,14 @@ function SignalCard({ signal }: { signal: any }) {
     return (
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
-                <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-mono text-base border-primary/50 text-primary">{signal.pair}</Badge>
-                        <Badge variant="secondary">限价单</Badge>
+                <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-col gap-2 items-start">
+                         <Badge variant="outline" className="font-mono text-base border-primary/50 text-primary">{signal.pair}</Badge>
+                         <div className="flex items-center gap-2">
+                            <Badge variant="secondary">{signal.orderType}</Badge>
+                            <Badge variant="secondary">{signal.type}</Badge>
+                            <Badge variant="secondary">{signal.marginMode}</Badge>
+                        </div>
                     </div>
                     <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
                 </div>
@@ -276,10 +280,14 @@ function HistoricalSignalCard({ signal }: { signal: any }) {
     return (
         <Card className="bg-card/80 border-border/50">
             <CardContent className="p-4">
-                <div className="flex justify-between items-center mb-3">
-                     <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-mono text-base border-muted-foreground/50 text-muted-foreground">{signal.pair}</Badge>
-                         <Badge variant="secondary">限价单</Badge>
+                 <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-col gap-2 items-start">
+                         <Badge variant="outline" className="font-mono text-base border-muted-foreground/50 text-muted-foreground">{signal.pair}</Badge>
+                         <div className="flex items-center gap-2">
+                            <Badge variant="secondary">{signal.orderType}</Badge>
+                            <Badge variant="secondary">{signal.type}</Badge>
+                            <Badge variant="secondary">{signal.marginMode}</Badge>
+                        </div>
                     </div>
                     <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
                 </div>
@@ -370,16 +378,19 @@ export default function TraderDetailPage() {
         const entryPrice = Math.random() * 50000 + 20000;
         const useRange = Math.random() > 0.7;
         return {
-        id: i + 1,
-        pair: `${pair}-USDT-SWAP`,
-        direction: isLong ? '做多' : '做空',
-        directionColor: isLong ? 'text-green-400' : 'text-red-400',
-        entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
-        takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
-        takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
-        stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
-        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-        createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
+            id: i + 1,
+            pair: `${pair}-USDT-SWAP`,
+            direction: isLong ? '做多' : '做空',
+            directionColor: isLong ? 'text-green-400' : 'text-red-400',
+            entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
+            takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
+            takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
+            stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
+            pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+            createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
+            orderType: '限价单',
+            type: '合约',
+            marginMode: '全仓',
         };
     });
 
@@ -400,6 +411,9 @@ export default function TraderDetailPage() {
         stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
         pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
         createdAt: `${createTime.toISOString().replace('T', ' ').substring(0, 19)} - ${endTime.toISOString().replace('T', ' ').substring(0, 19)}`,
+        orderType: '限价单',
+        type: '合约',
+        marginMode: '全仓',
         };
     });
 
@@ -717,7 +731,7 @@ export default function TraderDetailPage() {
                 </TabsList>
             </div>
 
-            <div className="overflow-hidden mt-4" ref={emblaRef}>
+            <div className="mt-4" ref={emblaRef}>
                 <div className="flex">
                     {SLIDES.map((slide, index) => (
                         <div key={index} className="relative min-w-0 flex-shrink-0 flex-grow-0 basis-full">
