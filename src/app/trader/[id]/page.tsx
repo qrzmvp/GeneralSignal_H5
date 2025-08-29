@@ -282,7 +282,7 @@ export default function TraderDetailPage() {
   
   const [signals, setSignals] = useState<(typeof allSignals[0])[]>([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
   const [filterLabel, setFilterLabel] = useState('近三个月');
@@ -296,13 +296,12 @@ export default function TraderDetailPage() {
         if (newSignals.length > 0) {
             setSignals(prev => [...prev, ...newSignals]);
             setPage(prev => prev + 1);
-        } else {
+        }
+        
+        if (((page - 1) * PAGE_SIZE + newSignals.length) >= allSignals.length) {
             setHasMore(false);
         }
         setLoading(false);
-        if ((page * PAGE_SIZE) >= allSignals.length) {
-            setHasMore(false);
-        }
     }, 1000);
   };
   
@@ -419,5 +418,3 @@ export default function TraderDetailPage() {
     </div>
   )
 }
-
-    
