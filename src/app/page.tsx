@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Search,
   ChevronDown,
   BarChart,
   User,
   Plus,
-  Loader2
+  Loader2,
+  Crown
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ import {
   AreaChart
 } from 'recharts'
 import { useInView } from 'react-intersection-observer'
+import { Badge } from '@/components/ui/badge'
 
 interface Trader {
   id: number
@@ -180,69 +182,84 @@ const allTraders: Trader[] = [
 ];
 
 const PAGE_SIZE = 10;
+const RANK_BADGES: {[key: number]: {text: string, color: string}} = {
+    1: { text: "冠军", color: "bg-yellow-500/80 border-yellow-400 text-yellow-50" },
+    2: { text: "亚军", color: "bg-gray-400/80 border-gray-300 text-gray-50" },
+    3: { text: "季军", color: "bg-yellow-700/80 border-yellow-600 text-yellow-100" },
+}
 
-function TraderCard({ trader }: { trader: Trader }) {
-  return (
-    <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          <Avatar>
-            <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-grow">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-lg text-foreground">{trader.name}</h3>
-              <Button size="sm" variant="outline" className="bg-transparent text-primary border-primary hover:bg-primary/10 rounded-full px-4">
-                跟单
-              </Button>
+function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: number, is综合排序: boolean }) {
+    const badge = is综合排序 && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
+
+    return (
+        <Card className="bg-card/80 backdrop-blur-sm border-border/50 relative overflow-hidden">
+        {badge && (
+            <div className="absolute top-2 right-2">
+            <Badge variant="outline" className={`flex items-center gap-1.5 border-2 ${badge.color}`}>
+                <Crown className="w-4 h-4" />
+                <span className="font-bold">{badge.text}</span>
+            </Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{trader.description}</p>
-          </div>
-        </div>
+        )}
+        <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+            <Avatar>
+                <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-grow">
+                <div className="flex justify-between items-center">
+                <h3 className="font-bold text-lg text-foreground">{trader.name}</h3>
+                <Button size="sm" variant="outline" className="bg-transparent text-primary border-primary hover:bg-primary/10 rounded-full px-4">
+                    跟单
+                </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 pr-16">{trader.description}</p>
+            </div>
+            </div>
 
-        <div className="grid grid-cols-4 gap-2 text-center mt-4">
-          <div>
-            <p className="text-xs text-muted-foreground">收益率</p>
-            <p className="text-sm font-semibold text-green-400 mt-1">+{trader.yield}%</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">胜率</p>
-            <p className="text-sm font-semibold text-foreground mt-1">{trader.winRate}%</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">累计盈亏比</p>
-            <p className="text-sm font-semibold text-foreground mt-1">{trader.pnlRatio}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">累计指令</p>
-            <p className="text-sm font-semibold text-foreground mt-1">{trader.totalOrders}</p>
-          </div>
-        </div>
+            <div className="grid grid-cols-4 gap-2 text-center mt-4">
+            <div>
+                <p className="text-xs text-muted-foreground">收益率</p>
+                <p className="text-sm font-semibold text-green-400 mt-1">+{trader.yield}%</p>
+            </div>
+            <div>
+                <p className="text-xs text-muted-foreground">胜率</p>
+                <p className="text-sm font-semibold text-foreground mt-1">{trader.winRate}%</p>
+            </div>
+            <div>
+                <p className="text-xs text-muted-foreground">累计盈亏比</p>
+                <p className="text-sm font-semibold text-foreground mt-1">{trader.pnlRatio}</p>
+            </div>
+            <div>
+                <p className="text-xs text-muted-foreground">累计指令</p>
+                <p className="text-sm font-semibold text-foreground mt-1">{trader.totalOrders}</p>
+            </div>
+            </div>
 
-        <div className="h-20 mt-2 -mb-2 -ml-4 -mr-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={trader.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-              <defs>
-                  <linearGradient id={`gradient-${trader.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-              <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide={true} />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                fill={`url(#gradient-${trader.id})`}
-                fillOpacity={1}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
-  )
+            <div className="h-20 mt-2 -mb-2 -ml-4 -mr-4">
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trader.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+                <defs>
+                    <linearGradient id={`gradient-${trader.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                    </defs>
+                <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide={true} />
+                <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fill={`url(#gradient-${trader.id})`}
+                    fillOpacity={1}
+                />
+                </AreaChart>
+            </ResponsiveContainer>
+            </div>
+        </CardContent>
+        </Card>
+    )
 }
 
 function FilterDropdown({ label }: { label: string }) {
@@ -268,12 +285,13 @@ export default function LeaderboardPage() {
     const [traders, setTraders] = useState<Trader[]>([]);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
     const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
     const headerTitleRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLElement>(null);
 
     const loadMoreTraders = () => {
-        if (loading || !hasMore) return;
+        if (loading || !hasMore || searchQuery) return;
         setLoading(true);
 
         setTimeout(() => {
@@ -281,23 +299,29 @@ export default function LeaderboardPage() {
             if (newTraders.length > 0) {
                 setTraders(prev => [...prev, ...newTraders]);
                 setPage(prev => prev + 1);
+            } else {
+                setHasMore(false);
             }
             if (traders.length + newTraders.length >= allTraders.length) {
                 setHasMore(false);
             }
             setLoading(false);
-        }, 1000); // Simulate network delay
+        }, 1000); 
     };
 
     useEffect(() => {
-        loadMoreTraders();
-    }, []);
-
-    useEffect(() => {
-        if (inView && hasMore) {
+        if (!searchQuery) {
             loadMoreTraders();
         }
-    }, [inView, hasMore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery]);
+
+    useEffect(() => {
+        if (inView && hasMore && !searchQuery) {
+            loadMoreTraders();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inView, hasMore, searchQuery]);
     
     useEffect(() => {
         const headerTitle = headerTitleRef.current;
@@ -313,13 +337,22 @@ export default function LeaderboardPage() {
             } else {
                 headerTitle.style.height = '3.5rem';
                 headerTitle.style.opacity = '1';
-                 headerTitle.style.marginTop = '0';
+                headerTitle.style.marginTop = '0';
             }
         };
 
         mainContent.addEventListener('scroll', handleScroll);
         return () => mainContent.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const filteredTraders = useMemo(() => {
+        if (!searchQuery) return traders;
+        return allTraders.filter(
+            trader =>
+                trader.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                trader.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [searchQuery, traders]);
 
   return (
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
@@ -338,6 +371,8 @@ export default function LeaderboardPage() {
                 type="search"
                 placeholder="请输入交易员名称和描述"
                 className="pl-10 w-full bg-card border-border/60 rounded-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
             </div>
@@ -362,21 +397,28 @@ export default function LeaderboardPage() {
       {/* Trader List */}
       <main ref={mainContentRef} className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="space-y-3">
-            {traders.map((trader) => (
-                <TraderCard key={trader.id} trader={trader} />
+            {filteredTraders.map((trader, index) => (
+                <TraderCard 
+                    key={trader.id} 
+                    trader={trader} 
+                    rank={index + 1}
+                    is综合排序={!searchQuery} // Only show ranks if not searching
+                />
             ))}
         </div>
-        <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-            {loading && (
-                <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span>加载中...</span>
-                </>
-            )}
-            {!loading && !hasMore && (
-                <span>已经到底了</span>
-            )}
-        </div>
+        {!searchQuery && (
+             <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                {loading && (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>加载中...</span>
+                    </>
+                )}
+                {!loading && !hasMore && (
+                    <span>已经到底了</span>
+                )}
+            </div>
+        )}
       </main>
 
       {/* Bottom Navigation */}
@@ -407,5 +449,3 @@ export default function LeaderboardPage() {
     </div>
   )
 }
-
-    
