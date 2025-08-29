@@ -50,12 +50,14 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
 
-function ProfileItem({ icon, label, value, action, onClick }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void }) {
-    const isClickable = !!onClick;
-    const Component = isClickable ? 'button' : 'div';
+function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
+    const isClickable = !!onClick || !!href;
+    const Component = href ? Link : (isClickable ? 'button' : 'div');
+    
+    const props = href ? { href } : { onClick };
 
     return (
-        <Component onClick={onClick} className={`flex items-center p-4 w-full text-left ${isClickable ? 'hover:bg-accent/50 transition-colors' : ''}`}>
+        <Component {...props} className={`flex items-center p-4 w-full text-left ${isClickable ? 'hover:bg-accent/50 transition-colors' : ''}`}>
             {icon}
             <span className="ml-4 text-sm font-medium">{label}</span>
             <div className="ml-auto flex items-center gap-2">
@@ -258,7 +260,7 @@ export default function ProfilePage() {
             <Card className="bg-card/50 border-border/30">
                  <CardContent className="p-0">
                     <div className="divide-y divide-border/30">
-                        <ProfileItem icon={<Crown className="text-yellow-400"/>} label="购买会员" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+                        <ProfileItem href="/membership" icon={<Crown className="text-yellow-400"/>} label="购买会员" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem icon={<ReceiptText className="text-primary"/>} label="付费明细" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem icon={<Wallet className="text-primary"/>} label="我的资产" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem icon={<Settings className="text-primary"/>} label="跟单设置" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
