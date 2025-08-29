@@ -23,9 +23,29 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogFooter,
+  DialogClose
 } from "@/components/ui/dialog";
-import { BarChart, ChevronRight, Copy, Edit, Headset, KeyRound, Mail, Settings, User, Wallet } from 'lucide-react';
+import { 
+    BarChart, 
+    ChevronRight, 
+    Copy, 
+    Edit, 
+    FileQuestion, 
+    Headset, 
+    ImagePlus, 
+    KeyRound, 
+    Mail, 
+    Settings, 
+    User, 
+    Wallet,
+    X
+} from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 
 function ProfileItem({ icon, label, value, action, onClick }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void }) {
@@ -41,6 +61,112 @@ function ProfileItem({ icon, label, value, action, onClick }: { icon: React.Reac
                 {action}
             </div>
         </Component>
+    )
+}
+
+function FeedbackDialog() {
+    const [description, setDescription] = useState('');
+    const [images, setImages] = useState<string[]>([]);
+    const [showSuccessToast, setShowSuccessToast] = useState(false);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            const newImages = files.map(file => URL.createObjectURL(file));
+            setImages(prev => [...prev, ...newImages].slice(0, 3));
+        }
+    };
+
+    const removeImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+    };
+    
+    const handleSubmit = () => {
+        // Here you would typically handle the form submission
+        console.log({
+            type: (document.getElementById('feedback-type') as HTMLSelectElement)?.value,
+            description,
+            images,
+        });
+        
+        // Reset state
+        setDescription('');
+        setImages([]);
+
+        // Show success toast and close dialog
+        setShowSuccessToast(true);
+    };
+
+    return (
+        <Dialog onOpenChange={(open) => !open && setShowSuccessToast(false)}>
+             {showSuccessToast && <SimpleToast message="提交成功" onDismiss={() => setShowSuccessToast(false)} />}
+            <DialogTrigger asChild>
+                <div className="divide-y divide-border/30">
+                    <ProfileItem icon={<FileQuestion className="text-primary"/>} label="问题反馈" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
+                </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
+                <DialogHeader>
+                    <DialogTitle>问题反馈</DialogTitle>
+                    <DialogDescription>我们重视您的每一个建议，请详细描述您遇到的问题。</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="feedback-type">问题类型</Label>
+                        <Select defaultValue="feature-suggestion">
+                             <SelectTrigger id="feedback-type">
+                                <SelectValue placeholder="请选择问题类型" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="feature-suggestion">功能建议</SelectItem>
+                                <SelectItem value="ui-issue">界面问题</SelectItem>
+                                <SelectItem value="account-issue">账号问题</SelectItem>
+                                <SelectItem value="other">其他问题</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="description">问题描述</Label>
+                        <Textarea
+                            id="description"
+                            placeholder="请详细描述您的问题或建议..."
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            maxLength={500}
+                            className="h-28"
+                        />
+                        <p className="text-xs text-muted-foreground text-right">{description.length} / 500</p>
+                    </div>
+                    <div className="grid gap-2">
+                         <Label>上传图片 (可选, 最多3张)</Label>
+                         <div className="flex items-center gap-2">
+                            {images.map((img, index) => (
+                                <div key={index} className="relative w-20 h-20">
+                                    <Image src={img} alt={`upload-preview-${index}`} layout="fill" objectFit="cover" className="rounded-md" />
+                                    <button onClick={() => removeImage(index)} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5">
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            ))}
+                            {images.length < 3 && (
+                                <Label htmlFor="file-upload" className="w-20 h-20 bg-muted rounded-md flex items-center justify-center cursor-pointer hover:bg-muted/80">
+                                    <ImagePlus className="w-8 h-8 text-muted-foreground" />
+                                </Label>
+                            )}
+                         </div>
+                         <Input id="file-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/jpg" multiple onChange={handleFileChange} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">取消</Button>
+                    </DialogClose>
+                     <DialogClose asChild>
+                        <Button type="submit" onClick={handleSubmit}>提交</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }
 
@@ -123,41 +249,44 @@ export default function ProfilePage() {
 
 
              {/* Support */}
-             <Dialog>
-                <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-0">
-                        <DialogTrigger asChild>
-                            <div className="divide-y divide-border/30">
-                                <ProfileItem icon={<Headset className="text-primary"/>} label="联系客服" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
-                            </div>
-                        </DialogTrigger>
-                    </CardContent>
-                </Card>
-                <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
-                    <DialogHeader>
-                    <DialogTitle>联系客服</DialogTitle>
-                    <DialogDescription>
-                        通过Telegram联系我们的客服团队。
-                    </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="flex flex-col items-center justify-center gap-4">
-                             <Image
-                                src="https://picsum.photos/200/200"
-                                alt="Telegram QR Code"
-                                width={200}
-                                height={200}
-                                data-ai-hint="qr code"
-                                className="rounded-md"
-                            />
-                            <div className="text-center">
-                                <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
-                                <p className="font-mono text-lg text-primary mt-2">@SignalAuthSupport</p>
-                            </div>
-                        </div>
+             <Card className="bg-card/50 border-border/30">
+                <CardContent className="p-0">
+                    <div className="divide-y divide-border/30">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <div>
+                                    <ProfileItem icon={<Headset className="text-primary"/>} label="联系客服" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
+                                </div>
+                            </DialogTrigger>
+                             <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
+                                <DialogHeader>
+                                <DialogTitle>联系客服</DialogTitle>
+                                <DialogDescription>
+                                    通过Telegram联系我们的客服团队。
+                                </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="flex flex-col items-center justify-center gap-4">
+                                        <Image
+                                            src="https://picsum.photos/200/200"
+                                            alt="Telegram QR Code"
+                                            width={200}
+                                            height={200}
+                                            data-ai-hint="qr code"
+                                            className="rounded-md"
+                                        />
+                                        <div className="text-center">
+                                            <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
+                                            <p className="font-mono text-lg text-primary mt-2">@SignalAuthSupport</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                        <FeedbackDialog />
                     </div>
-                </DialogContent>
-            </Dialog>
+                </CardContent>
+            </Card>
         </div>
       </main>
 
@@ -192,3 +321,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
