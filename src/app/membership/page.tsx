@@ -41,8 +41,7 @@ const comparisonData = [
   { feature: '社区专属活动', manual: true, auto: true },
 ];
 
-function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: string }) {
-    const [selectedPlan, setSelectedPlan] = useState(defaultPlanId);
+function PlanSelector({ plans, selectedPlan, setSelectedPlan }: { plans: Plan[], selectedPlan: string, setSelectedPlan: (id: string) => void }) {
     return (
         <div className="w-full space-y-6">
             <RadioGroup
@@ -57,7 +56,7 @@ function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: 
                         className={cn(
                             'block rounded-lg border-2 p-3 text-center cursor-pointer transition-all',
                             'bg-muted/30 border-transparent',
-                            'has-[:checked]:bg-primary/10 has-[:checked]:border-primary'
+                            {'bg-primary/10 border-primary': selectedPlan === plan.id}
                         )}
                     >
                         <RadioGroupItem value={plan.id} id={plan.id} className="sr-only" />
@@ -81,12 +80,11 @@ function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: 
 function ComparisonSection() {
     return (
         <div className="space-y-4">
-            <h3 className="text-center font-bold text-lg text-foreground">跟单对比</h3>
             <div className="rounded-lg border border-border/50 bg-card/50 overflow-hidden">
                 <div className="grid grid-cols-3 p-4 bg-muted/30 font-semibold">
                     <span className="col-span-1">功能</span>
                     <span className="col-span-1 text-center">手动跟单</span>
-                    <span className="col-span-1 text-center">自动跟单</span>
+                    <span className="col-span-1 text-center bg-primary/10 rounded-md py-1">自动跟单</span>
                 </div>
                 <div className="divide-y divide-border/30">
                     {comparisonData.map(({ feature, manual, auto }, index) => (
@@ -97,7 +95,7 @@ function ComparisonSection() {
                                     manual ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500" />
                                 ) : <span className="text-center">{manual}</span>}
                             </div>
-                            <div className="col-span-1 flex justify-center">
+                            <div className="col-span-1 flex justify-center bg-primary/5 rounded-md py-2">
                                 {typeof auto === 'boolean' ? (
                                     auto ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500" />
                                 ) : <span className="text-center font-semibold text-primary">{auto}</span>}
@@ -112,6 +110,8 @@ function ComparisonSection() {
 
 export default function MembershipPage() {
     const router = useRouter();
+    const [autoSelectedPlan, setAutoSelectedPlan] = useState('auto-yearly');
+    const [manualSelectedPlan, setManualSelectedPlan] = useState('manual-yearly');
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -130,10 +130,18 @@ export default function MembershipPage() {
                         <TabsTrigger value="manual">手动跟单</TabsTrigger>
                     </TabsList>
                     <TabsContent value="auto" className="mt-6">
-                        <PlanSelector plans={autoPlans} defaultPlanId="auto-yearly"/>
+                        <PlanSelector
+                            plans={autoPlans}
+                            selectedPlan={autoSelectedPlan}
+                            setSelectedPlan={setAutoSelectedPlan}
+                        />
                     </TabsContent>
                     <TabsContent value="manual" className="mt-6">
-                        <PlanSelector plans={manualPlans} defaultPlanId="manual-yearly"/>
+                        <PlanSelector
+                            plans={manualPlans}
+                            selectedPlan={manualSelectedPlan}
+                            setSelectedPlan={setManualSelectedPlan}
+                        />
                     </TabsContent>
                 </Tabs>
                 <ComparisonSection />
