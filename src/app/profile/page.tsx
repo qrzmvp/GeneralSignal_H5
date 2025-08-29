@@ -217,18 +217,7 @@ export default function ProfilePage() {
       <main className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="space-y-6">
             {/* User Info Card */}
-            <Card className="bg-card/50 border-0 shadow-none relative overflow-hidden">
-                 {user.membership && (
-                    <div className="absolute top-0 right-0 w-24 h-24">
-                        <div className="absolute top-0 right-0 w-0 h-0 border-t-[60px] border-t-yellow-400 border-l-[60px] border-l-transparent"></div>
-                        <div className="absolute top-4 right-2 transform rotate-45 text-yellow-900">
-                             <div className='flex flex-col items-center justify-center text-xs font-bold'>
-                                <Crown className="w-3.5 h-3.5" />
-                                <span className="text-[10px] mt-0.5">{user.membership}</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
+            <Card className="bg-card/50 border-0 shadow-none">
                 <CardContent className="p-4 flex items-center gap-4">
                     <div className="relative">
                         <Avatar className="h-16 w-16 border-2 border-primary/50">
@@ -242,7 +231,15 @@ export default function ProfilePage() {
                         </button>
                     </div>
                     <div className="space-y-1">
-                        <h2 className="text-xl font-bold">{user.name}</h2>
+                        <h2 className="text-xl font-bold flex items-center gap-2">
+                            {user.name}
+                            {user.membership && (
+                                <span className="bg-yellow-400 text-yellow-900 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <Crown className="w-3 h-3" />
+                                    {user.membership}
+                                </span>
+                            )}
+                        </h2>
                         <div className="flex items-center text-xs text-muted-foreground">
                             <span>ID: {user.id}</span>
                             <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={handleCopyId}>
