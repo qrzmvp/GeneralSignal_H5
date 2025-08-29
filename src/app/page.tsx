@@ -200,28 +200,30 @@ const allTraders: Trader[] = [
 ];
 
 const PAGE_SIZE = 10;
-const RANK_BADGES: {[key: number]: { color: string, shadow: string }} = {
-    1: { color: "bg-yellow-400 text-yellow-900", shadow: "shadow-yellow-400/50" }, // Gold
-    2: { color: "bg-slate-300 text-slate-800", shadow: "shadow-slate-300/50" }, // Silver
-    3: { color: "bg-amber-600 text-amber-100", shadow: "shadow-amber-600/50" },   // Bronze
+const RANK_BADGES: {[key: number]: { content: string, color: string }} = {
+    1: { content: "冠军", color: "bg-yellow-400 text-yellow-900" }, // Gold
+    2: { content: "亚军", color: "bg-slate-300 text-slate-800" }, // Silver
+    3: { content: "季军", color: "bg-amber-600 text-amber-100" },   // Bronze
 }
 
 function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: number, is综合排序: boolean }) {
     const badge = is综合排序 && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
     return (
-        <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden">
+        <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden relative">
+        {badge && (
+            <div className="rank-ribbon">
+                <div className={`rank-ribbon-content ${badge.color}`}>
+                    {badge.content}
+                </div>
+            </div>
+        )}
         <CardContent className="p-4">
             <div className="flex items-start gap-4">
             <div className="relative shrink-0">
                 <Avatar>
                     <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                {badge && (
-                    <div className={`absolute -top-2 left-1/2 -translate-x-1/2 z-10 rounded-full p-0.5 ${badge.color} shadow-lg ${badge.shadow}`}>
-                        <Crown className="w-4 h-4" />
-                    </div>
-                )}
             </div>
             <div className="flex-grow">
                 <div className="flex justify-between items-center">
@@ -426,15 +428,18 @@ export default function LeaderboardPage() {
       {/* Trader List */}
       <main ref={mainContentRef} className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="grid grid-cols-1 gap-3">
-            {filteredTraders.map((trader, index) => (
-              <Link href={`/trader/${trader.id}`} key={`${trader.id}-${index}`}>
-                <TraderCard 
-                    trader={trader} 
-                    rank={sortedTraders.findIndex(t => t.id === trader.id) + 1}
-                    is综合排序={!searchQuery} // Only show ranks if not searching
-                />
-              </Link>
-            ))}
+            {filteredTraders.map((trader) => {
+              const rank = sortedTraders.findIndex(t => t.id === trader.id) + 1;
+              return (
+                <Link href={{ pathname: `/trader/${trader.id}`, query: { rank } }} key={trader.id}>
+                    <TraderCard 
+                        trader={trader} 
+                        rank={rank}
+                        is综合排序={!searchQuery} // Only show ranks if not searching
+                    />
+                </Link>
+              )
+            })}
         </div>
         {!searchQuery && (
              <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">

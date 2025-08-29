@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   ChevronLeft,
   User,
@@ -216,6 +216,12 @@ const traders = [
 
 const PAGE_SIZE = 5;
 
+const RANK_BADGES: {[key: number]: { content: string, color: string }} = {
+    1: { content: "冠军", color: "bg-yellow-400 text-yellow-900" },
+    2: { content: "亚军", color: "bg-slate-300 text-slate-800" },
+    3: { content: "季军", color: "bg-amber-600 text-amber-100" },
+}
+
 
 function InfoPill({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
@@ -341,79 +347,84 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 export default function TraderDetailPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const traderId = params.id ? parseInt(params.id as string, 10) : null;
+  const rank = searchParams.get('rank') ? parseInt(searchParams.get('rank') as string, 10) : null;
   const trader = traders.find(t => t.id === traderId);
+  const badge = rank && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const allSignals = useMemo(() => Array.from({ length: 25 }, (_, i) => {
-    const isLong = Math.random() > 0.5;
-    const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
-    const entryPrice = Math.random() * 50000 + 20000;
-    const useRange = Math.random() > 0.7;
-    return {
-      id: i + 1,
-      pair: `${pair}-USDT-SWAP`,
-      direction: isLong ? '做多' : '做空',
-      directionColor: isLong ? 'text-green-400' : 'text-red-400',
-      entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
-      takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
-      takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
-      stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
-      pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-      createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
-    };
-  }), []);
+  const { allSignals, allHistoricalSignals, allFollowers } = useMemo(() => {
+    const allSignals = Array.from({ length: 25 }, (_, i) => {
+        const isLong = Math.random() > 0.5;
+        const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
+        const entryPrice = Math.random() * 50000 + 20000;
+        const useRange = Math.random() > 0.7;
+        return {
+        id: i + 1,
+        pair: `${pair}-USDT-SWAP`,
+        direction: isLong ? '做多' : '做空',
+        directionColor: isLong ? 'text-green-400' : 'text-red-400',
+        entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
+        takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
+        takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
+        stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
+        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+        createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
+        };
+    });
 
-  const allHistoricalSignals = useMemo(() => Array.from({ length: 30 }, (_, i) => {
-    const isLong = Math.random() > 0.5;
-    const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
-    const entryPrice = Math.random() * 500 + 100;
-    const createTime = new Date(Date.now() - (i + 25) * 1000 * 60 * 60 * 8); // Start from after current signals
-    const endTime = new Date(createTime.getTime() + Math.random() * 1000 * 60 * 60 * 24);
-    return {
-      id: i + 100, // Avoid key collision
-      pair: `${pair}-USDT-SWAP`,
-      direction: isLong ? '做多' : '做空',
-      directionColor: isLong ? 'text-green-400' : 'text-red-400',
-      entryPrice: entryPrice.toFixed(3),
-      takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
-      takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
-      stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
-      pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-      createdAt: `${createTime.toISOString().replace('T', ' ').substring(0, 19)} - ${endTime.toISOString().replace('T', ' ').substring(0, 19)}`,
-    };
-  }), []);
+    const allHistoricalSignals = Array.from({ length: 30 }, (_, i) => {
+        const isLong = Math.random() > 0.5;
+        const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
+        const entryPrice = Math.random() * 500 + 100;
+        const createTime = new Date(Date.now() - (i + 25) * 1000 * 60 * 60 * 8); // Start from after current signals
+        const endTime = new Date(createTime.getTime() + Math.random() * 1000 * 60 * 60 * 24);
+        return {
+        id: i + 100, // Avoid key collision
+        pair: `${pair}-USDT-SWAP`,
+        direction: isLong ? '做多' : '做空',
+        directionColor: isLong ? 'text-green-400' : 'text-red-400',
+        entryPrice: entryPrice.toFixed(3),
+        takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
+        takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
+        stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
+        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+        createdAt: `${createTime.toISOString().replace('T', ' ').substring(0, 19)} - ${endTime.toISOString().replace('T', ' ').substring(0, 19)}`,
+        };
+    });
 
-  const allFollowers = useMemo(() => Array.from({ length: 40 }, (_, i) => {
-    const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
-    return {
-        id: i + 200,
-        name: `***${name.slice(-4)}`,
-        profit: (Math.random() * 5000).toFixed(2),
-        duration: Math.floor(Math.random() * 365) + 1,
-    };
-  }), []);
-
+    const allFollowers = Array.from({ length: 40 }, (_, i) => {
+        const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
+        return {
+            id: i + 200,
+            name: `***${name.slice(-4)}`,
+            profit: (Math.random() * 5000).toFixed(2),
+            duration: Math.floor(Math.random() * 365) + 1,
+        };
+    });
+    return { allSignals, allHistoricalSignals, allFollowers };
+  }, []);
 
   const [currentSignals, setCurrentSignals] = useState<(typeof allSignals[0])[]>([]);
   const [currentSignalsPage, setCurrentSignalsPage] = useState(1);
-  const [currentSignalsLoading, setCurrentSignalsLoading] = useState(true);
+  const [currentSignalsLoading, setCurrentSignalsLoading] = useState(false);
   const [currentSignalsHasMore, setCurrentSignalsHasMore] = useState(true);
   const { ref: currentLoadMoreRef, inView: currentInView } = useInView({ threshold: 0.1 });
   const [currentFilterLabel, setCurrentFilterLabel] = useState('近三个月');
 
   const [historicalSignals, setHistoricalSignals] = useState<(typeof allHistoricalSignals[0])[]>([]);
   const [historicalSignalsPage, setHistoricalSignalsPage] = useState(1);
-  const [historicalSignalsLoading, setHistoricalSignalsLoading] = useState(true);
+  const [historicalSignalsLoading, setHistoricalSignalsLoading] = useState(false);
   const [historicalSignalsHasMore, setHistoricalSignalsHasMore] = useState(true);
   const { ref: historicalLoadMoreRef, inView: historicalInView } = useInView({ threshold: 0.1 });
   const [historicalFilterLabel, setHistoricalFilterLabel] = useState('近三个月');
 
   const [followers, setFollowers] = useState<(typeof allFollowers[0])[]>([]);
   const [followersPage, setFollowersPage] = useState(1);
-  const [followersLoading, setFollowersLoading] = useState(true);
+  const [followersLoading, setFollowersLoading] = useState(false);
   const [followersHasMore, setFollowersHasMore] = useState(true);
   const { ref: followersLoadMoreRef, inView: followersInView } = useInView({ threshold: 0.1 });
 
@@ -482,21 +493,23 @@ export default function TraderDetailPage() {
   ]);
   
   useEffect(() => {
-    // This effect is responsible for the initial data load for all three tabs.
     const initialLoad = (type: 'current' | 'historical' | 'followers') => {
         if (type === 'current') {
+            setCurrentSignalsLoading(true);
             const newSignals = allSignals.slice(0, PAGE_SIZE);
             setCurrentSignals(newSignals);
             setCurrentSignalsPage(2);
             setCurrentSignalsHasMore(PAGE_SIZE < allSignals.length);
             setCurrentSignalsLoading(false);
         } else if (type === 'historical') {
+            setHistoricalSignalsLoading(true);
             const newSignals = allHistoricalSignals.slice(0, PAGE_SIZE);
             setHistoricalSignals(newSignals);
             setHistoricalSignalsPage(2);
             setHistoricalSignalsHasMore(PAGE_SIZE < allHistoricalSignals.length);
             setHistoricalSignalsLoading(false);
         } else if (type === 'followers') {
+            setFollowersLoading(true);
             const newFollowers = allFollowers.slice(0, PAGE_SIZE);
             setFollowers(newFollowers);
             setFollowersPage(2);
@@ -648,7 +661,14 @@ export default function TraderDetailPage() {
 
       <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
         {/* Basic Info */}
-        <Card className="bg-card/80 border-border/50">
+        <Card className="bg-card/80 border-border/50 overflow-hidden relative">
+            {badge && (
+                <div className="rank-ribbon">
+                    <div className={`rank-ribbon-content ${badge.color}`}>
+                        {badge.content}
+                    </div>
+                </div>
+            )}
           <CardContent className="p-4 flex flex-row items-start text-left gap-4">
             <Avatar className="h-24 w-24 border-2 border-primary shrink-0">
               <AvatarImage src={trader.avatar} alt={trader.name} />
@@ -678,14 +698,13 @@ export default function TraderDetailPage() {
         </Card>
 
         {/* Signals Section */}
-        <Tabs value={TABS[selectedIndex].value} className="w-full">
+         <Tabs value={TABS[selectedIndex].value} onValueChange={(value) => scrollTo(TABS.findIndex(t => t.value === value))} className="w-full">
             <div className="px-1">
                 <TabsList className="grid w-full grid-cols-3">
-                    {TABS.map((tab, index) => (
+                    {TABS.map((tab) => (
                          <TabsTrigger 
                             key={tab.value}
                             value={tab.value} 
-                            onClick={() => scrollTo(index)}
                             >
                             <tab.icon className="mr-2 h-4 w-4" /> {tab.label}
                         </TabsTrigger>
@@ -712,5 +731,3 @@ export default function TraderDetailPage() {
     </div>
   )
 }
-
-    
