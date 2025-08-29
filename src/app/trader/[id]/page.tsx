@@ -282,14 +282,14 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50">
-          <CardContent className="p-4 flex flex-col items-center text-center gap-4">
-            <Avatar className="h-24 w-24 border-2 border-primary">
+          <CardContent className="p-4 flex flex-row items-start text-left gap-4">
+            <Avatar className="h-24 w-24 border-2 border-primary shrink-0">
               <AvatarImage src={trader.avatar} alt={trader.name} />
               <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="w-full">
+            <div className="w-full space-y-3">
                 <p className="text-sm text-muted-foreground">{trader.description}</p>
-                <div className="flex flex-wrap justify-center gap-2 mt-3">
+                <div className="flex flex-wrap justify-start gap-2">
                     {trader.tags?.map(tag => (
                         <Badge key={tag} variant="secondary">{tag}</Badge>
                     ))}
