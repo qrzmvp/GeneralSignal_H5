@@ -200,7 +200,7 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
                     <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {badge && (
-                    <div className={`absolute -top-1 -right-1 z-10 rounded-full p-0.5 ${badge.color} shadow-lg ${badge.shadow}`}>
+                    <div className={`absolute -top-2 left-1/2 -translate-x-1/2 z-10 rounded-full p-0.5 ${badge.color} shadow-lg ${badge.shadow}`}>
                         <Crown className="w-4 h-4" />
                     </div>
                 )}
@@ -226,11 +226,11 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
                 <p className="text-sm font-semibold text-foreground mt-1">{trader.winRate}%</p>
             </div>
             <div>
-                <p className="text-xs text-muted-foreground">累计盈亏比</p>
+                <p className="text-xs text-muted-foreground">盈亏比</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{trader.pnlRatio}</p>
             </div>
             <div>
-                <p className="text-xs text-muted-foreground">累计指令</p>
+                <p className="text-xs text-muted-foreground">累计信号</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{trader.totalOrders}</p>
             </div>
             </div>
