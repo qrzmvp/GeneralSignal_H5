@@ -1,16 +1,27 @@
 
 'use client'
 
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation'
 import {
   ChevronLeft,
   User,
   Clock,
+  ChevronDown,
+  Loader2
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useInView } from 'react-intersection-observer'
+
 
 // Mock data - in a real app, you'd fetch this based on the `id` param
 const traders = [
@@ -198,41 +209,25 @@ const traders = [
   }
 ];
 
-const currentSignals = [
-  {
-    id: 1,
-    pair: 'BTC-USDT-SWAP',
-    direction: '做多',
-    directionColor: 'text-green-400',
-    entryPrice: '70,123.45',
-    takeProfit1: '71,500.00',
-    takeProfit2: '72,800.00',
-    stopLoss: '69,500.00',
-    createdAt: '2024-07-28 10:30:15',
-  },
-  {
-    id: 2,
-    pair: 'ETH-USDT-SWAP',
-    direction: '做空',
-    directionColor: 'text-red-400',
-    entryPrice: '3,456.78',
-    takeProfit1: '3,400.00',
-    takeProfit2: '3,350.00',
-    stopLoss: '3,500.00',
-    createdAt: '2024-07-28 08:15:45',
-  },
-    {
-    id: 3,
-    pair: 'SOL-USDT-SWAP',
-    direction: '做多',
-    directionColor: 'text-green-400',
-    entryPrice: '165.20',
-    takeProfit1: '170.00',
-    takeProfit2: '175.50',
-    stopLoss: '162.00',
-    createdAt: '2024-07-27 22:45:00',
-  },
-]
+const allSignals = Array.from({ length: 25 }, (_, i) => {
+  const isLong = Math.random() > 0.5;
+  const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
+  const entryPrice = Math.random() * 50000 + 20000;
+  return {
+    id: i + 1,
+    pair: `${pair}-USDT-SWAP`,
+    direction: isLong ? '做多' : '做空',
+    directionColor: isLong ? 'text-green-400' : 'text-red-400',
+    entryPrice: entryPrice.toFixed(2),
+    takeProfit1: (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
+    takeProfit2: (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
+    stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
+    createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 8).toISOString().replace('T', ' ').substring(0, 19),
+  };
+});
+
+const PAGE_SIZE = 5;
+
 
 function InfoPill({ label, value }: { label: string; value: string }) {
   return (
@@ -252,15 +247,82 @@ function MetricItem({ label, value, valueClassName }: { label: string; value: st
     )
 }
 
+function SignalCard({ signal }: { signal: typeof allSignals[0] }) {
+    return (
+        <Card className="bg-card/80 border-border/50">
+            <CardContent className="p-4">
+                <div className="flex justify-between items-center mb-3">
+                    <Badge variant="secondary" className="font-mono">{signal.pair}</Badge>
+                    <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
+                </div>
+                <div className="space-y-2 border-t border-border/50 pt-3">
+                    <InfoPill label="入场点位" value={signal.entryPrice} />
+                    <InfoPill label="止盈点位 1" value={signal.takeProfit1} />
+                    <InfoPill label="止盈点位 2" value={signal.takeProfit2} />
+                    <InfoPill label="止损点位" value={signal.stopLoss} />
+                </div>
+                <div className="flex justify-between items-end mt-3 pt-3 border-t border-border/50">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Clock className="w-3 h-3" />
+                        {signal.createdAt}
+                    </div>
+                    <Button size="sm" className="h-8 px-3 rounded-full bg-primary/20 text-primary hover:bg-primary/30">手动跟单</Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+
 export default function TraderDetailPage() {
   const router = useRouter()
   const params = useParams()
   const traderId = params.id ? parseInt(params.id as string, 10) : null;
-
-  // Find the trader data from the mock array
   const trader = traders.find(t => t.id === traderId);
+  
+  const [signals, setSignals] = useState<(typeof allSignals[0])[]>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
+  const [filterLabel, setFilterLabel] = useState('近三个月');
+
+  const loadMoreSignals = () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+
+    setTimeout(() => {
+        const newSignals = allSignals.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+        if (newSignals.length > 0) {
+            setSignals(prev => [...prev, ...newSignals]);
+            setPage(prev => prev + 1);
+        } else {
+            setHasMore(false);
+        }
+        setLoading(false);
+        if ((page * PAGE_SIZE) >= allSignals.length) {
+            setHasMore(false);
+        }
+    }, 1000);
+  };
+  
+   useEffect(() => {
+    // Initial load
+    loadMoreSignals();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+  useEffect(() => {
+    if (inView && !loading && hasMore) {
+      loadMoreSignals();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView, loading, hasMore]);
+
 
   if (!trader) {
+    // In a real app, you might show a loading state here
     return (
       <div className="flex h-screen items-center justify-center">
         <p>Trader not found.</p>
@@ -312,39 +374,50 @@ export default function TraderDetailPage() {
 
         {/* Current Signals */}
         <div>
-            <h2 className="text-base font-bold flex items-center gap-2 mb-3">
-                <User className="w-5 h-5 text-primary"/>
-                当前信号
-            </h2>
+            <div className="flex justify-between items-center mb-3">
+                 <h2 className="text-base font-bold flex items-center gap-2">
+                    <User className="w-5 h-5 text-primary"/>
+                    当前信号
+                </h2>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-muted-foreground">
+                        {filterLabel}
+                        <ChevronDown className="w-4 h-4 ml-1" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => setFilterLabel('近三个月')}>近三个月</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setFilterLabel('近半年')}>近半年</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setFilterLabel('近一年')}>近一年</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
             <div className="space-y-3">
-                {currentSignals.map(signal => (
-                    <Card key={signal.id} className="bg-card/80 border-border/50">
-                        <CardContent className="p-4">
-                            <div className="flex justify-between items-center mb-3">
-                                <Badge variant="secondary" className="font-mono">{signal.pair}</Badge>
-                                <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
-                            </div>
-                            <div className="space-y-2 border-t border-border/50 pt-3">
-                                <InfoPill label="入场点位" value={signal.entryPrice} />
-                                <InfoPill label="止盈点位 1" value={signal.takeProfit1} />
-                                <InfoPill label="止盈点位 2" value={signal.takeProfit2} />
-                                <InfoPill label="止损点位" value={signal.stopLoss} />
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border/50 flex items-center gap-1.5">
-                                <Clock className="w-3 h-3" />
-                                {signal.createdAt}
-                            </div>
-                        </CardContent>
-                    </Card>
+                {signals.map(signal => (
+                    <SignalCard key={signal.id} signal={signal} />
                 ))}
+            </div>
+             <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                {loading && (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>加载中...</span>
+                    </>
+                )}
+                {!loading && !hasMore && signals.length > 0 && (
+                    <span>已经到底了</span>
+                )}
             </div>
         </div>
       </main>
 
        {/* Floating Footer */}
       <footer className="fixed bottom-0 left-0 right-0 z-10 bg-background/80 border-t border-border/50 backdrop-blur-sm p-4">
-        <Button className="w-full font-bold text-lg h-12 rounded-full">立即跟单</Button>
+        <Button className="w-full font-bold text-lg h-11 rounded-full">立即跟单</Button>
       </footer>
     </div>
   )
 }
+
+    
