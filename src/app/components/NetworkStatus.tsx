@@ -9,14 +9,14 @@ export function NetworkStatus() {
   useEffect(() => {
     const handleOffline = () => setIsOffline(true);
     const handleOnline = () => setIsOffline(false);
-
-    window.addEventListener('offline', handleOffline);
-    window.addEventListener('online', handleOnline);
-
-    // Initial check
+    
+    // Initial check inside useEffect to ensure it runs only on the client
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       setIsOffline(true);
     }
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
 
     return () => {
       window.removeEventListener('offline', handleOffline);
