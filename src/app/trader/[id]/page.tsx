@@ -8,7 +8,8 @@ import {
   User,
   Clock,
   ChevronDown,
-  Loader2
+  Loader2,
+  History
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useInView } from 'react-intersection-observer'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 
 // Mock data - in a real app, you'd fetch this based on the `id` param
@@ -226,6 +228,27 @@ const allSignals = Array.from({ length: 25 }, (_, i) => {
   };
 });
 
+const allHistoricalSignals = Array.from({ length: 30 }, (_, i) => {
+  const isLong = Math.random() > 0.5;
+  const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
+  const entryPrice = Math.random() * 500 + 100;
+  const createTime = new Date(Date.now() - (i + 25) * 1000 * 60 * 60 * 8); // Start from after current signals
+  const endTime = new Date(createTime.getTime() + Math.random() * 1000 * 60 * 60 * 24);
+  return {
+    id: i + 100, // Avoid key collision
+    pair: `${pair}-USDT-SWAP`,
+    direction: isLong ? '做多' : '做空',
+    directionColor: isLong ? 'text-green-400' : 'text-red-400',
+    entryPrice: entryPrice.toFixed(3),
+    takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
+    takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
+    stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
+    createdAt: createTime.toISOString().replace('T', ' ').substring(0, 19),
+    endedAt: endTime.toISOString().replace('T', ' ').substring(0, 19),
+  };
+});
+
+
 const PAGE_SIZE = 5;
 
 
@@ -273,6 +296,57 @@ function SignalCard({ signal }: { signal: typeof allSignals[0] }) {
     );
 }
 
+function HistoricalSignalCard({ signal }: { signal: typeof allHistoricalSignals[0] }) {
+    return (
+        <Card className="bg-card/80 border-border/50">
+            <CardContent className="p-4">
+                <div className="flex justify-between items-center mb-3">
+                    <Badge variant="secondary" className="font-mono">{signal.pair}</Badge>
+                    <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
+                </div>
+                <div className="space-y-2 border-t border-border/50 pt-3">
+                    <InfoPill label="入场点位" value={signal.entryPrice} />
+                    <InfoPill label="止盈点位 1" value={signal.takeProfit1} />
+                    <InfoPill label="止盈点位 2" value={signal.takeProfit2} />
+                    <InfoPill label="止损点位" value={signal.stopLoss} />
+                </div>
+                <div className="space-y-2 mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
+                   <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-1.5">
+                           <span>创建:</span>
+                           <span>{signal.createdAt}</span>
+                       </div>
+                   </div>
+                   <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-1.5">
+                           <span>结束:</span>
+                           <span>{signal.endedAt}</span>
+                       </div>
+                   </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function TimeFilterDropdown({ label, setLabel }: { label: string; setLabel: (label: string) => void; }) {
+  return (
+    <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
+            {label}
+            <ChevronDown className="w-4 h-4 ml-1" />
+            </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => setLabel('近三个月')}>近三个月</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setLabel('近半年')}>近半年</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setLabel('近一年')}>近一年</DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 
 export default function TraderDetailPage() {
   const router = useRouter()
@@ -280,51 +354,83 @@ export default function TraderDetailPage() {
   const traderId = params.id ? parseInt(params.id as string, 10) : null;
   const trader = traders.find(t => t.id === traderId);
   
-  const [signals, setSignals] = useState<(typeof allSignals[0])[]>([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
-  const [filterLabel, setFilterLabel] = useState('近三个月');
+  const [currentSignals, setCurrentSignals] = useState<(typeof allSignals[0])[]>([]);
+  const [currentSignalsPage, setCurrentSignalsPage] = useState(1);
+  const [currentSignalsLoading, setCurrentSignalsLoading] = useState(false);
+  const [currentSignalsHasMore, setCurrentSignalsHasMore] = useState(true);
+  const { ref: currentLoadMoreRef, inView: currentInView } = useInView({ threshold: 0.1 });
+  const [currentFilterLabel, setCurrentFilterLabel] = useState('近三个月');
 
-  const loadMoreSignals = () => {
-    if (loading || !hasMore) return;
-    setLoading(true);
+  const [historicalSignals, setHistoricalSignals] = useState<(typeof allHistoricalSignals[0])[]>([]);
+  const [historicalSignalsPage, setHistoricalSignalsPage] = useState(1);
+  const [historicalSignalsLoading, setHistoricalSignalsLoading] = useState(false);
+  const [historicalSignalsHasMore, setHistoricalSignalsHasMore] = useState(true);
+  const { ref: historicalLoadMoreRef, inView: historicalInView } = useInView({ threshold: 0.1 });
+  const [historicalFilterLabel, setHistoricalFilterLabel] = useState('近三个月');
+
+
+  const loadMoreCurrentSignals = () => {
+    if (currentSignalsLoading || !currentSignalsHasMore) return;
+    setCurrentSignalsLoading(true);
 
     setTimeout(() => {
-        const newSignals = allSignals.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+        const newSignals = allSignals.slice((currentSignalsPage - 1) * PAGE_SIZE, currentSignalsPage * PAGE_SIZE);
         if (newSignals.length > 0) {
-            setSignals(prev => [...prev, ...newSignals]);
-            setPage(prev => prev + 1);
+            setCurrentSignals(prev => [...prev, ...newSignals]);
+            setCurrentSignalsPage(prev => prev + 1);
         }
         
-        if (((page - 1) * PAGE_SIZE + newSignals.length) >= allSignals.length) {
-            setHasMore(false);
+        if (((currentSignalsPage - 1) * PAGE_SIZE + newSignals.length) >= allSignals.length) {
+            setCurrentSignalsHasMore(false);
         }
-        setLoading(false);
+        setCurrentSignalsLoading(false);
+    }, 1000);
+  };
+
+  const loadMoreHistoricalSignals = () => {
+    if (historicalSignalsLoading || !historicalSignalsHasMore) return;
+    setHistoricalSignalsLoading(true);
+
+    setTimeout(() => {
+        const newSignals = allHistoricalSignals.slice((historicalSignalsPage - 1) * PAGE_SIZE, historicalSignalsPage * PAGE_SIZE);
+        if (newSignals.length > 0) {
+            setHistoricalSignals(prev => [...prev, ...newSignals]);
+            setHistoricalSignalsPage(prev => prev + 1);
+        }
+        
+        if (((historicalSignalsPage - 1) * PAGE_SIZE + newSignals.length) >= allHistoricalSignals.length) {
+            setHistoricalSignalsHasMore(false);
+        }
+        setHistoricalSignalsLoading(false);
     }, 1000);
   };
   
    useEffect(() => {
-    // Initial load
-    loadMoreSignals();
+    loadMoreCurrentSignals();
+    loadMoreHistoricalSignals();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   useEffect(() => {
-    if (inView && !loading && hasMore) {
-      loadMoreSignals();
+    if (currentInView && !currentSignalsLoading && currentSignalsHasMore) {
+      loadMoreCurrentSignals();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inView, loading, hasMore]);
+  }, [currentInView, currentSignalsLoading, currentSignalsHasMore]);
+
+  useEffect(() => {
+    if (historicalInView && !historicalSignalsLoading && historicalSignalsHasMore) {
+      loadMoreHistoricalSignals();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historicalInView, historicalSignalsLoading, historicalSignalsHasMore]);
 
 
   if (!trader) {
-    // In a real app, you might show a loading state here
     return (
       <div className="flex h-screen items-center justify-center">
-        <p>Trader not found.</p>
+        <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+        <span>加载中...</span>
       </div>
     );
   }
@@ -371,44 +477,59 @@ export default function TraderDetailPage() {
            </CardContent>
         </Card>
 
-        {/* Current Signals */}
-        <div>
-            <div className="flex justify-between items-center mb-3">
-                 <h2 className="text-base font-bold flex items-center gap-2">
-                    <User className="w-5 h-5 text-primary"/>
-                    当前信号
-                </h2>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-muted-foreground">
-                        {filterLabel}
-                        <ChevronDown className="w-4 h-4 ml-1" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => setFilterLabel('近三个月')}>近三个月</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setFilterLabel('近半年')}>近半年</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setFilterLabel('近一年')}>近一年</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-            <div className="space-y-3">
-                {signals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} />
-                ))}
-            </div>
-             <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                {loading && (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span>加载中...</span>
-                    </>
-                )}
-                {!loading && !hasMore && signals.length > 0 && (
-                    <span>已经到底了</span>
-                )}
-            </div>
-        </div>
+        {/* Signals Section */}
+        <Tabs defaultValue="current" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="current">
+                    <User className="mr-2 h-4 w-4" /> 当前信号
+                </TabsTrigger>
+                <TabsTrigger value="historical">
+                    <History className="mr-2 h-4 w-4" /> 历史信号
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="current" className="mt-4">
+                <div className="flex justify-end items-center mb-3 -mt-2">
+                   <TimeFilterDropdown label={currentFilterLabel} setLabel={setCurrentFilterLabel} />
+                </div>
+                <div className="space-y-3">
+                    {currentSignals.map(signal => (
+                        <SignalCard key={signal.id} signal={signal} />
+                    ))}
+                </div>
+                <div ref={currentLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                    {currentSignalsLoading && (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>加载中...</span>
+                        </>
+                    )}
+                    {!currentSignalsLoading && !currentSignalsHasMore && currentSignals.length > 0 && (
+                        <span>已经到底了</span>
+                    )}
+                </div>
+            </TabsContent>
+            <TabsContent value="historical" className="mt-4">
+                 <div className="flex justify-end items-center mb-3 -mt-2">
+                   <TimeFilterDropdown label={historicalFilterLabel} setLabel={setHistoricalFilterLabel} />
+                </div>
+                 <div className="space-y-3">
+                    {historicalSignals.map(signal => (
+                        <HistoricalSignalCard key={signal.id} signal={signal} />
+                    ))}
+                </div>
+                <div ref={historicalLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                    {historicalSignalsLoading && (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>加载中...</span>
+                        </>
+                    )}
+                    {!historicalSignalsLoading && !historicalSignalsHasMore && historicalSignals.length > 0 && (
+                        <span>已经到底了</span>
+                    )}
+                </div>
+            </TabsContent>
+        </Tabs>
       </main>
 
        {/* Floating Footer */}
@@ -418,3 +539,5 @@ export default function TraderDetailPage() {
     </div>
   )
 }
+
+    
