@@ -25,7 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { BarChart, ChevronRight, Copy, Edit, Headset, KeyRound, Mail, Settings, User, Wallet } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { SimpleToast } from '../components/SimpleToast';
 
 
 function ProfileItem({ icon, label, value, action, onClick }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void }) {
@@ -46,7 +46,7 @@ function ProfileItem({ icon, label, value, action, onClick }: { icon: React.Reac
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState('profile');
-    const { toast } = useToast();
+    const [showToast, setShowToast] = useState(false);
 
     // Mock data
     const user = {
@@ -58,14 +58,12 @@ export default function ProfilePage() {
 
     const handleCopyId = () => {
         navigator.clipboard.writeText(user.id);
-        toast({
-            title: "复制成功",
-            description: `ID ${user.id} 已复制到剪贴板。`,
-        });
+        setShowToast(true);
     }
 
   return (
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
+      {showToast && <SimpleToast message="复制成功" onDismiss={() => setShowToast(false)} />}
       <header className="flex-shrink-0 flex items-center justify-center p-4 h-14">
         <h1 className="font-bold text-lg">我的</h1>
       </header>
@@ -80,7 +78,7 @@ export default function ProfilePage() {
                             <AvatarImage src={user.avatar} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <button className="absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors">
+                        <button className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1.5 hover:bg-accent/80 transition-colors border-2 border-card">
                             <Edit className="h-3 w-3" />
                             <span className="sr-only">编辑头像</span>
                         </button>
