@@ -219,7 +219,7 @@ export default function ProfilePage() {
             {/* User Info Card */}
             <Card className="bg-card/50 border-0 shadow-none relative">
                  {user.membership && (
-                    <div className="absolute top-0 right-0 h-20 w-20 overflow-hidden">
+                    <div className="absolute top-0 right-0 h-20 w-20">
                         <div className="absolute transform rotate-45 bg-yellow-400 text-center text-yellow-900 font-semibold py-1 right-[-45px] top-[20px] w-[120px] shadow-lg shadow-yellow-400/30">
                             <div className='flex items-center justify-center'>
                                 <Crown className="w-3 h-3 mr-1" />
