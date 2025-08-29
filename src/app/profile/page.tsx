@@ -30,12 +30,14 @@ import {
     BarChart, 
     ChevronRight, 
     Copy, 
+    Crown, 
     Edit, 
     FileQuestion, 
     Headset, 
     ImagePlus, 
     KeyRound, 
     Mail, 
+    ReceiptText, 
     Settings, 
     User, 
     Wallet,
@@ -46,6 +48,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 
 function ProfileItem({ icon, label, value, action, onClick }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void }) {
@@ -194,7 +197,8 @@ export default function ProfilePage() {
         name: 'CryptoKing',
         id: '88888888',
         email: 'crypto.king@example.com',
-        avatar: 'https://i.pravatar.cc/150?u=cryptoking'
+        avatar: 'https://i.pravatar.cc/150?u=cryptoking',
+        membership: '年度会员'
     }
 
     const handleCopyId = () => {
@@ -221,6 +225,12 @@ export default function ProfilePage() {
                             <AvatarImage src={user.avatar} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
+                        {user.membership && (
+                           <Badge className="absolute -top-2 -right-8 bg-yellow-400 text-yellow-900 shadow-lg shadow-yellow-400/50 hover:bg-yellow-400">
+                                <Crown className="w-3 h-3 mr-1" />
+                                {user.membership}
+                           </Badge>
+                        )}
                         <button className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors border-2 border-card">
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">编辑头像</span>
@@ -245,6 +255,8 @@ export default function ProfilePage() {
             <Card className="bg-card/50 border-border/30">
                  <CardContent className="p-0">
                     <div className="divide-y divide-border/30">
+                        <ProfileItem icon={<Crown className="text-yellow-400"/>} label="购买会员" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+                        <ProfileItem icon={<ReceiptText className="text-primary"/>} label="付费明细" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem icon={<Wallet className="text-primary"/>} label="我的资产" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem icon={<Settings className="text-primary"/>} label="跟单设置" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                     </div>
