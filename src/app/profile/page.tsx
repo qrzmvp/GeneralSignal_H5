@@ -217,13 +217,14 @@ export default function ProfilePage() {
       <main className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="space-y-6">
             {/* User Info Card */}
-            <Card className="bg-card/50 border-0 shadow-none relative">
+            <Card className="bg-card/50 border-0 shadow-none relative overflow-hidden">
                  {user.membership && (
-                    <div className="absolute top-0 right-0 h-20 w-20">
-                        <div className="absolute transform rotate-45 bg-yellow-400 text-center text-yellow-900 font-semibold py-1 right-[-45px] top-[20px] w-[120px] shadow-lg shadow-yellow-400/30">
-                            <div className='flex items-center justify-center'>
-                                <Crown className="w-3 h-3 mr-1" />
-                                {user.membership}
+                    <div className="absolute top-0 right-0 w-24 h-24">
+                        <div className="absolute top-0 right-0 w-0 h-0 border-t-[60px] border-t-yellow-400 border-l-[60px] border-l-transparent"></div>
+                        <div className="absolute top-4 right-2 transform rotate-45 text-yellow-900">
+                             <div className='flex flex-col items-center justify-center text-xs font-bold'>
+                                <Crown className="w-3.5 h-3.5" />
+                                <span className="text-[10px] mt-0.5">{user.membership}</span>
                             </div>
                         </div>
                     </div>
