@@ -126,12 +126,3 @@
   text-shadow: 0 0 15px hsl(var(--foreground) / 0.6);
   white-space: nowrap;
 }
-
-@layer components {
-  .rank-ribbon {
-    @apply absolute -top-1 -left-1 z-10 h-16 w-16 overflow-hidden;
-  }
-  .rank-ribbon-content {
-    @apply absolute -right-4 top-4 w-[120%] -rotate-45 py-0.5 text-center text-xs font-bold shadow-md;
-  }
-}

@@ -210,20 +210,20 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
     const badge = is综合排序 && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
     return (
-        <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden relative">
-        {badge && (
-            <div className="rank-ribbon">
-                <div className={`rank-ribbon-content ${badge.color}`}>
-                    {badge.content}
-                </div>
-            </div>
-        )}
+        <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden">
         <CardContent className="p-4">
             <div className="flex items-start gap-4">
             <div className="relative shrink-0">
-                <Avatar>
+                <Avatar className="h-16 w-16">
                     <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
                 </Avatar>
+                {badge && (
+                     <div className="absolute top-0 left-0 -translate-x-1/4 -translate-y-1/4 z-10">
+                        <div className={`w-16 h-8 ${badge.color} transform -rotate-45 flex items-end justify-center`}>
+                             <span className="text-xs font-bold -translate-y-1">{rank}</span>
+                        </div>
+                    </div>
+                )}
             </div>
             <div className="flex-grow">
                 <div className="flex justify-between items-center">

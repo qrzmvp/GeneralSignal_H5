@@ -662,18 +662,20 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-            {badge && (
-                <div className="rank-ribbon">
-                    <div className={`rank-ribbon-content ${badge.color}`}>
-                        {badge.content}
-                    </div>
-                </div>
-            )}
           <CardContent className="p-4 flex flex-row items-start text-left gap-4">
-            <Avatar className="h-24 w-24 border-2 border-primary shrink-0">
-              <AvatarImage src={trader.avatar} alt={trader.name} />
-              <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+            <div className="relative shrink-0">
+                <Avatar className="h-24 w-24 border-2 border-primary">
+                    <AvatarImage src={trader.avatar} alt={trader.name} />
+                    <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                 {badge && (
+                     <div className="absolute top-0 left-0 -translate-x-1/4 -translate-y-1/4 z-10">
+                        <div className={`w-24 h-10 ${badge.color} transform -rotate-45 flex items-end justify-center`}>
+                             <span className="text-base font-bold -translate-y-1">{rank}</span>
+                        </div>
+                    </div>
+                )}
+            </div>
             <div className="w-full space-y-3">
                 <p className="text-sm text-muted-foreground">{trader.description}</p>
                 <div className="flex flex-wrap justify-start gap-2">
