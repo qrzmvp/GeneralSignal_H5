@@ -46,7 +46,7 @@ function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: 
     return (
         <div className="w-full space-y-6">
             <RadioGroup
-                defaultValue={selectedPlan}
+                value={selectedPlan}
                 onValueChange={setSelectedPlan}
                 className="grid grid-cols-3 gap-3"
             >
