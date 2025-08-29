@@ -6,9 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, ChevronLeft, Star } from 'lucide-react';
+import { CheckCircle, ChevronLeft, Star, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Plan {
   id: string;
@@ -16,19 +15,17 @@ interface Plan {
   price: string;
   originalPrice?: string;
   description: string;
-  isCurrent?: boolean;
-  isPopular?: boolean;
 }
 
 const manualPlans: Plan[] = [
   { id: 'manual-monthly', name: '月度会员', price: '9.9/月', description: '适合短期体验' },
-  { id: 'manual-quarterly', name: '季度会员', price: '29.9/季', originalPrice: '¥210', description: '最具性价比', isPopular: true },
-  { id: 'manual-yearly', name: '年度会员', price: '119.9/年', description: '长期投资者的选择', isCurrent: true },
+  { id: 'manual-quarterly', name: '季度会员', price: '29.9/季', originalPrice: '¥210', description: '最具性价比' },
+  { id: 'manual-yearly', name: '年度会员', price: '119.9/年', description: '长期投资者的选择' },
 ];
 
 const autoPlans: Plan[] = [
   { id: 'auto-monthly', name: '月度会员', price: '20/月', description: '灵活的自动跟单' },
-  { id: 'auto-quarterly', name: '季度会员', price: '60/季', description: '省心省力的选择', isPopular: true },
+  { id: 'auto-quarterly', name: '季度会员', price: '60/季', description: '省心省力的选择' },
   { id: 'auto-yearly', name: '年度会员', price: '240/年', description: '一劳永逸，全年无忧' },
 ];
 
@@ -43,19 +40,9 @@ const features = [
 ];
 
 
-function PlanCard({ plan, type }: { plan: Plan, type: 'manual' | 'auto' }) {
+function PlanCard({ plan }: { plan: Plan }) {
   return (
-    <Card className={cn(
-      "flex flex-col text-center transition-all duration-300",
-      plan.isCurrent ? "border-primary ring-2 ring-primary" : "border-border/50",
-      plan.isPopular ? "shadow-lg" : ""
-    )}>
-      {plan.isPopular && (
-        <div className="absolute -top-3 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 z-10">
-          <Star className="w-3 h-3" />
-          热门
-        </div>
-      )}
+    <Card className="flex flex-col text-center transition-all duration-300 border-border/50">
       <CardHeader className="pt-8 pb-4">
         <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
         <CardDescription>{plan.description}</CardDescription>
@@ -71,18 +58,47 @@ function PlanCard({ plan, type }: { plan: Plan, type: 'manual' | 'auto' }) {
         )}
       </CardContent>
       <CardFooter>
-        <Button className="w-full font-bold" disabled={plan.isCurrent}>
-          {plan.isCurrent ? "当前方案" : "立即订阅"}
+        <Button className="w-full font-bold">
+          立即订阅
         </Button>
       </CardFooter>
     </Card>
   );
 }
 
+function FeatureComparison() {
+  return (
+    <Card className="bg-card/80 border-border/50">
+      <CardHeader>
+        <CardTitle>功能对比</CardTitle>
+        <CardDescription>查看不同跟单类型的详细功能差异</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex justify-around items-center bg-muted/50 p-3 rounded-lg">
+            <span className="w-1/3"></span>
+            <h4 className="w-1/3 text-center font-semibold">手动跟单</h4>
+            <h4 className="w-1/3 text-center font-semibold text-primary">自动跟单</h4>
+        </div>
+        {features.map((item, index) => (
+          <div key={item.feature} className={cn("flex items-center border-b pb-4", index === features.length - 1 ? 'border-none pb-0' : 'border-border/50')}>
+            <span className="w-1/3 text-sm font-medium">{item.feature}</span>
+            <div className="w-1/3 text-center text-muted-foreground flex items-center justify-center">
+              <XCircle className="w-4 h-4 mr-2 text-red-500/70" />
+              <span>{item.manual}</span>
+            </div>
+            <div className="w-1/3 text-center text-primary font-semibold flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              <span>{item.auto}</span>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function MembershipPage() {
     const router = useRouter();
-    const [currentPlan] = useState('年度会员');
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -95,13 +111,6 @@ export default function MembershipPage() {
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-6">
-                <Card className="bg-card/80 border-border/50">
-                    <CardContent className="p-4 text-center">
-                        <p className="text-sm text-muted-foreground">当前订阅</p>
-                        <p className="text-lg font-semibold text-primary mt-1">{currentPlan}</p>
-                    </CardContent>
-                </Card>
-
                 <Tabs defaultValue="manual" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="manual">手动跟单</TabsTrigger>
@@ -109,45 +118,17 @@ export default function MembershipPage() {
                     </TabsList>
                     <TabsContent value="manual" className="mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {manualPlans.map(plan => <PlanCard key={plan.id} plan={plan} type="manual" />)}
+                            {manualPlans.map(plan => <PlanCard key={plan.id} plan={plan} />)}
                         </div>
                     </TabsContent>
                     <TabsContent value="auto" className="mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                             {autoPlans.map(plan => <PlanCard key={plan.id} plan={plan} type="auto" />)}
+                             {autoPlans.map(plan => <PlanCard key={plan.id} plan={plan} />)}
                         </div>
                     </TabsContent>
                 </Tabs>
 
-                <Card className="bg-card/80 border-border/50">
-                    <CardHeader>
-                        <CardTitle>功能对比</CardTitle>
-                        <CardDescription>查看不同跟单类型的详细功能差异</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                <TableHead className="w-[120px]">功能</TableHead>
-                                <TableHead className="text-center">手动跟单</TableHead>
-                                <TableHead className="text-center">自动跟单</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {features.map((item) => (
-                                <TableRow key={item.feature}>
-                                    <TableCell className="font-medium">{item.feature}</TableCell>
-                                    <TableCell className="text-center text-muted-foreground">{item.manual}</TableCell>
-                                    <TableCell className="text-center text-primary font-semibold flex items-center justify-center gap-1">
-                                        <CheckCircle className="w-4 h-4" />
-                                        {item.auto}
-                                    </TableCell>
-                                </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                <FeatureComparison />
 
             </main>
         </div>
