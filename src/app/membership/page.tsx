@@ -20,15 +20,15 @@ interface Plan {
 }
 
 const manualPlans: Plan[] = [
-  { id: 'manual-yearly', duration: '1年', price: '119.9', originalPrice: '140', description: '长期投资者的选择' },
-  { id: 'manual-quarterly', duration: '3个月', price: '29.9', originalPrice: '35', description: '最具性价比' },
-  { id: 'manual-monthly', duration: '1个月', price: '9.9', originalPrice: '12', description: '适合短期体验' },
+  { id: 'manual-yearly', duration: '1年', price: '119.9U', originalPrice: '140U', description: '长期投资者的选择' },
+  { id: 'manual-quarterly', duration: '3个月', price: '29.9U', originalPrice: '35U', description: '最具性价比' },
+  { id: 'manual-monthly', duration: '1个月', price: '9.9U', originalPrice: '12U', description: '适合短期体验' },
 ];
 
 const autoPlans: Plan[] = [
-  { id: 'auto-yearly', duration: '1年', price: '240', originalPrice: '280', description: '一劳永逸，全年无忧' },
-  { id: 'auto-quarterly', duration: '3个月', price: '60', originalPrice: '70', description: '省心省力的选择' },
-  { id: 'auto-monthly', duration: '1个月', price: '20', originalPrice: '25', description: '灵活的自动跟单' },
+  { id: 'auto-yearly', duration: '1年', price: '240U', originalPrice: '280U', description: '一劳永逸，全年无忧' },
+  { id: 'auto-quarterly', duration: '3个月', price: '60U', originalPrice: '70U', description: '省心省力的选择' },
+  { id: 'auto-monthly', duration: '1个月', price: '20U', originalPrice: '25U', description: '灵活的自动跟单' },
 ];
 
 const comparisonData = [
@@ -62,10 +62,10 @@ function PlanSelector({ plans, defaultPlanId }: { plans: Plan[], defaultPlanId: 
                     >
                         <RadioGroupItem value={plan.id} id={plan.id} className="sr-only" />
                         <p className="text-xl font-bold text-primary">
-                            <span className="text-sm">U$</span>{plan.price}
+                          {plan.price}
                         </p>
                         <p className="text-xs text-muted-foreground line-through">
-                           U${plan.originalPrice}
+                           {plan.originalPrice}
                         </p>
                         <p className="mt-2 text-sm font-semibold text-foreground">{plan.duration}</p>
                     </Label>
@@ -126,14 +126,14 @@ export default function MembershipPage() {
             <main className="flex-grow overflow-auto p-4 space-y-8">
                 <Tabs defaultValue="auto" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="manual">手动跟单</TabsTrigger>
                         <TabsTrigger value="auto">自动跟单</TabsTrigger>
+                        <TabsTrigger value="manual">手动跟单</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="manual" className="mt-6">
-                        <PlanSelector plans={manualPlans} defaultPlanId="manual-yearly"/>
-                    </TabsContent>
                     <TabsContent value="auto" className="mt-6">
                         <PlanSelector plans={autoPlans} defaultPlanId="auto-yearly"/>
+                    </TabsContent>
+                    <TabsContent value="manual" className="mt-6">
+                        <PlanSelector plans={manualPlans} defaultPlanId="manual-yearly"/>
                     </TabsContent>
                 </Tabs>
                 <ComparisonSection />
