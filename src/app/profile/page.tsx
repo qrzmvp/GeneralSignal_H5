@@ -43,9 +43,9 @@ import {
 } from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 function ProfileItem({ icon, label, value, action, onClick }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void }) {
@@ -64,7 +64,15 @@ function ProfileItem({ icon, label, value, action, onClick }: { icon: React.Reac
     )
 }
 
+const feedbackTypes = [
+    { id: 'feature-suggestion', label: '功能建议' },
+    { id: 'ui-issue', label: '界面问题' },
+    { id: 'account-issue', label: '账号问题' },
+    { id: 'other', label: '其他问题' },
+];
+
 function FeedbackDialog() {
+    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [description, setDescription] = useState('');
     const [images, setImages] = useState<string[]>([]);
     const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -80,20 +88,26 @@ function FeedbackDialog() {
     const removeImage = (index: number) => {
         setImages(prev => prev.filter((_, i) => i !== index));
     };
+
+    const handleTypeChange = (typeId: string) => {
+        setSelectedTypes(prev =>
+            prev.includes(typeId)
+                ? prev.filter(id => id !== typeId)
+                : [...prev, typeId]
+        );
+    };
     
     const handleSubmit = () => {
-        // Here you would typically handle the form submission
         console.log({
-            type: (document.getElementById('feedback-type') as HTMLSelectElement)?.value,
+            types: selectedTypes,
             description,
             images,
         });
         
-        // Reset state
+        setSelectedTypes([]);
         setDescription('');
         setImages([]);
 
-        // Show success toast and close dialog
         setShowSuccessToast(true);
     };
 
@@ -108,22 +122,23 @@ function FeedbackDialog() {
             <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
                 <DialogHeader>
                     <DialogTitle>问题反馈</DialogTitle>
-                    <DialogDescription>我们重视您的每一个建议，请详细描述您遇到的问题。</DialogDescription>
+                    <DialogDescription>我们重视您的每一个建议</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="feedback-type">问题类型</Label>
-                        <Select defaultValue="feature-suggestion">
-                             <SelectTrigger id="feedback-type">
-                                <SelectValue placeholder="请选择问题类型" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="feature-suggestion">功能建议</SelectItem>
-                                <SelectItem value="ui-issue">界面问题</SelectItem>
-                                <SelectItem value="account-issue">账号问题</SelectItem>
-                                <SelectItem value="other">其他问题</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div className="grid gap-3">
+                        <Label>问题类型</Label>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                           {feedbackTypes.map((type) => (
+                                <div key={type.id} className="flex items-center gap-2">
+                                    <Checkbox
+                                        id={type.id}
+                                        checked={selectedTypes.includes(type.id)}
+                                        onCheckedChange={() => handleTypeChange(type.id)}
+                                    />
+                                    <Label htmlFor={type.id} className="font-normal text-sm">{type.label}</Label>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="description">问题描述</Label>
