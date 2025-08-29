@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -179,6 +180,26 @@ const allTraders: Trader[] = [
     totalOrders: 345,
     chartData: [{ value: 10 }, { value: 40 }, { value: 20 }, { value: 80 }, { value: 50 }, { value: 110 }, { value: 90 }, { value: 150.7 }],
   },
+  {
+    id: 13,
+    name: '抄底王',
+    description: '左侧交易，逆势布局',
+    yield: 45.5,
+    winRate: 88.0,
+    pnlRatio: '5.5:1',
+    totalOrders: 789,
+    chartData: [{ value: 10 }, { value: 5 }, { value: 15 }, { value: 12 }, { value: 25 }, { value: 20 }, { value: 35 }, { value: 45.5 }],
+  },
+  {
+    id: 14,
+    name: '币圈巴菲特',
+    description: '屯币不动，穿越牛熊',
+    yield: 250.0,
+    winRate: 98.0,
+    pnlRatio: '20:1',
+    totalOrders: 150,
+    chartData: [{ value: 10 }, { value: 20 }, { value: 50 }, { value: 80 }, { value: 120 }, { value: 180 }, { value: 220 }, { value: 250 }],
+  }
 ];
 
 const PAGE_SIZE = 10;
@@ -288,20 +309,26 @@ export default function LeaderboardPage() {
     const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
     const headerTitleRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLElement>(null);
+    const [sortedTraders, setSortedTraders] = useState<Trader[]>([]);
+
+    useEffect(() => {
+        // Initial sort when component mounts
+        setSortedTraders([...allTraders].sort((a, b) => b.yield - a.yield));
+    }, []);
 
     const loadMoreTraders = () => {
         if (loading || !hasMore || searchQuery) return;
         setLoading(true);
 
         setTimeout(() => {
-            const newTraders = allTraders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+            const newTraders = sortedTraders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
             if (newTraders.length > 0) {
                 setTraders(prev => [...prev, ...newTraders]);
                 setPage(prev => prev + 1);
             } else {
                 setHasMore(false);
             }
-            if (traders.length + newTraders.length >= allTraders.length) {
+            if (traders.length + newTraders.length >= sortedTraders.length) {
                 setHasMore(false);
             }
             setLoading(false);
@@ -310,10 +337,21 @@ export default function LeaderboardPage() {
 
     useEffect(() => {
         if (!searchQuery) {
-            loadMoreTraders();
+            // Reset and load initial traders
+            setTraders([]);
+            setPage(1);
+            setHasMore(true);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery]);
+
+    useEffect(() => {
+        if (!searchQuery) {
+            loadMoreTraders();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery, sortedTraders]);
+
 
     useEffect(() => {
         if (inView && hasMore && !searchQuery) {
@@ -346,12 +384,12 @@ export default function LeaderboardPage() {
 
     const filteredTraders = useMemo(() => {
         if (!searchQuery) return traders;
-        return allTraders.filter(
+        return sortedTraders.filter(
             trader =>
                 trader.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 trader.description.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery, traders]);
+    }, [searchQuery, traders, sortedTraders]);
 
   return (
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
@@ -397,10 +435,10 @@ export default function LeaderboardPage() {
       <main ref={mainContentRef} className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="space-y-3">
             {filteredTraders.map((trader, index) => (
-              <Link href={`/trader/${trader.id}`} key={trader.id}>
+              <Link href={`/trader/${trader.id}`} key={`${trader.id}-${index}`}>
                 <TraderCard 
                     trader={trader} 
-                    rank={index + 1}
+                    rank={traders.findIndex(t => t.id === trader.id) + 1}
                     is综合排序={!searchQuery} // Only show ranks if not searching
                 />
               </Link>
@@ -451,3 +489,5 @@ export default function LeaderboardPage() {
     </div>
   )
 }
+
+    
