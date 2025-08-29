@@ -183,9 +183,9 @@ const allTraders: Trader[] = [
 
 const PAGE_SIZE = 10;
 const RANK_BADGES: {[key: number]: { color: string, shadow: string }} = {
-    1: { color: "bg-yellow-400 text-yellow-900", shadow: "shadow-yellow-400/50" },
-    2: { color: "bg-gray-300 text-gray-800", shadow: "shadow-gray-300/50" },
-    3: { color: "bg-yellow-600 text-yellow-100", shadow: "shadow-yellow-600/50" },
+    1: { color: "bg-yellow-400 text-yellow-900", shadow: "shadow-yellow-400/50" }, // Gold
+    2: { color: "bg-slate-300 text-slate-800", shadow: "shadow-slate-300/50" }, // Silver
+    3: { color: "bg-amber-600 text-amber-100", shadow: "shadow-amber-600/50" },   // Bronze
 }
 
 function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: number, is综合排序: boolean }) {
@@ -200,7 +200,7 @@ function TraderCard({ trader, rank, is综合排序 }: { trader: Trader, rank: nu
                     <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {badge && (
-                    <div className={`absolute -bottom-1 -right-1 z-10 rounded-full p-0.5 ${badge.color} shadow-lg ${badge.shadow}`}>
+                    <div className={`absolute -top-1 -right-1 z-10 rounded-full p-0.5 ${badge.color} shadow-lg ${badge.shadow}`}>
                         <Crown className="w-4 h-4" />
                     </div>
                 )}
