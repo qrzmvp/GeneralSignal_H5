@@ -24,7 +24,6 @@ import { Slider } from "@/components/ui/slider"
 import { X, Plus, AlertCircle } from "lucide-react"
 import Link from 'next/link'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface Trader {
     id: number
@@ -106,8 +105,8 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                     <SheetTitle>跟单设置</SheetTitle>
                 </SheetHeader>
                 
-                <ScrollArea className="flex-grow">
-                    <div className="px-4 space-y-4 pt-4 pb-20"> {/* Add padding for footer */}
+                <div className="flex-grow overflow-y-auto no-scrollbar">
+                    <div className="px-4 space-y-4 pt-4 pb-4">
                         {/* Trader Selection */}
                         <div className="space-y-2">
                             <Label>交易信号</Label>
@@ -239,8 +238,8 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                             </RadioGroup>
                         </div>
                     </div>
-                </ScrollArea>
-                <SheetFooter className="p-4 border-t flex-shrink-0 absolute bottom-0 left-0 right-0 bg-background">
+                </div>
+                <SheetFooter className="p-4 border-t flex-shrink-0 bg-background">
                     <Button type="submit" className="w-full h-11" onClick={() => onOpenChange(false)}>确认</Button>
                 </SheetFooter>
             </SheetContent>
