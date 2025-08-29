@@ -4,16 +4,12 @@
 import { useParams, useRouter } from 'next/navigation'
 import {
   ChevronLeft,
-  ChevronsUpDown,
-  TrendingUp,
-  Target,
-  BarChart,
   User,
   Clock,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 // Mock data - in a real app, you'd fetch this based on the `id` param
@@ -28,6 +24,8 @@ const traders = [
     pnlRatio: '22:1',
     totalOrders: 150,
     tags: ['波段高手', '高频交易', 'ETH信徒'],
+    followers: 1288,
+    days: 180,
   },
   {
     id: 2,
@@ -39,6 +37,8 @@ const traders = [
     pnlRatio: '20:1',
     totalOrders: 180,
     tags: ['狙击BTC专家', '技术分析', '稳健'],
+    followers: 1150,
+    days: 210,
   },
   {
     id: 3,
@@ -50,6 +50,8 @@ const traders = [
     pnlRatio: '18.5:1',
     totalOrders: 888,
     tags: ['价值投资', 'ETH布道者', '长线'],
+    followers: 2300,
+    days: 365,
   },
     {
     id: 4,
@@ -61,6 +63,8 @@ const traders = [
     pnlRatio: '11.2:1',
     totalOrders: 345,
     tags: ['算法交易', '高频', '套利'],
+    followers: 890,
+    days: 90,
   },
   {
     id: 5,
@@ -72,6 +76,8 @@ const traders = [
     pnlRatio: '9.1:1',
     totalOrders: 780,
     tags: ['趋势跟踪', '宏观经济', '长线持有'],
+    followers: 920,
+    days: 410,
   },
   {
     id: 6,
@@ -83,6 +89,8 @@ const traders = [
     pnlRatio: '8.5:1',
     totalOrders: 888,
     tags: ['波段交易', '情绪分析', '短线'],
+    followers: 1500,
+    days: 280,
   },
   {
     id: 7,
@@ -94,6 +102,8 @@ const traders = [
     pnlRatio: '10:1',
     totalOrders: 450,
     tags: ['合约交易', '高杠杆', '风险控制'],
+    followers: 1800,
+    days: 150,
   },
   {
     id: 8,
@@ -105,6 +115,8 @@ const traders = [
     pnlRatio: '7.5:1',
     totalOrders: 1102,
     tags: ['BTC', '信仰者', '屯币'],
+    followers: 5000,
+    days: 730,
   },
   {
     id: 9,
@@ -116,6 +128,8 @@ const traders = [
     pnlRatio: '8.2:1',
     totalOrders: 1245,
     tags: ['超短线', '剥头皮', '高频'],
+    followers: 760,
+    days: 88,
   },
   {
     id: 10,
@@ -127,6 +141,8 @@ const traders = [
     pnlRatio: '6.2:1',
     totalOrders: 999,
     tags: ['ETH', 'DEFI', '价值发现'],
+    followers: 1340,
+    days: 310,
   },
   {
     id: 11,
@@ -138,6 +154,8 @@ const traders = [
     pnlRatio: '6.8:1',
     totalOrders: 892,
     tags: ['多策略', 'Alpha', '对冲'],
+    followers: 650,
+    days: 120,
   },
   {
     id: 12,
@@ -149,6 +167,8 @@ const traders = [
     pnlRatio: '5.9:1',
     totalOrders: 1530,
     tags: ['强势币', '追涨', '高风险'],
+    followers: 999,
+    days: 99,
   },
   {
     id: 13,
@@ -160,6 +180,8 @@ const traders = [
     pnlRatio: '5.5:1',
     totalOrders: 789,
     tags: ['左侧交易', '抄底', '逆势'],
+    followers: 480,
+    days: 200,
   },
   {
     id: 14,
@@ -171,6 +193,8 @@ const traders = [
     pnlRatio: '5.2:1',
     totalOrders: 654,
     tags: ['价值投资', '长持', '屯币'],
+    followers: 3000,
+    days: 1024,
   }
 ];
 
@@ -219,6 +243,14 @@ function InfoPill({ label, value }: { label: string; value: string }) {
   )
 }
 
+function MetricItem({ label, value, valueClassName }: { label: string; value: string | number, valueClassName?: string }) {
+    return (
+        <div className="flex flex-col items-center justify-center space-y-1">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className={`text-xl font-bold ${valueClassName}`}>{value}</p>
+        </div>
+    )
+}
 
 export default function TraderDetailPage() {
   const router = useRouter()
@@ -251,7 +283,7 @@ export default function TraderDetailPage() {
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50">
           <CardContent className="p-4 flex flex-col items-center text-center gap-4">
-            <Avatar className="h-20 w-20 border-2 border-primary">
+            <Avatar className="h-24 w-24 border-2 border-primary">
               <AvatarImage src={trader.avatar} alt={trader.name} />
               <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
             </Avatar>
@@ -268,29 +300,13 @@ export default function TraderDetailPage() {
 
         {/* Metrics Overview */}
         <Card className="bg-card/80 border-border/50">
-           <CardHeader>
-             <CardTitle className="text-base font-bold flex items-center gap-2">
-                <BarChart className="w-5 h-5 text-primary" />
-                指标总览
-             </CardTitle>
-           </CardHeader>
-           <CardContent className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">收益率</p>
-                <p className="text-xl font-bold text-green-400">+{trader.yield}%</p>
-            </div>
-            <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">胜率</p>
-                <p className="text-xl font-bold text-foreground">{trader.winRate}%</p>
-            </div>
-            <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">盈亏比</p>
-                <p className="text-xl font-bold text-foreground">{trader.pnlRatio}</p>
-            </div>
-            <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">累计信号</p>
-                <p className="text-xl font-bold text-foreground">{trader.totalOrders}</p>
-            </div>
+           <CardContent className="p-4 grid grid-cols-3 gap-y-4 text-center">
+                <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
+                <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
+                <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
+                <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
+                <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
+                <MetricItem label="累计天数" value={`${trader.days}天`} valueClassName="text-foreground" />
            </CardContent>
         </Card>
 
@@ -327,7 +343,7 @@ export default function TraderDetailPage() {
 
        {/* Floating Footer */}
       <footer className="fixed bottom-0 left-0 right-0 z-10 bg-background/80 border-t border-border/50 backdrop-blur-sm p-4">
-        <Button className="w-full font-bold text-lg h-11 rounded-full">立即跟单</Button>
+        <Button className="w-full font-bold text-lg h-12 rounded-full">立即跟单</Button>
       </footer>
     </div>
   )
