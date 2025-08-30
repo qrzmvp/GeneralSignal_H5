@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react';
+import { useRouter }from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -16,6 +17,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +49,7 @@ import {
     Headset, 
     ImagePlus, 
     KeyRound, 
+    LogOut,
     Mail, 
     ReceiptText, 
     Settings, 
@@ -193,6 +206,7 @@ function FeedbackDialog() {
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState('profile');
     const [showToast, setShowToast] = useState(false);
+    const router = useRouter();
 
     // Mock data
     const user = {
@@ -208,6 +222,11 @@ export default function ProfilePage() {
             navigator.clipboard.writeText(user.id);
             setShowToast(true);
         }
+    }
+
+    const handleLogout = () => {
+        // In a real app, you would clear auth tokens, etc.
+        router.push('/login');
     }
 
   return (
@@ -320,6 +339,32 @@ export default function ProfilePage() {
                         </Dialog>
                         <FeedbackDialog />
                     </div>
+                </CardContent>
+            </Card>
+
+            {/* Logout */}
+            <Card className="bg-transparent border-0 shadow-none">
+                <CardContent className="p-0">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="outline" className="w-full justify-center gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/50">
+                                <LogOut className="w-4 h-4" />
+                                退出登录
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>确定要退出登录吗?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                您随时可以重新登录。
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>取消</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">确认退出</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </CardContent>
             </Card>
         </div>
