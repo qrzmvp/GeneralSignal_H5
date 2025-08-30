@@ -616,20 +616,18 @@ export default function TraderDetailPage() {
                 </div>
 
                 <div className="w-full">
-                    <CollapsibleTrigger asChild>
-                        <div className="flex w-full justify-center gap-4 mt-4">
-                            <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
-                                自动跟单
-                            </Button>
-                            <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => e.stopPropagation()}>
-                                策略回测
-                            </Button>
-                        </div>
-                    </CollapsibleTrigger>
+                    <div className="flex w-full justify-center gap-4 mt-4">
+                        <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
+                            自动跟单
+                        </Button>
+                        <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1">
+                            策略回测
+                        </Button>
+                    </div>
                     
                     <CollapsibleTrigger asChild>
-                        <div className="relative flex justify-center items-center w-full">
-                            <button className="flex-shrink-0 mx-auto bg-card p-1 rounded-full border -mt-px text-muted-foreground hover:bg-muted">
+                         <div className="relative flex justify-center items-center w-full mt-2">
+                            <button className="flex-shrink-0 mx-auto p-1 text-muted-foreground hover:bg-muted rounded-md">
                                 {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             </button>
                         </div>
@@ -637,10 +635,7 @@ export default function TraderDetailPage() {
                 </div>
               
                 <CollapsibleContent className="w-full text-center">
-                    <div className="cursor-pointer mb-4 pt-2">
-                        <span className="font-semibold text-base">关键指标</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-y-4">
+                    <div className="grid grid-cols-3 gap-y-4 pt-4">
                         <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
                         <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
                         <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
