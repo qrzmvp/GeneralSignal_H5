@@ -251,7 +251,10 @@ function SignalCard({ signal }: { signal: any }) {
             <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-2 items-start">
-                         <div className="font-mono text-base text-primary active-signal">{signal.pair}</div>
+                         <div className="flex items-center gap-2">
+                            <div className="font-mono text-base text-primary">{signal.pair}</div>
+                            <div className="signal-light pulsing-light" />
+                        </div>
                          <div className="flex items-center gap-2">
                             <Badge variant="secondary">{signal.orderType}</Badge>
                             <Badge variant="secondary">{signal.type}</Badge>
