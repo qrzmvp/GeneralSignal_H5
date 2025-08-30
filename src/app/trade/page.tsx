@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
@@ -115,7 +116,7 @@ export default function TradePage() {
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
                             <div className="flex justify-between items-start pb-0">
-                                <div className="text-left space-y-1">
+                                <div className="text-left space-y-1 flex-grow">
                                     <div className="flex items-center gap-2">
                                         <p className="text-sm text-muted-foreground">
                                             账户总资产 (USDT)
@@ -134,6 +135,9 @@ export default function TradePage() {
                                     </div>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
+                                <Button variant="ghost" size="icon" className="text-muted-foreground -mr-2 -mt-1">
+                                    <Settings className="w-5 h-5" />
+                                </Button>
                             </div>
                             
                             <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
@@ -154,6 +158,24 @@ export default function TradePage() {
                         </CardContent>
                     </Collapsible>
                 </Card>
+
+                 <Tabs defaultValue="current" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="current">当前挂单</TabsTrigger>
+                        <TabsTrigger value="positions">当前持仓</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="current" className="mt-4">
+                        <div className="text-center text-muted-foreground py-10">
+                            暂无挂单
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="positions" className="mt-4">
+                        <div className="text-center text-muted-foreground py-10">
+                            暂无持仓
+                        </div>
+                    </TabsContent>
+                </Tabs>
+
             </main>
 
             {/* Bottom Navigation */}
