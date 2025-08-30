@@ -92,7 +92,6 @@ function PendingOrderCard({ order }: { order: any }) {
                             </p>
                          </div>
                          <div className="text-right">
-                             <p className="text-xs text-muted-foreground">预计盈亏比</p>
                              <p className="text-sm font-semibold text-foreground mt-1">{order.pnlRatio}</p>
                          </div>
                     </div>
@@ -440,5 +439,3 @@ export default function TradePage() {
         </>
     )
 }
-
-    
