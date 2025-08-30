@@ -92,10 +92,10 @@ export default function TradePage() {
                                      {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
                                     <span>{selectedAccount?.name}</span>
                                     {selectedAccount && (
-                                        <Badge 
+                                        <Badge
                                             variant="outline"
                                             className={
-                                                selectedAccount.type === 'live' 
+                                                selectedAccount.type === 'live'
                                                 ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1 py-0"
                                                 : "bg-secondary text-secondary-foreground border-border text-xs px-1 py-0"
                                             }
@@ -137,17 +137,9 @@ export default function TradePage() {
                          <Collapsible defaultOpen={true}>
                             <div className="flex justify-between items-start">
                                 <div className="text-left space-y-1">
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm text-muted-foreground">
-                                            账户总资产 (USDT)
-                                        </p>
-                                        <CollapsibleTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="w-5 h-5 text-muted-foreground">
-                                                <ChevronsUpDown className="w-4 h-4" />
-                                                <span className="sr-only">Toggle</span>
-                                            </Button>
-                                        </CollapsibleTrigger>
-                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        账户总资产 (USDT)
+                                    </p>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
                                 <Button variant="outline" size="sm" className="gap-2">
@@ -155,9 +147,18 @@ export default function TradePage() {
                                     跟单设置
                                 </Button>
                             </div>
+                            
+                            <div className="flex justify-center my-2">
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground">
+                                        <ChevronsUpDown className="w-4 h-4" />
+                                        <span className="sr-only">Toggle</span>
+                                    </Button>
+                                </CollapsibleTrigger>
+                            </div>
 
-                            <CollapsibleContent className="space-y-4">
-                                <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-4">
+                            <CollapsibleContent>
+                                <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-2">
                                     <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                     <MetricItem label="可用保证金" value="10,000.00" />
                                     <MetricItem label="累计信号" value="50" />
@@ -177,9 +178,7 @@ export default function TradePage() {
                     <Link href="/" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                         <button
                             onClick={() => setActiveTab('leaderboard')}
-                            className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
-                            activeTab === 'leaderboard' ? 'text-primary' : 'text-muted-foreground'
-                            }`}
+                            className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
                         >
                             <BarChart className="h-6 w-6" />
                             <span className="text-xs font-medium">将军榜</span>
@@ -194,9 +193,7 @@ export default function TradePage() {
                     <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                     <button
                         onClick={() => setActiveTab('profile')}
-                        className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
-                        activeTab === 'profile' ? 'text-primary' : 'text-muted-foreground'
-                        }`}
+                        className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
