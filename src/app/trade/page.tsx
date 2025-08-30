@@ -95,23 +95,15 @@ export default function TradePage() {
                                     <div className="flex items-center gap-3">
                                         <ExchangeIcon exchange={account.exchange} />
                                         <span>{account.name}</span>
-                                        <Badge
-                                            variant="outline"
-                                            className={
-                                                account.type === 'live'
-                                                ? "bg-green-500/20 text-green-400 border-green-500/30"
-                                                : "bg-secondary text-secondary-foreground border-border"
-                                            }
-                                        >
-                                            {account.type === 'live' ? '实盘' : '模拟'}
-                                        </Badge>
                                     </div>
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 </div>
-                <div className="w-9 h-9" />
+                <Button variant="ghost" size="icon">
+                    <Plus className="w-6 h-6"/>
+                </Button>
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
@@ -120,9 +112,22 @@ export default function TradePage() {
                         <CardContent className="p-4 pb-2">
                             <div className="flex justify-between items-start pb-0">
                                 <div className="text-left space-y-1">
-                                    <p className="text-sm text-muted-foreground">
-                                        账户总资产 (USDT)
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-muted-foreground">
+                                            账户总资产 (USDT)
+                                        </p>
+                                        {selectedAccount && (
+                                            <Badge
+                                                className={`text-xs px-1.5 py-0.5 border-0 ${
+                                                    selectedAccount.type === 'live'
+                                                    ? "bg-green-500/20 text-green-400"
+                                                    : "bg-secondary text-secondary-foreground"
+                                                }`}
+                                            >
+                                                {selectedAccount.type === 'live' ? '实盘' : '模拟'}
+                                            </Badge>
+                                        )}
+                                    </div>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
                                 <Button variant="outline" size="icon" className="rounded-full">
@@ -182,5 +187,3 @@ export default function TradePage() {
         </div>
     )
 }
-
-    
