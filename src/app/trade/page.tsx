@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChevronLeft, ChevronDown, BarChart, User, ArrowRightLeft } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
@@ -88,14 +89,14 @@ export default function TradePage() {
                             <span className="text-xs font-medium">将军榜</span>
                         </button>
                     </Link>
-                    <div className="relative flex justify-center">
-                        <Link href="/trade" passHref className="absolute -top-7 flex flex-col items-center justify-center space-y-1 transition-transform active:scale-90">
-                             <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50">
+                    <Link href="/trade" passHref className="flex flex-col items-center justify-center h-full">
+                        <div className="relative flex flex-col items-center justify-center space-y-1 transition-transform active:scale-90 w-full h-full">
+                            <div className="absolute -top-7 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50">
                                 <ArrowRightLeft className="w-7 h-7" />
                             </div>
-                            <span className="text-xs font-medium text-muted-foreground">交易</span>
-                        </Link>
-                    </div>
+                            <span className="text-xs font-medium text-muted-foreground pt-12">交易</span>
+                        </div>
+                    </Link>
                     <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                     <button
                         onClick={() => setActiveTab('profile')}
