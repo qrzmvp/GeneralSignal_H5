@@ -46,7 +46,7 @@ const accounts: Account[] = [
 function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     if (exchange === 'okx') {
         return (
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8v-8h-8v8Zm14 0h8v-8h-8v8ZM13 35h8v-8h-8v8Zm14 0h8v-8h-8v8Z" fill="currentColor"></path><path d="M6 9C6 7.343 7.343 6 9 6h30c1.657 0 3 1.343 3 3v30c0 1.657-1.343 3-3 3H9c-1.657 0-3-1.343-3-3V9Z" stroke="currentColor" strokeWidth="4"></path></svg>
+            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_105_186)"><path d="M13 21H21V13H13V21Z" fill="currentColor"></path><path d="M27 21H35V13H27V21Z" fill="currentColor"></path><path d="M13 35H21V27H13V35Z" fill="currentColor"></path><path d="M27 35H35V27H27V35Z" fill="currentColor"></path><path fillRule="evenodd" clipRule="evenodd" d="M38 6H10C7.79086 6 6 7.79086 6 10V38C6 40.2091 7.79086 42 10 42H38C40.2091 42 42 40.2091 42 38V10C42 7.79086 40.2091 6 38 6ZM10 40H38C39.1046 40 40 39.1046 40 38V10C40 8.89543 39.1046 8 38 8H10C8.89543 8 8 8.89543 8 10V38C8 39.1046 8.89543 40 10 40Z" fill="currentColor"></path></g><defs><clipPath id="clip0_105_186"><rect width="48" height="48" fill="white"></rect></clipPath></defs></svg>
         )
     }
     if (exchange === 'binance') {
@@ -91,8 +91,8 @@ export default function TradePage() {
                                             variant="outline"
                                             className={
                                                 selectedAccount.type === 'live'
-                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1 py-0"
-                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1 py-0"
+                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0.5"
+                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0.5"
                                             }
                                         >
                                             {selectedAccount.type === 'live' ? '实盘' : '模拟'}
@@ -111,8 +111,8 @@ export default function TradePage() {
                                             variant="outline"
                                             className={
                                                 account.type === 'live'
-                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1 py-0"
-                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1 py-0"
+                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0.5"
+                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0.5"
                                             }
                                         >
                                             {account.type === 'live' ? '实盘' : '模拟'}
@@ -128,9 +128,9 @@ export default function TradePage() {
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4">
-                         <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen}>
-                            <div className="flex justify-between items-start">
+                    <CardContent className="p-4 relative">
+                         <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="relative">
+                            <div className="flex justify-between items-start pb-8 border-b border-border/50">
                                 <div className="text-left space-y-1">
                                     <p className="text-sm text-muted-foreground">
                                         账户总资产 (USDT)
@@ -143,6 +143,13 @@ export default function TradePage() {
                                 </Button>
                             </div>
 
+                            <CollapsibleTrigger asChild>
+                                <button className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10 h-6 w-6 flex items-center justify-center rounded-full bg-card border border-border/50 text-muted-foreground hover:bg-accent/50 transition-colors">
+                                    {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                    <span className="sr-only">Toggle</span>
+                                </button>
+                            </CollapsibleTrigger>
+                            
                             <CollapsibleContent>
                                 <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-6 pb-2">
                                     <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
@@ -153,12 +160,6 @@ export default function TradePage() {
                                     <MetricItem label="累计盈亏比" value="7.8: 1" />
                                 </div>
                             </CollapsibleContent>
-                            <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center text-muted-foreground hover:bg-accent rounded-md transition-colors">
-                                    {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                    <span className="sr-only">Toggle</span>
-                                </button>
-                            </CollapsibleTrigger>
                         </Collapsible>
                     </CardContent>
                 </Card>
@@ -176,14 +177,12 @@ export default function TradePage() {
                             <span className="text-xs font-medium">将军榜</span>
                         </button>
                     </Link>
-                    <div className="relative flex flex-col items-center justify-center h-full">
-                        <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center">
-                             <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
-                                <ArrowRightLeft className="w-7 h-7" />
-                            </div>
-                        </Link>
+                    <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
+                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                            <ArrowRightLeft className="w-7 h-7" />
+                        </div>
                         <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
-                    </div>
+                    </Link>
                     <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                     <button
                         onClick={() => setActiveTab('profile')}
