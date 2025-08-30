@@ -593,48 +593,46 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-3 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-          <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen}>
-            <CardContent className="p-4 flex flex-col items-center">
-              <div className="relative">
-                  <Avatar className="h-24 w-24 border-2 border-primary">
-                      <AvatarImage src={trader.avatar} alt={trader.name} />
-                      <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  {badge && (
-                      <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
-                  )}
-              </div>
-              <div className="text-center mt-3">
-                   <p className="text-sm text-muted-foreground">{trader.description}</p>
-                   <div className="flex flex-wrap justify-center gap-2 mt-3">
+          <CardContent className="p-4 flex flex-col items-center">
+            <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="w-full">
+                <div className="relative">
+                    <Avatar className="h-24 w-24 border-2 border-primary">
+                        <AvatarImage src={trader.avatar} alt={trader.name} />
+                        <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {badge && (
+                        <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                    )}
+                </div>
+                <div className="text-center mt-3">
+                    <p className="text-sm text-muted-foreground">{trader.description}</p>
+                    <div className="flex flex-wrap justify-center gap-2 mt-3">
                         {trader.tags?.map(tag => (
                             <Badge key={tag} variant="secondary">{tag}</Badge>
                         ))}
                     </div>
-              </div>
-              
-              <CollapsibleTrigger asChild>
-                <div className="w-full">
-                  <div className="flex w-full justify-center gap-4 mt-4">
-                      <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
-                          自动跟单
-                      </Button>
-                      <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => e.stopPropagation()}>
-                          策略回测
-                      </Button>
-                  </div>
-                  <div className="relative flex justify-center py-2 items-center w-full">
-                      <Separator className="shrink" />
-                      <button className="flex-shrink-0 mx-auto bg-card p-1 rounded-full border -mt-px text-muted-foreground hover:bg-muted">
-                        {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </button>
-                      <Separator className="shrink" />
-                  </div>
                 </div>
-              </CollapsibleTrigger>
+
+                <div className="w-full">
+                    <div className="flex w-full justify-center gap-4 mt-4">
+                        <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
+                            自动跟单
+                        </Button>
+                        <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => e.stopPropagation()}>
+                            策略回测
+                        </Button>
+                    </div>
+                    <CollapsibleTrigger asChild>
+                        <div className="relative flex justify-center items-center w-full">
+                            <button className="flex-shrink-0 mx-auto bg-card p-1 rounded-full border -mt-px text-muted-foreground hover:bg-muted">
+                                {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </CollapsibleTrigger>
+                </div>
               
               <CollapsibleContent className="w-full text-center">
-                  <div className="flex justify-between items-center cursor-pointer mb-4">
+                  <div className="flex justify-between items-center cursor-pointer mb-4 pt-2">
                       <span className="font-semibold text-base">关键指标</span>
                   </div>
                   <div className="grid grid-cols-3 gap-y-4">
@@ -646,8 +644,8 @@ export default function TraderDetailPage() {
                       <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
                   </div>
               </CollapsibleContent>
-            </CardContent>
-          </Collapsible>
+            </Collapsible>
+          </CardContent>
         </Card>
 
         { dataLoading ? (
