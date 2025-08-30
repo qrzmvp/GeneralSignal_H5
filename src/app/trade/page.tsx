@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
@@ -59,7 +58,7 @@ function PendingOrderCard({ order }: { order: any }) {
                     <h3 className="font-bold text-base flex items-center gap-2">
                         {order.pair}
                         <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}>
-                            {order.sourceType === 'auto' ? '自动跟单' : '手动跟单'}
+                            {order.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </h3>
                     <div className="flex items-center gap-2 text-sm">
@@ -511,5 +510,3 @@ export default function TradePage() {
         </>
     )
 }
-
-    
