@@ -51,7 +51,7 @@ function PendingOrderCard({ order }: { order: any }) {
         <Card className="bg-card/50 border-border/30">
             <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-base flex items-center">{order.pair} <ChevronDown className="w-4 h-4 ml-1 text-muted-foreground" /></h3>
+                    <h3 className="font-bold text-base flex items-center">{order.pair}</h3>
                     <div className="flex items-center gap-2 text-sm">
                         <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">编辑</Button>
                         <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">追单</Button>
@@ -129,7 +129,7 @@ function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     }
     if (exchange === 'bitget') {
         return (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://wwws.w3.org/2000/svg">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.33398 5.33301L8.00065 2.66634L10.6673 5.33301H5.33398Z" fill="#FFAA00"/>
                 <path d="M14.6667 5.33301L17.3333 7.99967L14.6667 10.6663H9.33333L12 7.99967L9.33333 5.33301H14.6667Z" fill="#FFAA00"/>
                 <path d="M5.33398 14.667L8.00065 17.3337L10.6673 14.667H5.33398Z" fill="#FFAA00"/>
