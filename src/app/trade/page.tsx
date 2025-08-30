@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
 import { allTraders } from '@/lib/data';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
 import { cn } from '@/lib/utils';
 
@@ -62,7 +62,7 @@ function PendingOrderCard({ order }: { order: any }) {
                 </div>
 
                 <div className="flex justify-between items-center text-xs">
-                    <div className="flex items-center gap-2 flex-wrap">
+                   <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="px-2 py-0 text-xs">限价</Badge>
                         <Badge className={`px-2 py-0 text-xs ${order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{order.direction}</Badge>
                         <Badge variant="secondary" className="px-2 py-0 text-xs">{order.marginMode}</Badge>
@@ -160,6 +160,15 @@ const mockAccountData: { [key: string]: any } = {
     }
 };
 
+function ExchangeIcon({ exchange }: { exchange: 'okx' | 'binance' | 'bitget' }) {
+    const logos: { [key: string]: React.ReactNode } = {
+        okx: <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-white text-[8px] font-bold">OKX</div>,
+        binance: <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-black text-[7px] font-bold">BNB</div>,
+        bitget: <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-[7px] font-bold">BG</div>,
+    };
+    return logos[exchange] || null;
+}
+
 const TABS = ['current', 'positions'];
 
 export default function TradePage() {
@@ -180,7 +189,6 @@ export default function TradePage() {
 
     const [accountData, setAccountData] = useState<any>(null);
     const [isSwitchingAccount, setIsSwitchingAccount] = useState(true);
-    const [currentOrders, setCurrentOrders] = useState<any[]>([]);
 
     const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
 
@@ -190,7 +198,6 @@ export default function TradePage() {
         const timer = setTimeout(() => {
             const data = mockAccountData[selectedAccountId];
             setAccountData(data);
-            setCurrentOrders(data.pendingOrders || []);
             setIsSwitchingAccount(false);
         }, 500); // 0.5 second delay to simulate network
 
@@ -335,9 +342,9 @@ export default function TradePage() {
                                         <div className="flex justify-center items-center h-40">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                         </div>
-                                    ) : currentOrders.length > 0 ? (
+                                    ) : accountData?.pendingOrders?.length > 0 ? (
                                         <div className="space-y-3">
-                                            {currentOrders.map(order => (
+                                            {accountData.pendingOrders.map((order:any) => (
                                                 <PendingOrderCard key={order.id} order={order} />
                                             ))}
                                         </div>
@@ -426,4 +433,27 @@ export default function TradePage() {
         />
         </>
     )
+}
+
+function FilterDropdown({ label, options, onSelect, setLabel }: { label: string; options: string[]; onSelect: (option: string) => void; setLabel?: (label: string) => void; }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm p-0 h-auto">
+          {label}
+          <ChevronDown className="w-4 h-4 ml-1" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {options.map((option) => (
+          <DropdownMenuItem key={option} onSelect={() => {
+            onSelect(option);
+            if (setLabel) setLabel(option);
+          }}>
+            {option}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
