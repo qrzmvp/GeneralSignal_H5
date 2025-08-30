@@ -60,10 +60,10 @@ function PendingOrderCard({ order }: { order: any }) {
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap text-xs">
-                    <Badge className={order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>限价</Badge>
-                    <Badge className={order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>{order.direction}</Badge>
-                    <Badge variant="secondary">{order.marginMode}</Badge>
-                    <Badge variant="secondary">{order.leverage}</Badge>
+                    <Badge className={`px-2 py-0 text-xs ${order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>限价</Badge>
+                    <Badge className={`px-2 py-0 text-xs ${order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{order.direction}</Badge>
+                    <Badge variant="secondary" className="px-2 py-0 text-xs">{order.marginMode}</Badge>
+                    <Badge variant="secondary" className="px-2 py-0 text-xs">{order.leverage}</Badge>
                     <span className="text-muted-foreground">{order.timestamp}</span>
                 </div>
 
