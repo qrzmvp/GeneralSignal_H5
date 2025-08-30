@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -79,25 +79,13 @@ export default function TradePage() {
                         <ChevronLeft className="h-6 w-6" />
                     </Button>
                 </Link>
-                <div className="flex-grow flex justify-center">
+                <div className="flex flex-col items-center">
                     <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                        <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
+                        <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2 h-auto p-0">
                             <SelectValue>
                                 <div className="flex items-center gap-2">
                                      {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
                                     <span>{selectedAccount?.name}</span>
-                                    {selectedAccount && (
-                                        <Badge
-                                            variant="outline"
-                                            className={
-                                                selectedAccount.type === 'live'
-                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0.5"
-                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0.5"
-                                            }
-                                        >
-                                            {selectedAccount.type === 'live' ? '实盘' : '模拟'}
-                                        </Badge>
-                                    )}
                                 </div>
                             </SelectValue>
                         </SelectTrigger>
@@ -107,31 +95,35 @@ export default function TradePage() {
                                     <div className="flex items-center gap-3">
                                         <ExchangeIcon exchange={account.exchange} />
                                         <span>{account.name}</span>
-                                        <Badge
-                                            variant="outline"
-                                            className={
-                                                account.type === 'live'
-                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0.5"
-                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0.5"
-                                            }
-                                        >
-                                            {account.type === 'live' ? '实盘' : '模拟'}
-                                        </Badge>
                                     </div>
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
+                     {selectedAccount && (
+                        <Badge
+                            variant="outline"
+                            className={
+                                `mt-1 ${selectedAccount.type === 'live'
+                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0.5"
+                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0.5"}`
+                            }
+                        >
+                            {selectedAccount.type === 'live' ? '实盘' : '模拟'}
+                        </Badge>
+                    )}
                 </div>
-                <div className="w-9"></div> {/* Placeholder for spacing */}
+                <Button variant="ghost" size="icon" className="-mr-2">
+                    <Plus className="h-6 w-6" />
+                </Button>
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
-                            <div className="flex justify-between items-start pb-0">
-                                <div className="text-left space-y-1 pb-0">
+                            <div className="flex justify-between items-start pb-4">
+                                <div className="text-left space-y-1">
                                     <p className="text-sm text-muted-foreground">
                                         账户总资产 (USDT)
                                     </p>
@@ -142,7 +134,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-4 text-left pt-2">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
