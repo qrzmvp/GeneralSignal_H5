@@ -341,11 +341,11 @@ export default function ProfilePage() {
                 </button>
             </Link>
             <Link href="/trade" passHref className="flex flex-col items-center justify-center h-full">
-                <div className="relative flex flex-col items-center justify-center space-y-1 transition-transform active:scale-90 w-full h-full">
-                    <div className="absolute -top-7 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50">
+                <div className="relative flex flex-col items-center justify-center w-full h-full">
+                    <div className="absolute -top-7 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
                         <ArrowRightLeft className="w-7 h-7" />
                     </div>
-                    <span className="text-xs font-medium text-muted-foreground pt-12">交易</span>
+                    <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
                 </div>
             </Link>
             <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
