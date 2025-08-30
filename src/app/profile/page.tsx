@@ -328,11 +328,11 @@ export default function ProfilePage() {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
-        <div className="flex justify-around items-center h-full">
-            <Link href="/" passHref className="flex-1 contents">
+        <div className="grid grid-cols-3 items-center h-full text-center">
+            <Link href="/" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                 <button
                     onClick={() => setActiveTab('leaderboard')}
-                    className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
+                    className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
                     activeTab === 'leaderboard' ? 'text-primary' : 'text-muted-foreground'
                     }`}
                 >
@@ -340,23 +340,18 @@ export default function ProfilePage() {
                     <span className="text-xs font-medium">将军榜</span>
                 </button>
             </Link>
-             <Link href="/trade" passHref className="flex-1 contents">
-                <button
-                    onClick={() => setActiveTab('trade')}
-                    className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
-                    activeTab === 'trade' ? 'text-primary' : 'text-muted-foreground'
-                    }`}
-                >
-                    <div className="flex items-center justify-center w-12 h-12 bg-card rounded-full shadow-md mb-1">
-                        <ArrowRightLeft className="w-6 h-6" />
+            <div className="relative flex justify-center">
+                <Link href="/trade" passHref className="absolute -top-7 flex flex-col items-center justify-center space-y-1 transition-transform active:scale-90">
+                     <div className="flex items-center justify-center w-14 h-14 bg-card rounded-full shadow-lg border-2 border-border/50">
+                        <ArrowRightLeft className="w-7 h-7 text-primary" />
                     </div>
-                    <span className="text-xs font-medium">交易</span>
-                </button>
-            </Link>
-            <Link href="/profile" passHref className="flex-1 contents">
+                    <span className="text-xs font-medium text-muted-foreground">交易</span>
+                </Link>
+            </div>
+            <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
               <button
                   onClick={() => setActiveTab('profile')}
-                  className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
+                  className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
                   activeTab === 'profile' ? 'text-primary' : 'text-muted-foreground'
                   }`}
               >

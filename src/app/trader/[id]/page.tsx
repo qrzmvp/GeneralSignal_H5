@@ -557,11 +557,9 @@ export default function TraderDetailPage() {
     <div className="bg-background min-h-screen text-foreground flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-        <Link href="/" passHref>
-          <Button variant="ghost" size="icon" className="p-2 -ml-2">
+        <button onClick={() => router.back()} className="p-2 -ml-2">
             <ChevronLeft className="h-6 w-6" />
-          </Button>
-        </Link>
+        </button>
         <h1 className="text-lg font-bold">{trader.name}</h1>
         <div className="w-9"></div> {/* Placeholder for spacing */}
       </header>
