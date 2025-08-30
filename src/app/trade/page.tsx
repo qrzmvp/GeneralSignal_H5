@@ -75,7 +75,7 @@ export default function TradePage() {
         <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
                 <Link href="/" passHref>
-                    <Button variant="ghost" size="icon" className="-ml-2">
+                    <Button variant="ghost" size="icon">
                         <ChevronLeft className="h-6 w-6" />
                     </Button>
                 </Link>
@@ -95,34 +95,30 @@ export default function TradePage() {
                                     <div className="flex items-center gap-3">
                                         <ExchangeIcon exchange={account.exchange} />
                                         <span>{account.name}</span>
+                                        <Badge
+                                            variant="outline"
+                                            className={
+                                                account.type === 'live'
+                                                ? "bg-green-500/20 text-green-400 border-green-500/30"
+                                                : "bg-secondary text-secondary-foreground border-border"
+                                            }
+                                        >
+                                            {account.type === 'live' ? '实盘' : '模拟'}
+                                        </Badge>
                                     </div>
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                     {selectedAccount && (
-                        <Badge
-                            variant="outline"
-                            className={
-                                `mt-1 ${selectedAccount.type === 'live'
-                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0.5"
-                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0.5"}`
-                            }
-                        >
-                            {selectedAccount.type === 'live' ? '实盘' : '模拟'}
-                        </Badge>
-                    )}
                 </div>
-                <Button variant="ghost" size="icon" className="-mr-2">
-                    <Plus className="h-6 w-6" />
-                </Button>
+                <div className="w-9 h-9" />
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
-                            <div className="flex justify-between items-start pb-4">
+                            <div className="flex justify-between items-start pb-0">
                                 <div className="text-left space-y-1">
                                     <p className="text-sm text-muted-foreground">
                                         账户总资产 (USDT)
@@ -134,7 +130,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-4 text-left pt-2">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
@@ -186,3 +182,5 @@ export default function TradePage() {
         </div>
     )
 }
+
+    
