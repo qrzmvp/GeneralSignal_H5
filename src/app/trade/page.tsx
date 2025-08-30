@@ -54,8 +54,7 @@ function PendingOrderCard({ order }: { order: any }) {
                     <h3 className="font-bold text-base flex items-center">{order.pair}</h3>
                     <div className="flex items-center gap-2 text-sm">
                         <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">编辑</Button>
-                        <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">追单</Button>
-                        <Button variant="ghost" size="sm" className="p-0 h-auto text-destructive">撤单</Button>
+                        <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">撤单</Button>
                     </div>
                 </div>
 
