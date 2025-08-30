@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChevronLeft, ChevronDown, BarChart, User, ArrowRightLeft } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
@@ -52,27 +53,25 @@ export default function TradePage() {
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4 space-y-6">
-                        <div className="text-center">
+                    <CardContent className="p-4 space-y-4">
+                        <div className="text-center space-y-2">
                             <p className="text-lg text-muted-foreground flex items-center justify-center">
                                 账户总资产
                                 <Button variant="ghost" size="sm" className="ml-1 h-auto p-1 text-xs">
                                     USDT <ChevronDown className="w-3 h-3 ml-0.5"/>
                                 </Button>
                             </p>
-                            <p className="text-4xl font-bold tracking-tight break-all">88,238.39</p>
+                            <p className="text-3xl font-bold tracking-tight break-all">88,238.39</p>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4 grid grid-cols-3 gap-x-4 gap-y-6 text-left">
-                        <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
-                        <MetricItem label="可用保证金" value="10,000.00" />
-                        <MetricItem label="累计信号" value="50" />
-                        <MetricItem label="胜率" value="84.00%" />
-                        <MetricItem label="占用保证金" value="10,000.00" />
-                        <MetricItem label="累计盈亏比" value="7.8: 1" />
+                        <Separator />
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left">
+                            <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
+                            <MetricItem label="可用保证金" value="10,000.00" />
+                            <MetricItem label="累计信号" value="50" />
+                            <MetricItem label="胜率" value="84.00%" />
+                            <MetricItem label="占用保证金" value="10,000.00" />
+                            <MetricItem label="累计盈亏比" value="7.8: 1" />
+                        </div>
                     </CardContent>
                 </Card>
             </main>
