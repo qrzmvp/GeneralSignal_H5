@@ -12,8 +12,13 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings } from 'lucide-react';
+import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronsUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
@@ -128,27 +133,40 @@ export default function TradePage() {
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4 space-y-6">
-                        <div className="flex justify-between items-start">
-                            <div className="text-left space-y-1">
-                                <p className="text-sm text-muted-foreground">
-                                    账户总资产 (USDT)
-                                </p>
-                                <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
+                    <CardContent className="p-4 space-y-4">
+                         <Collapsible defaultOpen={true}>
+                            <div className="flex justify-between items-start">
+                                <div className="text-left space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-muted-foreground">
+                                            账户总资产 (USDT)
+                                        </p>
+                                        <CollapsibleTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="w-5 h-5 text-muted-foreground">
+                                                <ChevronsUpDown className="w-4 h-4" />
+                                                <span className="sr-only">Toggle</span>
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                    </div>
+                                    <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
+                                </div>
+                                <Button variant="outline" size="sm" className="gap-2">
+                                    <Settings className="w-4 h-4"/>
+                                    跟单设置
+                                </Button>
                             </div>
-                             <Button variant="outline" size="sm" className="gap-2">
-                                <Settings className="w-4 h-4"/>
-                                跟单设置
-                            </Button>
-                        </div>
-                        <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left">
-                            <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
-                            <MetricItem label="可用保证金" value="10,000.00" />
-                            <MetricItem label="累计信号" value="50" />
-                            <MetricItem label="胜率" value="84.00%" />
-                            <MetricItem label="占用保证金" value="10,000.00" />
-                            <MetricItem label="累计盈亏比" value="7.8: 1" />
-                        </div>
+
+                            <CollapsibleContent className="space-y-4">
+                                <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-4">
+                                    <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
+                                    <MetricItem label="可用保证金" value="10,000.00" />
+                                    <MetricItem label="累计信号" value="50" />
+                                    <MetricItem label="胜率" value="84.00%" />
+                                    <MetricItem label="占用保证金" value="10,000.00" />
+                                    <MetricItem label="累计盈亏比" value="7.8: 1" />
+                                </div>
+                            </CollapsibleContent>
+                        </Collapsible>
                     </CardContent>
                 </Card>
             </main>
