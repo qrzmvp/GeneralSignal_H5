@@ -24,8 +24,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
-import { allTraders } from '@/lib/data';
+import { allTraders, Trader } from '@/lib/data';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useSwipeable } from 'react-swipeable';
+
 
 const PAGE_SIZE = 5;
 const TABS = ['current', 'positions'];
@@ -213,8 +215,8 @@ export default function TradePage() {
 
     const [swipeDirection, setSwipeDirection] = useState(0);
 
-    const swipeHandlers = {
-        onSwiped: (eventData: any) => {
+    const swipeHandlers = useSwipeable({
+        onSwiped: (eventData) => {
             const direction = eventData.dir === 'Left' ? 1 : -1;
             const currentIndex = TABS.indexOf(activeTab);
             const nextIndex = currentIndex + direction;
@@ -224,7 +226,7 @@ export default function TradePage() {
             }
         },
         trackMouse: true,
-    };
+    });
 
     const variants = {
         enter: (direction: number) => ({
@@ -392,8 +394,8 @@ export default function TradePage() {
                                     x: { type: 'spring', stiffness: 300, damping: 30 },
                                     opacity: { duration: 0.2 },
                                 }}
-                                {...swipeHandlers}
                             >
+                                <div {...swipeHandlers}>
                                 {activeTab === 'current' && (
                                     <div className="mt-4 space-y-3">
                                         <div className="flex justify-between items-center">
@@ -468,6 +470,7 @@ export default function TradePage() {
                                         </div>
                                     </div>
                                 )}
+                                </div>
                             </motion.div>
                         </AnimatePresence>
                     </div>
