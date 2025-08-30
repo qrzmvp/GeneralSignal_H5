@@ -26,6 +26,7 @@ import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
 import { allTraders } from '@/lib/data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
+import { cn } from '@/lib/utils';
 
 
 const PAGE_SIZE = 5;
@@ -57,7 +58,10 @@ function PendingOrderCard({ order }: { order: any }) {
                 <div className="flex justify-between items-center">
                     <h3 className="font-bold text-base flex items-center gap-2">
                         {order.pair}
-                        <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}>
+                        <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
+                            'text-xs',
+                            order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+                        )}>
                             {order.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </h3>
@@ -208,37 +212,17 @@ export default function TradePage() {
     const [pendingOrdersHasMore, setPendingOrdersHasMore] = useState(true);
     const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
 
-    const [swipeDirection, setSwipeDirection] = useState(0);
-
     const swipeHandlers = useSwipeable({
         onSwiped: (eventData) => {
             const direction = eventData.dir === 'Left' ? 1 : -1;
             const currentIndex = TABS.indexOf(activeTab);
             const nextIndex = currentIndex + direction;
             if (nextIndex >= 0 && nextIndex < TABS.length) {
-                setSwipeDirection(direction);
                 setActiveTab(TABS[nextIndex]);
             }
         },
         trackMouse: true,
     });
-
-    const variants = {
-        enter: (direction: number) => ({
-            x: direction > 0 ? '100%' : '-100%',
-            opacity: 0,
-        }),
-        center: {
-            zIndex: 1,
-            x: 0,
-            opacity: 1,
-        },
-        exit: (direction: number) => ({
-            zIndex: 0,
-            x: direction < 0 ? '100%' : '-100%',
-            opacity: 0,
-        }),
-    };
 
     useEffect(() => {
         const generatedOrders = Array.from({ length: 25 }, (_, i) => {
@@ -376,98 +360,88 @@ export default function TradePage() {
                         <TabsTrigger value="current">当前挂单</TabsTrigger>
                         <TabsTrigger value="positions">当前持仓</TabsTrigger>
                     </TabsList>
-                    <div className="relative overflow-hidden">
-                        <AnimatePresence initial={false} custom={swipeDirection}>
-                            <motion.div
-                                key={activeTab}
-                                custom={swipeDirection}
-                                variants={variants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{
-                                    x: { type: 'spring', stiffness: 300, damping: 30 },
-                                    opacity: { duration: 0.2 },
-                                }}
-                            >
-                                <div {...swipeHandlers}>
-                                {activeTab === 'current' && (
-                                    <div className="mt-4 space-y-3">
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <FilterDropdown
-                                                    label={directionFilter}
-                                                    options={['全部方向', '做多', '做空']}
-                                                    onSelect={setDirectionFilter}
-                                                    setLabel={setDirectionFilter}
-                                                />
-                                                <FilterDropdown
-                                                    label={pairFilter}
-                                                    options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
-                                                    onSelect={setPairFilter}
-                                                    setLabel={setPairFilter}
-                                                />
-                                            </div>
+                    <div {...swipeHandlers} className="overflow-hidden">
+                        <div className={cn("flex transition-transform duration-300", {
+                                "transform -translate-x-full": activeTab === 'positions',
+                                "transform translate-x-0": activeTab === 'current'
+                            })}>
+
+                            <div className="w-full flex-shrink-0">
+                                <div className="mt-4 space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
                                             <FilterDropdown
-                                                label={timeFilterLabel}
-                                                options={['近三个月', '近半年', '近一年']}
-                                                onSelect={setTimeFilterLabel}
-                                                setLabel={setTimeFilterLabel}
+                                                label={directionFilter}
+                                                options={['全部方向', '做多', '做空']}
+                                                onSelect={setDirectionFilter}
+                                                setLabel={setDirectionFilter}
+                                            />
+                                            <FilterDropdown
+                                                label={pairFilter}
+                                                options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                                                onSelect={setPairFilter}
+                                                setLabel={setPairFilter}
                                             />
                                         </div>
-                                        <div className="space-y-3">
-                                            {pendingOrders.map(order => (
-                                                <PendingOrderCard key={order.id} order={order} />
-                                            ))}
-                                        </div>
-                                        <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                                            {pendingOrdersLoading && (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    <span>加载中...</span>
-                                                </>
-                                            )}
-                                            {!pendingOrdersLoading && !pendingOrdersHasMore && pendingOrders.length > 0 && (
-                                                <span>已经到底了</span>
-                                            )}
-                                            {!pendingOrdersLoading && pendingOrders.length === 0 && (
-                                                <span>暂无挂单</span>
-                                            )}
-                                        </div>
+                                        <FilterDropdown
+                                            label={timeFilterLabel}
+                                            options={['近三个月', '近半年', '近一年']}
+                                            onSelect={setTimeFilterLabel}
+                                            setLabel={setTimeFilterLabel}
+                                        />
                                     </div>
-                                )}
-                                {activeTab === 'positions' && (
-                                    <div className="mt-4 space-y-3">
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <FilterDropdown
-                                                    label={posDirectionFilter}
-                                                    options={['全部方向', '做多', '做空']}
-                                                    onSelect={setPosDirectionFilter}
-                                                    setLabel={setPosDirectionFilter}
-                                                />
-                                                <FilterDropdown
-                                                    label={posPairFilter}
-                                                    options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
-                                                    onSelect={setPosPairFilter}
-                                                    setLabel={setPosPairFilter}
-                                                />
-                                            </div>
-                                            <FilterDropdown
-                                                label={posTimeFilterLabel}
-                                                options={['近三个月', '近半年', '近一年']}
-                                                onSelect={setPosTimeFilterLabel}
-                                                setLabel={setPosTimeFilterLabel}
-                                            />
-                                        </div>
-                                        <div className="text-center text-muted-foreground py-10">
-                                            暂无持仓
-                                        </div>
+                                    <div className="space-y-3">
+                                        {pendingOrders.map(order => (
+                                            <PendingOrderCard key={order.id} order={order} />
+                                        ))}
                                     </div>
-                                )}
+                                    <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                                        {pendingOrdersLoading && (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                <span>加载中...</span>
+                                            </>
+                                        )}
+                                        {!pendingOrdersLoading && !pendingOrdersHasMore && pendingOrders.length > 0 && (
+                                            <span>已经到底了</span>
+                                        )}
+                                        {!pendingOrdersLoading && pendingOrders.length === 0 && (
+                                            <span>暂无挂单</span>
+                                        )}
+                                    </div>
                                 </div>
-                            </motion.div>
-                        </AnimatePresence>
+                            </div>
+                            
+                            <div className="w-full flex-shrink-0">
+                                <div className="mt-4 space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <FilterDropdown
+                                                label={posDirectionFilter}
+                                                options={['全部方向', '做多', '做空']}
+                                                onSelect={setPosDirectionFilter}
+                                                setLabel={setPosDirectionFilter}
+                                            />
+                                            <FilterDropdown
+                                                label={posPairFilter}
+                                                options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                                                onSelect={setPosPairFilter}
+                                                setLabel={setPosPairFilter}
+                                            />
+                                        </div>
+                                        <FilterDropdown
+                                            label={posTimeFilterLabel}
+                                            options={['近三个月', '近半年', '近一年']}
+                                            onSelect={setPosTimeFilterLabel}
+                                            setLabel={setPosTimeFilterLabel}
+                                        />
+                                    </div>
+                                    <div className="text-center text-muted-foreground py-10">
+                                        暂无持仓
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </Tabs>
 
