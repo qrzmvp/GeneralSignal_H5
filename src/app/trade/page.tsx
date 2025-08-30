@@ -82,12 +82,20 @@ function PendingOrderCard({ order }: { order: any }) {
                 </div>
 
                 <div className="border-t border-border/30 pt-3">
-                     <p className="text-xs text-muted-foreground">止盈/止损</p>
-                     <p className="text-sm font-semibold text-foreground mt-1">
-                        <span className="text-green-400">{order.takeProfit}</span>
-                        <span className="text-muted-foreground mx-1">/</span>
-                        <span className="text-red-400">{order.stopLoss}</span>
-                    </p>
+                    <div className="flex justify-between items-center">
+                         <div>
+                            <p className="text-xs text-muted-foreground">止盈/止损</p>
+                            <p className="text-sm font-semibold text-foreground mt-1">
+                                <span className="text-green-400">{order.takeProfit || '--'}</span>
+                                <span className="text-muted-foreground mx-1">/</span>
+                                <span className="text-red-400">{order.stopLoss}</span>
+                            </p>
+                         </div>
+                         <div className="text-right">
+                             <p className="text-xs text-muted-foreground">预计盈亏比</p>
+                             <p className="text-sm font-semibold text-foreground mt-1">{order.pnlRatio}</p>
+                         </div>
+                    </div>
                 </div>
 
             </CardContent>
@@ -193,6 +201,8 @@ export default function TradePage() {
         const generatedOrders = Array.from({ length: 25 }, (_, i) => {
             const isLong = Math.random() > 0.5;
             const price = 3965 + (Math.random() - 0.5) * 100;
+            const hasTakeProfit = Math.random() > 0.2;
+            const takeProfit = hasTakeProfit ? price * 1.02 : null;
             return {
                 id: i,
                 pair: 'ETHUSDT 永续',
@@ -203,8 +213,9 @@ export default function TradePage() {
                 amount: (11.9 + Math.random() * 5).toFixed(2),
                 filled: 0,
                 price: price.toFixed(2),
-                takeProfit: (price * 1.02).toFixed(2),
+                takeProfit: takeProfit ? takeProfit.toFixed(2) : null,
                 stopLoss: (price * 0.95).toFixed(2),
+                pnlRatio: hasTakeProfit ? `${(Math.random() * 2 + 1).toFixed(1)}:1` : '--',
             };
         });
         setAllPendingOrders(generatedOrders);
@@ -429,3 +440,5 @@ export default function TradePage() {
         </>
     )
 }
+
+    
