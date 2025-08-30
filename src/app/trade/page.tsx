@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, BarChart, User, ArrowRightLeft } from 'lucide-react';
+import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
@@ -33,26 +33,26 @@ interface Account {
 }
 
 const accounts: Account[] = [
-    { id: 'okx-10001', name: 'OKX-10001', type: 'live', exchange: 'okx' },
-    { id: 'binance-20002', name: 'Binance-20002', type: 'live', exchange: 'binance' },
+    { id: 'okx-10001', name: '10001', type: 'live', exchange: 'okx' },
+    { id: 'binance-20002', name: '20002', type: 'live', exchange: 'binance' },
     { id: 'demo-1', name: '模拟账户', type: 'demo', exchange: 'demo' },
 ]
 
 function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     if (exchange === 'okx') {
         return (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-foreground">
-                <path d="M6.3125 10.9375H10.9375V6.3125H6.3125V10.9375Z" fill="currentColor"/>
-                <path d="M13.0625 10.9375H17.6875V6.3125H13.0625V10.9375Z" fill="currentColor"/>
-                <path d="M6.3125 17.6875H10.9375V13.0625H6.3125V17.6875Z" fill="currentColor"/>
-                <path d="M13.0625 17.6875H17.6875V13.0625H13.0625V17.6875Z" fill="currentColor"/>
-                <path d="M3 5.3125C3 3.99625 3.99625 3 5.3125 3H18.6875C20.0037 3 21 3.99625 21 5.3125V18.6875C21 20.0037 20.0037 21 18.6875 21H5.3125C3.99625 21 3 20.0037 3 18.6875V5.3125Z" stroke="currentColor" strokeWidth="2"/>
+             <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 21H21V13H13V21Z" fill="currentColor"/>
+                <path d="M27 21H35V13H27V21Z" fill="currentColor"/>
+                <path d="M13 35H21V27H13V35Z" fill="currentColor"/>
+                <path d="M27 35H35V27H27V35Z" fill="currentColor"/>
+                <path d="M6 9C6 7.34315 7.34315 6 9 6H39C40.6569 6 42 7.34315 42 9V39C42 40.6569 40.6569 42 39 42H9C7.34315 42 6 40.6569 6 39V9Z" stroke="currentColor" strokeWidth="4"/>
             </svg>
         )
     }
     if (exchange === 'binance') {
         return (
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-foreground">
                 <path d="M12 15.0625L15.0625 12L12 8.9375L8.9375 12L12 15.0625Z" fill="currentColor"/>
                 <path d="M18.125 12L15.0625 8.9375L16.5938 7.40625L19.6562 10.4688L21.1875 12L19.6562 13.5312L18.125 12Z" fill="currentColor"/>
                 <path d="M5.875 12L8.9375 15.0625L7.40625 16.5938L4.34375 13.5312L2.8125 12L4.34375 10.4688L5.875 12Z" fill="currentColor"/>
@@ -81,17 +81,18 @@ export default function TradePage() {
                 </Link>
                 <div className="flex-grow flex justify-center">
                     <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                        <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 gap-2">
+                        <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
                             <SelectValue>
                                 <div className="flex items-center gap-2">
                                      {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
-                                    <span>{selectedAccount?.name.replace(/OKX-|Binance-/, '')}</span>
+                                    <span>{selectedAccount?.name}</span>
                                     {selectedAccount && (
                                         <Badge 
+                                            variant="outline"
                                             className={
                                                 selectedAccount.type === 'live' 
-                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0"
-                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0"
+                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1 py-0"
+                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1 py-0"
                                             }
                                         >
                                             {selectedAccount.type === 'live' ? '实盘' : '模拟'}
@@ -107,10 +108,11 @@ export default function TradePage() {
                                         <ExchangeIcon exchange={account.exchange} />
                                         <span>{account.name}</span>
                                         <Badge
+                                            variant="outline"
                                             className={
                                                 account.type === 'live'
-                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0"
-                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0"
+                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1 py-0"
+                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1 py-0"
                                             }
                                         >
                                             {account.type === 'live' ? '实盘' : '模拟'}
@@ -127,11 +129,17 @@ export default function TradePage() {
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
                     <CardContent className="p-4 space-y-6">
-                        <div className="text-left space-y-1">
-                            <p className="text-sm text-muted-foreground">
-                                账户总资产 (USDT)
-                            </p>
-                            <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
+                        <div className="flex justify-between items-start">
+                            <div className="text-left space-y-1">
+                                <p className="text-sm text-muted-foreground">
+                                    账户总资产 (USDT)
+                                </p>
+                                <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
+                            </div>
+                             <Button variant="outline" size="sm" className="gap-2">
+                                <Settings className="w-4 h-4"/>
+                                跟单设置
+                            </Button>
                         </div>
                         <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left">
                             <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />

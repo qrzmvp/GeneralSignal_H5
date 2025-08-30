@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 
 interface LoginFormProps {
@@ -53,74 +53,32 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          <Tabs defaultValue="username" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="username">
-                <User className="mr-2 h-4 w-4" />
-                账号
-              </TabsTrigger>
-              <TabsTrigger value="email">
-                <Mail className="mr-2 h-4 w-4" />
-                邮箱
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="username" className="m-0 pt-4">
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="username">
-                    账号
-                  </Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="请输入您的账号"
-                    required
-                    autoComplete="username"
-                    className="bg-background/50"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password-login">密码</Label>
-                  <Input 
-                    id="password-login" 
-                    type="password" 
-                    placeholder="请输入您的密码"
-                    required 
-                    autoComplete="current-password"
-                    className="bg-background/50"
-                  />
-                </div>
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="username">
+                  账号
+                </Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="请输入您的账号"
+                  required
+                  autoComplete="username"
+                  className="bg-background/50"
+                />
               </div>
-            </TabsContent>
-            <TabsContent value="email" className="m-0 pt-4">
-                <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">
-                    邮箱
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    autoComplete="email"
-                    className="bg-background/50"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password-email">密码</Label>
-                  <Input 
-                    id="password-email" 
-                    type="password" 
-                    placeholder="请输入您的密码"
-                    required 
-                    autoComplete="current-password"
-                    className="bg-background/50"
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password-login">密码</Label>
+                <Input 
+                  id="password-login" 
+                  type="password" 
+                  placeholder="请输入您的密码"
+                  required 
+                  autoComplete="current-password"
+                  className="bg-background/50"
+                />
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
         </CardContent>
         <CardFooter className="flex-col gap-4">
             <Button type="submit" className="w-full" disabled={loading}>
