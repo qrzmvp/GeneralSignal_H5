@@ -13,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChevronLeft, ChevronDown, BarChart, User, ArrowRightLeft } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
@@ -53,17 +52,16 @@ export default function TradePage() {
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4 space-y-4">
-                        <div className="text-center space-y-2">
-                            <p className="text-lg text-muted-foreground flex items-center justify-center">
+                    <CardContent className="p-4 space-y-6">
+                        <div className="text-left space-y-2">
+                            <p className="text-lg text-muted-foreground flex items-center">
                                 账户总资产
                                 <Button variant="ghost" size="sm" className="ml-1 h-auto p-1 text-xs">
                                     USDT <ChevronDown className="w-3 h-3 ml-0.5"/>
                                 </Button>
                             </p>
-                            <p className="text-3xl font-bold tracking-tight break-all">88,238.39</p>
+                            <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                         </div>
-                        <Separator />
                         <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left">
                             <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                             <MetricItem label="可用保证金" value="10,000.00" />
@@ -92,8 +90,8 @@ export default function TradePage() {
                     </Link>
                     <div className="relative flex justify-center">
                         <Link href="/trade" passHref className="absolute -top-7 flex flex-col items-center justify-center space-y-1 transition-transform active:scale-90">
-                             <div className="flex items-center justify-center w-14 h-14 bg-card rounded-full shadow-lg border-2 border-border/50">
-                                <ArrowRightLeft className="w-7 h-7 text-primary" />
+                             <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-2 border-border/50">
+                                <ArrowRightLeft className="w-7 h-7" />
                             </div>
                             <span className="text-xs font-medium text-muted-foreground">交易</span>
                         </Link>

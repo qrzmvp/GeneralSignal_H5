@@ -507,8 +507,8 @@ export default function LeaderboardPage() {
             </Link>
             <div className="relative flex justify-center">
                 <Link href="/trade" passHref className="absolute -top-7 flex flex-col items-center justify-center space-y-1 transition-transform active:scale-90">
-                     <div className="flex items-center justify-center w-14 h-14 bg-card rounded-full shadow-lg border-2 border-border/50">
-                        <ArrowRightLeft className="w-7 h-7 text-primary" />
+                     <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-2 border-border/50">
+                        <ArrowRightLeft className="w-7 h-7" />
                     </div>
                     <span className="text-xs font-medium text-muted-foreground">交易</span>
                 </Link>
