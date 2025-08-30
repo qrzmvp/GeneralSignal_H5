@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
-import { allTraders, Trader } from '@/lib/data';
+import { allTraders } from '@/lib/data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
 
@@ -56,7 +56,12 @@ function PendingOrderCard({ order }: { order: any }) {
         <Card className="bg-card/50 border-border/30">
             <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-base flex items-center">{order.pair}</h3>
+                    <h3 className="font-bold text-base flex items-center gap-2">
+                        {order.pair}
+                        <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}>
+                            {order.sourceType === 'auto' ? '自动跟单' : '手动跟单'}
+                        </Badge>
+                    </h3>
                     <div className="flex items-center gap-2 text-sm">
                         <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">编辑</Button>
                         <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">撤单</Button>
@@ -97,15 +102,6 @@ function PendingOrderCard({ order }: { order: any }) {
                                 <span className="text-muted-foreground mx-1">/</span>
                                 <span className="text-red-400">{order.stopLoss}</span>
                             </p>
-                         </div>
-                         <div>
-                            <p className="text-xs text-muted-foreground">信号来源</p>
-                             <div className="flex items-center gap-2 mt-1">
-                                <span className="text-sm font-semibold text-foreground">{order.sourceTrader}</span>
-                                <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}>
-                                    {order.sourceType === 'auto' ? '自动跟单' : '手动跟单'}
-                                </Badge>
-                             </div>
                          </div>
                          <div className="text-right">
                             <p className="text-xs text-muted-foreground">预计盈亏比</p>
