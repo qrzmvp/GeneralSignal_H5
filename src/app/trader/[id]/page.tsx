@@ -37,192 +37,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Separator } from '@/components/ui/separator';
+import { allTraders } from '@/lib/data';
 
 // Mock data - in a real app, you'd fetch this based on the `id` param
-const traders = [
-    {
-    id: 1,
-    name: 'WWG-Woods',
-    avatar: 'https://i.pravatar.cc/150?u=wwg-woods',
-    description: '盈亏同源高收益追涨模式采用指数级复利操作',
-    yield: 288.0,
-    winRate: 95.0,
-    pnlRatio: '22:1',
-    totalOrders: 150,
-    tags: ['波段高手', '高频交易', 'ETH信徒'],
-    followers: 1288,
-    days: 180,
-  },
-  {
-    id: 2,
-    name: 'WWG-Jonh',
-    avatar: 'https://i.pravatar.cc/150?u=jonh',
-    description: '寻找超额收益，多策略组合',
-    yield: 265.0,
-    winRate: 98.0,
-    pnlRatio: '20:1',
-    totalOrders: 180,
-    tags: ['狙击BTC专家', '技术分析', '稳健'],
-    followers: 1150,
-    days: 210,
-  },
-  {
-    id: 3,
-    name: 'WWG-Hbj',
-    avatar: 'https://i.pravatar.cc/150?u=hbj',
-    description: '深耕以太坊生态，价值发现',
-    yield: 250.0,
-    winRate: 90.1,
-    pnlRatio: '18.5:1',
-    totalOrders: 888,
-    tags: ['价值投资', 'ETH布道者', '长线'],
-    followers: 2300,
-    days: 365,
-  },
-    {
-    id: 4,
-    name: '量化大师',
-    avatar: 'https://i.pravatar.cc/150?u=quant',
-    description: '高频交易，算法驱动',
-    yield: 150.7,
-    winRate: 65.7,
-    pnlRatio: '11.2:1',
-    totalOrders: 345,
-    tags: ['算法交易', '高频', '套利'],
-    followers: 890,
-    days: 90,
-  },
-  {
-    id: 5,
-    name: '趋势猎人',
-    avatar: 'https://i.pravatar.cc/150?u=hunter',
-    description: '顺势而为，捕捉大趋势行情',
-    yield: 120.4,
-    winRate: 76.8,
-    pnlRatio: '9.1:1',
-    totalOrders: 780,
-    tags: ['趋势跟踪', '宏观经济', '长线持有'],
-    followers: 920,
-    days: 410,
-  },
-  {
-    id: 6,
-    name: '波段之王',
-    avatar: 'https://i.pravatar.cc/150?u=swing',
-    description: '高抛低吸，精通市场情绪',
-    yield: 95.6,
-    winRate: 89.1,
-    pnlRatio: '8.5:1',
-    totalOrders: 888,
-    tags: ['波段交易', '情绪分析', '短线'],
-    followers: 1500,
-    days: 280,
-  },
-  {
-    id: 7,
-    name: '合约常胜军',
-    avatar: 'https://i.pravatar.cc/150?u=futures',
-    description: '杠杆艺术，风险控制大师',
-    yield: 88.0,
-    winRate: 95.0,
-    pnlRatio: '10:1',
-    totalOrders: 450,
-    tags: ['合约交易', '高杠杆', '风险控制'],
-    followers: 1800,
-    days: 150,
-  },
-  {
-    id: 8,
-    name: 'BTC信仰者',
-    avatar: 'https://i.pravatar.cc/150?u=btc',
-    description: '只做比特币，长期持有',
-    yield: 75.1,
-    winRate: 85.3,
-    pnlRatio: '7.5:1',
-    totalOrders: 1102,
-    tags: ['BTC', '信仰者', '屯币'],
-    followers: 5000,
-    days: 730,
-  },
-  {
-    id: 9,
-    name: '短线快枪手',
-    avatar: 'https://i.pravatar.cc/150?u=quick',
-    description: '超短线交易，积少成多',
-    yield: 68.5,
-    winRate: 92.84,
-    pnlRatio: '8.2:1',
-    totalOrders: 1245,
-    tags: ['超短线', '剥头皮', '高频'],
-    followers: 760,
-    days: 88,
-  },
-  {
-    id: 10,
-    name: 'ETH布道者',
-    avatar: 'https://i.pravatar.cc/150?u=eth',
-    description: '深耕以太坊生态，价值发现',
-    yield: 63.2,
-    winRate: 82.4,
-    pnlRatio: '6.2:1',
-    totalOrders: 999,
-    tags: ['ETH', 'DEFI', '价值发现'],
-    followers: 1340,
-    days: 310,
-  },
-  {
-    id: 11,
-    name: 'Alpha Seeker',
-    avatar: 'https://i.pravatar.cc/150?u=alpha',
-    description: '寻找超额收益，多策略组合',
-    yield: 52.3,
-    winRate: 87.92,
-    pnlRatio: '6.8:1',
-    totalOrders: 892,
-    tags: ['多策略', 'Alpha', '对冲'],
-    followers: 650,
-    days: 120,
-  },
-  {
-    id: 12,
-    name: '狙击涨停板',
-    avatar: 'https://i.pravatar.cc/150?u=limit-up',
-    description: '专注强势币种，高风险高回报',
-    yield: 48.9,
-    winRate: 91.5,
-    pnlRatio: '5.9:1',
-    totalOrders: 1530,
-    tags: ['强势币', '追涨', '高风险'],
-    followers: 999,
-    days: 99,
-  },
-  {
-    id: 13,
-    name: '抄底王',
-    avatar: 'https://i.pravatar.cc/150?u=dip',
-    description: '左侧交易，逆势布局',
-    yield: 45.5,
-    winRate: 88.0,
-    pnlRatio: '5.5:1',
-    totalOrders: 789,
-    tags: ['左侧交易', '抄底', '逆势'],
-    followers: 480,
-    days: 200,
-  },
-  {
-    id: 14,
-    name: '币圈巴菲特',
-    avatar: 'https://i.pravatar.cc/150?u=buffett',
-    description: '屯币不动，穿越牛熊',
-    yield: 41.6,
-    winRate: 78.45,
-    pnlRatio: '5.2:1',
-    totalOrders: 654,
-    tags: ['价值投资', '长持', '屯币'],
-    followers: 3000,
-    days: 1024,
-  }
-];
+const traders = allTraders;
 
 
 const PAGE_SIZE = 5;
@@ -604,29 +422,30 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-3 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-            <CardContent className="p-4">
-                <div className="flex justify-center">
-                    <div className="relative">
-                        <Avatar className="h-20 w-20 border-2 border-primary">
-                            <AvatarImage src={trader.avatar} alt={trader.name} />
-                            <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        {badge && (
-                            <Crown className={`absolute -top-1 -left-1 h-7 w-7 transform -rotate-12 ${badge.color}`} fill="currentColor" />
-                        )}
+            <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="w-full">
+                <CardContent className="p-4">
+                    <div className="flex justify-center">
+                        <div className="relative">
+                            <Avatar className="h-20 w-20 border-2 border-primary">
+                                <AvatarImage src={trader.avatar} alt={trader.name} />
+                                <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            {badge && (
+                                <Crown className={`absolute -top-1 -left-1 h-7 w-7 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                            )}
+                        </div>
                     </div>
-                </div>
-                <div className="text-center mt-3">
-                    <p className="text-sm text-muted-foreground">{trader.description}</p>
-                    <div className="flex flex-wrap justify-center gap-2 mt-3">
-                        {trader.tags?.map(tag => (
-                            <Badge key={tag} variant="secondary">{tag}</Badge>
-                        ))}
+                    <div className="text-center mt-3">
+                        <p className="text-sm text-muted-foreground">{trader.description}</p>
+                        <div className="flex flex-wrap justify-center gap-2 mt-3">
+                            {trader.tags?.map(tag => (
+                                <Badge key={tag} variant="secondary">{tag}</Badge>
+                            ))}
+                        </div>
                     </div>
-                </div>
-                <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="w-full">
-                    <div className="w-full">
-                        <div className="flex w-full justify-center gap-4 mt-4">
+
+                    <div className="w-full mt-4">
+                        <div className="flex w-full justify-center gap-4">
                             <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
                                 自动跟单
                             </Button>
@@ -635,15 +454,17 @@ export default function TraderDetailPage() {
                             </Button>
                         </div>
                     </div>
-                    <div className="relative flex justify-center items-center w-full">
-                        <CollapsibleTrigger asChild>
+
+                    <div className="relative mt-2 flex justify-center items-center w-full">
+                       <CollapsibleTrigger asChild>
                             <button className="flex-shrink-0 mx-auto p-1 text-muted-foreground hover:bg-muted rounded-md">
                                 {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             </button>
                         </CollapsibleTrigger>
                     </div>
+
                     <CollapsibleContent>
-                        <div className="grid grid-cols-3 gap-y-4 pt-4 text-center">
+                        <div className="grid grid-cols-3 gap-y-4 pt-2 text-center">
                             <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
                             <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
                             <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
@@ -652,8 +473,8 @@ export default function TraderDetailPage() {
                             <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
                         </div>
                     </CollapsibleContent>
-                </Collapsible>
-            </CardContent>
+                </CardContent>
+            </Collapsible>
         </Card>
 
         { dataLoading ? (
