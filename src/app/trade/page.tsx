@@ -1,8 +1,9 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useInView } from 'react-intersection-observer'
 import {
   Select,
   SelectContent,
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, ChevronRight } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -24,6 +25,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
 import { allTraders } from '@/lib/data';
 
+const PAGE_SIZE = 5;
+
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
     <div className="flex flex-col space-y-1">
@@ -33,6 +36,66 @@ function MetricItem({ label, value, subValue, valueColor }: { label: string, val
     </div>
   )
 }
+
+function InfoPill({ label, value, valueClassName }: { label: string, value: string | number, valueClassName?: string }) {
+    return (
+      <div className="flex items-center justify-between text-sm py-1.5">
+        <span className="text-muted-foreground">{label}</span>
+        <span className={`font-medium text-foreground ${valueClassName}`}>{value}</span>
+      </div>
+    )
+}
+
+function PendingOrderCard({ order }: { order: any }) {
+    return (
+        <Card className="bg-card/50 border-border/30">
+            <CardContent className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                    <h3 className="font-bold text-base flex items-center">{order.pair} <ChevronDown className="w-4 h-4 ml-1 text-muted-foreground" /></h3>
+                    <div className="flex items-center gap-2 text-sm">
+                        <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">编辑</Button>
+                        <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">追单</Button>
+                        <Button variant="ghost" size="sm" className="p-0 h-auto text-destructive">撤单</Button>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap text-xs">
+                    <Badge className={order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>限价</Badge>
+                    <Badge className={order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>{order.direction}</Badge>
+                    <Badge variant="secondary">{order.marginMode}</Badge>
+                    <Badge variant="secondary">{order.leverage}</Badge>
+                    <span className="text-muted-foreground">{order.timestamp}</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 text-center border-t border-border/30 pt-3">
+                    <div>
+                        <p className="text-xs text-muted-foreground">委托数量 (USDT)</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{order.amount}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">已成交量 (USDT)</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{order.filled}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">委托价格</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{order.price}</p>
+                    </div>
+                </div>
+
+                <div className="border-t border-border/30 pt-3">
+                     <p className="text-xs text-muted-foreground">止盈/止损</p>
+                     <p className="text-sm font-semibold text-foreground mt-1">
+                        <span className="text-green-400">{order.takeProfit}</span>
+                        <span className="text-muted-foreground mx-1">/</span>
+                        <span className="text-red-400">{order.stopLoss}</span>
+                    </p>
+                </div>
+
+            </CardContent>
+        </Card>
+    );
+}
+
 
 interface Account {
     id: string;
@@ -66,7 +129,7 @@ function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     }
     if (exchange === 'bitget') {
         return (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://wwws.w3.org/2000/svg">
                 <path d="M5.33398 5.33301L8.00065 2.66634L10.6673 5.33301H5.33398Z" fill="#FFAA00"/>
                 <path d="M14.6667 5.33301L17.3333 7.99967L14.6667 10.6663H9.33333L12 7.99967L9.33333 5.33301H14.6667Z" fill="#FFAA00"/>
                 <path d="M5.33398 14.667L8.00065 17.3337L10.6673 14.667H5.33398Z" fill="#FFAA00"/>
@@ -118,6 +181,60 @@ export default function TradePage() {
     const [posTimeFilterLabel, setPosTimeFilterLabel] = useState('近三个月');
 
     const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
+    
+    // State for pending orders list
+    const [allPendingOrders, setAllPendingOrders] = useState<any[]>([]);
+    const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+    const [pendingOrdersPage, setPendingOrdersPage] = useState(1);
+    const [pendingOrdersLoading, setPendingOrdersLoading] = useState(true);
+    const [pendingOrdersHasMore, setPendingOrdersHasMore] = useState(true);
+    const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
+
+    useEffect(() => {
+        const generatedOrders = Array.from({ length: 25 }, (_, i) => {
+            const isLong = Math.random() > 0.5;
+            const price = 3965 + (Math.random() - 0.5) * 100;
+            return {
+                id: i,
+                pair: 'ETHUSDT 永续',
+                direction: isLong ? '开多' : '开空',
+                marginMode: '全仓',
+                leverage: '2x',
+                timestamp: `08/23 19:0${i % 10}:12`,
+                amount: (11.9 + Math.random() * 5).toFixed(2),
+                filled: 0,
+                price: price.toFixed(2),
+                takeProfit: (price * 1.02).toFixed(2),
+                stopLoss: (price * 0.95).toFixed(2),
+            };
+        });
+        setAllPendingOrders(generatedOrders);
+
+        const initialOrders = generatedOrders.slice(0, PAGE_SIZE);
+        setPendingOrders(initialOrders);
+        setPendingOrdersPage(2);
+        setPendingOrdersHasMore(initialOrders.length < generatedOrders.length);
+        setPendingOrdersLoading(false);
+    }, []);
+
+    const loadMorePendingOrders = useCallback(() => {
+        if (pendingOrdersLoading || !pendingOrdersHasMore) return;
+        setPendingOrdersLoading(true);
+        setTimeout(() => {
+            const newOrders = allPendingOrders.slice((pendingOrdersPage - 1) * PAGE_SIZE, pendingOrdersPage * PAGE_SIZE);
+            setPendingOrders(prev => [...prev, ...newOrders]);
+            setPendingOrdersPage(prev => prev + 1);
+            setPendingOrdersHasMore((pendingOrdersPage * PAGE_SIZE) < allPendingOrders.length);
+            setPendingOrdersLoading(false);
+        }, 1000);
+    }, [pendingOrdersLoading, pendingOrdersHasMore, pendingOrdersPage, allPendingOrders]);
+
+    useEffect(() => {
+        if (inView) {
+            loadMorePendingOrders();
+        }
+    }, [inView, loadMorePendingOrders]);
+
 
     return (
         <>
@@ -225,8 +342,24 @@ export default function TradePage() {
                                 setLabel={setTimeFilterLabel}
                             />
                         </div>
-                        <div className="text-center text-muted-foreground py-10">
-                            暂无挂单
+                        <div className="space-y-3">
+                            {pendingOrders.map(order => (
+                                <PendingOrderCard key={order.id} order={order} />
+                            ))}
+                        </div>
+                        <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                            {pendingOrdersLoading && (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <span>加载中...</span>
+                                </>
+                            )}
+                            {!pendingOrdersLoading && !pendingOrdersHasMore && pendingOrders.length > 0 && (
+                                <span>已经到底了</span>
+                            )}
+                             {!pendingOrdersLoading && pendingOrders.length === 0 && (
+                                <span>暂无挂单</span>
+                            )}
                         </div>
                     </TabsContent>
                     <TabsContent value="positions" className="mt-4 space-y-3">
@@ -272,7 +405,7 @@ export default function TradePage() {
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
                     <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
-                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
                             <ArrowRightLeft className="w-6 h-6" />
                         </div>
                         <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
