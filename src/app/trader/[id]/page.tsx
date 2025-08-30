@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -250,7 +251,7 @@ function SignalCard({ signal }: { signal: any }) {
             <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-2 items-start">
-                         <Badge variant="outline" className="font-mono text-base border-primary/50 text-primary">{signal.pair}</Badge>
+                         <Badge variant="secondary" className="font-mono text-base text-primary active-signal">{signal.pair}</Badge>
                          <div className="flex items-center gap-2">
                             <Badge variant="secondary">{signal.orderType}</Badge>
                             <Badge variant="secondary">{signal.type}</Badge>

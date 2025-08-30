@@ -127,6 +127,21 @@
   white-space: nowrap;
 }
 
+@keyframes active-signal-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+    background-color: hsl(var(--secondary));
+  }
+  50% {
+    box-shadow: 0 0 8px 3px hsl(var(--primary) / 0.1);
+    background-color: hsl(var(--accent));
+  }
+}
+
+.active-signal {
+  animation: active-signal-pulse 2.5s infinite;
+}
+
 /* Custom styles for reference image */
 @layer components {
     .tabs-trigger-style {
