@@ -15,7 +15,8 @@ import {
   Crown,
   ArrowRightLeft,
   BarChart,
-  Plus
+  Plus,
+  ChevronUp
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -30,6 +31,11 @@ import {
 import { useInView } from 'react-intersection-observer'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 // Mock data - in a real app, you'd fetch this based on the `id` param
 const traders = [
@@ -378,6 +384,7 @@ export default function TraderDetailPage() {
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('current');
+  const [isMetricsOpen, setIsMetricsOpen] = useState(true);
 
   const [allSignals, setAllSignals] = useState<any[]>([]);
   const [allHistoricalSignals, setAllHistoricalSignals] = useState<any[]>([]);
@@ -616,14 +623,28 @@ export default function TraderDetailPage() {
 
         {/* Metrics Overview */}
         <Card className="bg-card/80 border-border/50">
-           <CardContent className="p-4 grid grid-cols-3 gap-y-4 text-center">
+          <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen}>
+            <CardContent className="p-4 text-center">
+              <div className="grid grid-cols-3 gap-y-4">
                 <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
                 <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
                 <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
-                <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
-                <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
-                <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
-           </CardContent>
+              </div>
+              <CollapsibleContent>
+                 <div className="grid grid-cols-3 gap-y-4 pt-4">
+                    <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
+                    <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
+                    <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
+                  </div>
+              </CollapsibleContent>
+              <CollapsibleTrigger asChild>
+                <button className="w-full flex justify-center items-center text-muted-foreground pt-3 -mb-2 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+                  {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  <span className="sr-only">Toggle</span>
+                </button>
+              </CollapsibleTrigger>
+            </CardContent>
+          </Collapsible>
         </Card>
 
         { dataLoading ? (
