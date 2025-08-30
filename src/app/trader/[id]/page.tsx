@@ -39,6 +39,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { allTraders } from '@/lib/data';
 import { useSwipeable } from 'react-swipeable';
+import { cn } from '@/lib/utils';
+
 
 // Mock data - in a real app, you'd fetch this based on the `id` param
 const traders = allTraders;
@@ -198,6 +200,11 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
   );
 }
 
+const TABS = [
+    { value: "current", label: "当前信号", icon: User },
+    { value: "historical", label: "历史信号", icon: History },
+    { value: "followers", label: "跟单用户", icon: Users }
+];
 
 export default function TraderDetailPage() {
   const router = useRouter()
@@ -209,7 +216,7 @@ export default function TraderDetailPage() {
   const badge = rank && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('current');
+  const [activeTab, setActiveTab] = useState(TABS[0].value);
   const [isMetricsOpen, setIsMetricsOpen] = useState(true);
 
   const [allSignals, setAllSignals] = useState<any[]>([]);
@@ -308,23 +315,13 @@ export default function TraderDetailPage() {
   const [historicalDirectionFilter, setHistoricalDirectionFilter] = useState('全部方向');
   const [historicalPairFilter, setHistoricalPairFilter] = useState('全部币种');
 
-  const TABS = useMemo(() => [
-    { value: "current", label: "当前信号", icon: User },
-    { value: "historical", label: "历史信号", icon: History },
-    { value: "followers", label: "跟单用户", icon: Users }
-  ], []);
-
   const swipeHandlers = useSwipeable({
-      onSwipedLeft: () => {
+      onSwiped: (eventData) => {
           const currentIndex = TABS.findIndex(t => t.value === activeTab);
-          if (currentIndex < TABS.length - 1) {
-              setActiveTab(TABS[currentIndex + 1].value);
-          }
-      },
-      onSwipedRight: () => {
-          const currentIndex = TABS.findIndex(t => t.value === activeTab);
-          if (currentIndex > 0) {
-              setActiveTab(TABS[currentIndex - 1].value);
+          const direction = eventData.dir === 'Left' ? 1 : -1;
+          const nextIndex = currentIndex + direction;
+          if (nextIndex >= 0 && nextIndex < TABS.length) {
+              setActiveTab(TABS[nextIndex].value);
           }
       },
       trackMouse: true
@@ -422,6 +419,8 @@ export default function TraderDetailPage() {
     );
   }
 
+  const activeTabIndex = TABS.findIndex(tab => tab.value === activeTab);
+
   return (
     <>
     <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -510,107 +509,118 @@ export default function TraderDetailPage() {
                     ))}
                 </TabsList>
                 
-                <div {...swipeHandlers}>
-                    <TabsContent value="current" className="mt-4 space-y-3">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <FilterDropdown
-                                    label={directionFilter}
-                                    options={['全部方向', '做多', '做空']}
-                                    onSelect={setDirectionFilter}
-                                    setLabel={setDirectionFilter}
-                                />
-                                <FilterDropdown
-                                    label={pairFilter}
-                                    options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
-                                    onSelect={setPairFilter}
-                                    setLabel={setPairFilter}
-                                />
+                <div {...swipeHandlers} className="overflow-hidden">
+                     <div
+                        className="flex transition-transform duration-300"
+                        style={{ transform: `translateX(-${activeTabIndex * 100}%)` }}
+                    >
+                        <div className="w-full flex-shrink-0">
+                             <div className="mt-4 space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <FilterDropdown
+                                            label={directionFilter}
+                                            options={['全部方向', '做多', '做空']}
+                                            onSelect={setDirectionFilter}
+                                            setLabel={setDirectionFilter}
+                                        />
+                                        <FilterDropdown
+                                            label={pairFilter}
+                                            options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                                            onSelect={setPairFilter}
+                                            setLabel={setPairFilter}
+                                        />
+                                    </div>
+                                    <FilterDropdown
+                                        label={currentFilterLabel}
+                                        options={['近三个月', '近半年', '近一年']}
+                                        onSelect={setCurrentFilterLabel}
+                                        setLabel={setCurrentFilterLabel}
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    {currentSignals.map(signal => (
+                                        <SignalCard key={signal.id} signal={signal} />
+                                    ))}
+                                </div>
+                                <div ref={currentLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                                    {currentSignalsLoading && (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            <span>加载中...</span>
+                                        </>
+                                    )}
+                                    {!currentSignalsLoading && !currentSignalsHasMore && currentSignals.length > 0 && (
+                                        <span>已经到底了</span>
+                                    )}
+                                </div>
                             </div>
-                            <FilterDropdown
-                                label={currentFilterLabel}
-                                options={['近三个月', '近半年', '近一年']}
-                                onSelect={setCurrentFilterLabel}
-                                setLabel={setCurrentFilterLabel}
-                            />
                         </div>
-                        <div className="space-y-3">
-                            {currentSignals.map(signal => (
-                                <SignalCard key={signal.id} signal={signal} />
-                            ))}
-                        </div>
-                        <div ref={currentLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                            {currentSignalsLoading && (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    <span>加载中...</span>
-                                </>
-                            )}
-                            {!currentSignalsLoading && !currentSignalsHasMore && currentSignals.length > 0 && (
-                                <span>已经到底了</span>
-                            )}
-                        </div>
-                    </TabsContent>
 
-                    <TabsContent value="historical" className="mt-4 space-y-3">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <FilterDropdown
-                                    label={historicalDirectionFilter}
-                                    options={['全部方向', '做多', '做空']}
-                                    onSelect={setHistoricalDirectionFilter}
-                                    setLabel={setHistoricalDirectionFilter}
-                                />
-                                <FilterDropdown
-                                    label={historicalPairFilter}
-                                    options={['全部币种', 'ADA', 'XRP', 'BNB', 'LINK']}
-                                    onSelect={setHistoricalPairFilter}
-                                    setLabel={setHistoricalPairFilter}
-                                />
+                        <div className="w-full flex-shrink-0">
+                            <div className="mt-4 space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <FilterDropdown
+                                            label={historicalDirectionFilter}
+                                            options={['全部方向', '做多', '做空']}
+                                            onSelect={setHistoricalDirectionFilter}
+                                            setLabel={setHistoricalDirectionFilter}
+                                        />
+                                        <FilterDropdown
+                                            label={historicalPairFilter}
+                                            options={['全部币种', 'ADA', 'XRP', 'BNB', 'LINK']}
+                                            onSelect={setHistoricalPairFilter}
+                                            setLabel={setHistoricalPairFilter}
+                                        />
+                                    </div>
+                                    <FilterDropdown
+                                        label={historicalFilterLabel}
+                                        options={['近三个月', '近半年', '近一年']}
+                                        onSelect={setHistoricalFilterLabel}
+                                        setLabel={setHistoricalFilterLabel}
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    {historicalSignals.map(signal => (
+                                        <HistoricalSignalCard key={signal.id} signal={signal} />
+                                    ))}
+                                </div>
+                                <div ref={historicalLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                                    {historicalSignalsLoading && (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            <span>加载中...</span>
+                                        </>
+                                    )}
+                                    {!historicalSignalsLoading && !historicalSignalsHasMore && historicalSignals.length > 0 && (
+                                        <span>已经到底了</span>
+                                    )}
+                                </div>
                             </div>
-                            <FilterDropdown
-                                label={historicalFilterLabel}
-                                options={['近三个月', '近半年', '近一年']}
-                                onSelect={setHistoricalFilterLabel}
-                                setLabel={setHistoricalFilterLabel}
-                            />
                         </div>
-                        <div className="space-y-3">
-                            {historicalSignals.map(signal => (
-                                <HistoricalSignalCard key={signal.id} signal={signal} />
-                            ))}
+                        
+                        <div className="w-full flex-shrink-0">
+                            <div className="mt-4 space-y-3">
+                                <div className="space-y-3">
+                                    {followers.map(follower => (
+                                        <FollowerCard key={follower.id} follower={follower} />
+                                    ))}
+                                </div>
+                                <div ref={followersLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                                    {followersLoading && (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            <span>加载中...</span>
+                                        </>
+                                    )}
+                                    {!followersLoading && !followersHasMore && followers.length > 0 && (
+                                        <span>已经到底了</span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                        <div ref={historicalLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                            {historicalSignalsLoading && (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    <span>加载中...</span>
-                                </>
-                            )}
-                            {!historicalSignalsLoading && !historicalSignalsHasMore && historicalSignals.length > 0 && (
-                                <span>已经到底了</span>
-                            )}
-                        </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="followers" className="mt-4 space-y-3">
-                        <div className="space-y-3">
-                            {followers.map(follower => (
-                                <FollowerCard key={follower.id} follower={follower} />
-                            ))}
-                        </div>
-                        <div ref={followersLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                            {followersLoading && (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    <span>加载中...</span>
-                                </>
-                            )}
-                            {!followersLoading && !followersHasMore && followers.length > 0 && (
-                                <span>已经到底了</span>
-                            )}
-                        </div>
-                    </TabsContent>
+                    </div>
                 </div>
             </Tabs>
         )}
@@ -654,3 +664,5 @@ export default function TraderDetailPage() {
     </>
   )
 }
+
+    
