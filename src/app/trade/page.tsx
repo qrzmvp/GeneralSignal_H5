@@ -131,7 +131,7 @@ export default function TradePage() {
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
                             <div className="flex justify-between items-start pb-0">
-                                <div className="text-left space-y-1">
+                                <div className="text-left space-y-1 pb-0">
                                     <p className="text-sm text-muted-foreground">
                                         账户总资产 (USDT)
                                     </p>
@@ -142,7 +142,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-1 text-left pt-1">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-0">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
@@ -152,7 +152,7 @@ export default function TradePage() {
                             </CollapsibleContent>
 
                             <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mt-1">
+                                <button className="w-full flex justify-center items-center text-muted-foreground mt-1 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
                                     {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
