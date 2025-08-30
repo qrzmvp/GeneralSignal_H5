@@ -13,7 +13,8 @@ import {
   Users,
   Crown,
   ArrowRightLeft,
-  BarChart
+  BarChart,
+  Plus
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -572,24 +573,30 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-          <CardContent className="p-4 flex flex-row items-start text-left gap-4">
-            <div className="relative shrink-0">
-                <Avatar className="h-24 w-24 border-2 border-primary">
-                    <AvatarImage src={trader.avatar} alt={trader.name} />
-                    <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                 {badge && (
-                    <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
-                )}
+          <CardContent className="p-4 flex flex-col items-start text-left gap-4">
+            <div className="flex items-start gap-4 w-full">
+              <div className="relative shrink-0">
+                  <Avatar className="h-24 w-24 border-2 border-primary">
+                      <AvatarImage src={trader.avatar} alt={trader.name} />
+                      <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  {badge && (
+                      <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                  )}
+              </div>
+              <div className="w-full space-y-3">
+                  <p className="text-sm text-muted-foreground">{trader.description}</p>
+                  <div className="flex flex-wrap justify-start gap-2">
+                      {trader.tags?.map(tag => (
+                          <Badge key={tag} variant="secondary">{tag}</Badge>
+                      ))}
+                  </div>
+              </div>
             </div>
-            <div className="w-full space-y-3">
-                <p className="text-sm text-muted-foreground">{trader.description}</p>
-                <div className="flex flex-wrap justify-start gap-2">
-                    {trader.tags?.map(tag => (
-                        <Badge key={tag} variant="secondary">{tag}</Badge>
-                    ))}
-                </div>
-            </div>
+            <Button className="w-full font-bold text-base h-11 rounded-lg" onClick={() => setIsSheetOpen(true)}>
+                <Plus className="mr-2 h-5 w-5" />
+                跟单
+            </Button>
           </CardContent>
         </Card>
 
@@ -748,8 +755,6 @@ export default function TraderDetailPage() {
             </Link>
         </div>
       </nav>
-
-      <Button className="fixed w-[calc(100%-2rem)] font-bold text-lg h-11 rounded-full z-10 bg-primary left-4 right-4 bottom-[4.5rem]" onClick={() => setIsSheetOpen(true)}>立即跟单</Button>
 
     </div>
     <FollowOrderSheet 
