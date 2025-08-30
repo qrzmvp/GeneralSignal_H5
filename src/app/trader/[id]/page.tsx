@@ -623,28 +623,29 @@ export default function TraderDetailPage() {
 
         {/* Metrics Overview */}
         <Card className="bg-card/80 border-border/50">
-          <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen}>
-            <CardContent className="p-4 text-center">
-              <div className="grid grid-cols-3 gap-y-4">
-                <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
-                <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
-                <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
-              </div>
-              <CollapsibleContent>
-                 <div className="grid grid-cols-3 gap-y-4 pt-4">
-                    <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
-                    <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
-                    <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
-                  </div>
-              </CollapsibleContent>
-              <CollapsibleTrigger asChild>
-                <button className="w-full flex justify-center items-center text-muted-foreground pt-3 -mb-2 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
-                  {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  <span className="sr-only">Toggle</span>
-                </button>
-              </CollapsibleTrigger>
-            </CardContent>
-          </Collapsible>
+           <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen}>
+                <CardContent className="p-4">
+                    <CollapsibleTrigger asChild>
+                        <div className="flex justify-between items-center cursor-pointer">
+                            <span className="font-semibold text-base">关键指标</span>
+                            <button className="flex justify-center items-center text-muted-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+                                {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                <span className="sr-only">Toggle</span>
+                            </button>
+                        </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="text-center pt-4">
+                        <div className="grid grid-cols-3 gap-y-4">
+                            <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
+                            <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
+                            <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
+                            <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
+                            <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
+                            <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
+                        </div>
+                    </CollapsibleContent>
+                </CardContent>
+            </Collapsible>
         </Card>
 
         { dataLoading ? (
