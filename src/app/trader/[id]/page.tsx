@@ -582,7 +582,7 @@ export default function TraderDetailPage() {
         <div className="w-9"></div> {/* Placeholder for spacing */}
       </header>
 
-      <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
+      <main className="flex-grow overflow-auto p-4 space-y-3 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
           <CardContent className="p-4 flex flex-col items-center">
