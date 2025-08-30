@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronUp, ChevronDown, Plus } from 'lucide-react';
+import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -89,30 +89,28 @@ export default function TradePage() {
                         <ChevronLeft className="h-6 w-6" />
                     </Button>
                 </Link>
-                <div className="flex flex-col items-center">
-                    <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                        <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2 h-auto p-0">
-                            <SelectValue>
-                                <div className="flex items-center gap-2">
-                                     {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
-                                    <span>{selectedAccount?.name}</span>
+                <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                    <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
+                        <SelectValue>
+                            <div className="flex items-center gap-2">
+                                 {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
+                                <span>{selectedAccount?.name}</span>
+                            </div>
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                         {accounts.map(account => (
+                            <SelectItem key={account.id} value={account.id}>
+                                <div className="flex items-center gap-3">
+                                    <ExchangeIcon exchange={account.exchange} />
+                                    <span>{account.name}</span>
                                 </div>
-                            </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                             {accounts.map(account => (
-                                <SelectItem key={account.id} value={account.id}>
-                                    <div className="flex items-center gap-3">
-                                        <ExchangeIcon exchange={account.exchange} />
-                                        <span>{account.name}</span>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <Button variant="ghost" size="icon">
-                    <Plus className="w-6 h-6"/>
+                    <Settings className="w-5 h-5"/>
                 </Button>
             </header>
 
@@ -120,7 +118,7 @@ export default function TradePage() {
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
-                            <div className="flex justify-between items-start pb-0">
+                            <div className="flex justify-between items-start pb-4">
                                 <div className="text-left space-y-1">
                                     <div className="flex items-center gap-2">
                                         <p className="text-sm text-muted-foreground">
@@ -140,12 +138,12 @@ export default function TradePage() {
                                     </div>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
-                                <Button variant="outline" size="icon" className="rounded-full">
-                                    <Settings className="w-4 h-4"/>
+                                <Button variant="outline" size="sm" className="rounded-full">
+                                    跟单设置
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-0">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
@@ -155,7 +153,7 @@ export default function TradePage() {
                             </CollapsibleContent>
 
                             <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center items-center text-muted-foreground mt-1 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+                                <button className="w-full flex justify-center items-center text-muted-foreground py-1 mt-1 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
                                     {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
@@ -168,14 +166,14 @@ export default function TradePage() {
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
                 <div className="grid grid-cols-3 items-center h-full text-center">
-                    <Link href="/" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
-                        <button
-                            onClick={() => setActiveTab('leaderboard')}
-                            className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
-                        >
-                            <BarChart className="h-6 w-6" />
-                            <span className="text-xs font-medium">将军榜</span>
-                        </button>
+                    <Link 
+                        href="/" 
+                        passHref
+                        onClick={() => setActiveTab('leaderboard')}
+                        className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+                    >
+                        <BarChart className="h-6 w-6" />
+                        <span className="text-xs font-medium">将军榜</span>
                     </Link>
                     <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
                          <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
@@ -183,14 +181,14 @@ export default function TradePage() {
                         </div>
                         <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
                     </Link>
-                    <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
-                    <button
+                    <Link 
+                        href="/profile" 
+                        passHref
                         onClick={() => setActiveTab('profile')}
                         className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
-                    </button>
                     </Link>
                 </div>
             </nav>
