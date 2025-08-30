@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -376,6 +377,7 @@ export default function TraderDetailPage() {
   const badge = rank && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('current');
 
   const { allSignals, allHistoricalSignals, allFollowers } = useMemo(() => {
     const allSignals = Array.from({ length: 25 }, (_, i) => {
@@ -458,8 +460,6 @@ export default function TraderDetailPage() {
   const [pairFilter, setPairFilter] = useState('全部币种');
   const [historicalDirectionFilter, setHistoricalDirectionFilter] = useState('全部方向');
   const [historicalPairFilter, setHistoricalPairFilter] = useState('全部币种');
-
-  const [activeTab, setActiveTab] = useState('current');
 
   const TABS = [
     { value: "current", label: "当前信号", icon: User },
@@ -573,16 +573,22 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-          <CardContent className="p-4 flex flex-col items-start text-left gap-4">
+          <CardContent className="p-4">
             <div className="flex items-start gap-4 w-full">
-              <div className="relative shrink-0">
-                  <Avatar className="h-24 w-24 border-2 border-primary">
-                      <AvatarImage src={trader.avatar} alt={trader.name} />
-                      <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  {badge && (
-                      <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
-                  )}
+              <div className="flex flex-col items-center shrink-0">
+                  <div className="relative">
+                      <Avatar className="h-24 w-24 border-2 border-primary">
+                          <AvatarImage src={trader.avatar} alt={trader.name} />
+                          <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      {badge && (
+                          <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                      )}
+                  </div>
+                  <Button className="font-bold text-base h-11 rounded-lg mt-3" onClick={() => setIsSheetOpen(true)}>
+                      <Plus className="mr-2 h-5 w-5" />
+                      跟单
+                  </Button>
               </div>
               <div className="w-full space-y-3">
                   <p className="text-sm text-muted-foreground">{trader.description}</p>
@@ -593,10 +599,6 @@ export default function TraderDetailPage() {
                   </div>
               </div>
             </div>
-            <Button className="w-full font-bold text-base h-11 rounded-lg" onClick={() => setIsSheetOpen(true)}>
-                <Plus className="mr-2 h-5 w-5" />
-                跟单
-            </Button>
           </CardContent>
         </Card>
 
