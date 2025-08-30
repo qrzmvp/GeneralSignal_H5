@@ -26,6 +26,7 @@ function MetricItem({ label, value, subValue, valueColor }: { label: string, val
 
 export default function TradePage() {
     const [activeTab, setActiveTab] = useState('trade');
+    const [selectedAccount, setSelectedAccount] = useState('okx-10001');
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
@@ -35,23 +36,23 @@ export default function TradePage() {
                         <ChevronLeft className="h-6 w-6" />
                     </Button>
                 </Link>
-                <h1 className="text-lg font-bold">账户详情</h1>
+                <div className="flex-grow flex justify-center">
+                    <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                        <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 gap-2">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="okx-10001">OKX-10001</SelectItem>
+                            <SelectItem value="binance-20002">Binance-20002</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
                     <CardContent className="p-4 space-y-6">
-                         <Select defaultValue="okx-10001">
-                            <SelectTrigger className="w-full bg-card border-border/60 text-lg font-semibold">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="okx-10001">OKX-10001</SelectItem>
-                                <SelectItem value="binance-20002">Binance-20002</SelectItem>
-                            </SelectContent>
-                        </Select>
-
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground flex items-center justify-center">
                                 账户总资产
@@ -93,11 +94,11 @@ export default function TradePage() {
                     <Link href="/trade" passHref className="flex-1 contents">
                         <button
                             onClick={() => setActiveTab('trade')}
-                            className={`flex flex-col items-center justify-center space-y-1 transition-colors -mt-6 ${
+                            className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
                             activeTab === 'trade' ? 'text-primary' : 'text-muted-foreground'
                             }`}
                         >
-                            <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg transform transition-transform active:scale-90">
+                            <div className="flex items-center justify-center w-12 h-12 bg-card rounded-full shadow-md mb-1">
                                 <ArrowRightLeft className="w-6 h-6" />
                             </div>
                             <span className="text-xs font-medium">交易</span>

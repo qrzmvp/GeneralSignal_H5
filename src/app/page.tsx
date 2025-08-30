@@ -508,11 +508,11 @@ export default function LeaderboardPage() {
             <Link href="/trade" passHref className="flex-1 contents">
                 <button
                     onClick={() => setActiveTab('trade')}
-                    className={`flex flex-col items-center justify-center space-y-1 transition-colors -mt-6 ${
+                    className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
                     activeTab === 'trade' ? 'text-primary' : 'text-muted-foreground'
                     }`}
                 >
-                    <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg transform transition-transform active:scale-90">
+                    <div className="flex items-center justify-center w-12 h-12 bg-card rounded-full shadow-md mb-1">
                         <ArrowRightLeft className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-medium">交易</span>
