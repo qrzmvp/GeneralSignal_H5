@@ -411,7 +411,7 @@ export default function TraderDetailPage() {
             pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
             createdAt: `2024-05-2${8-i} 14:0${i % 10}:00`,
             orderType: '限价单',
-            type: '合约',
+            type: '永续合约',
             marginMode: '全仓',
         };
     });
@@ -432,7 +432,7 @@ export default function TraderDetailPage() {
             pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
             createdAt: `2024-04-1${8 - (i % 9)} 18:3${i % 10}:00`,
             orderType: '限价单',
-            type: '合约',
+            type: '永续合约',
             marginMode: '全仓',
             status: Math.random() > 0.3 ? '止盈平仓' : '止损平仓',
         };
@@ -626,7 +626,7 @@ export default function TraderDetailPage() {
                     </div>
                     
                     <CollapsibleTrigger asChild>
-                         <div className="relative flex justify-center items-center w-full mt-2">
+                        <div className="relative flex justify-center items-center w-full">
                             <button className="flex-shrink-0 mx-auto p-1 text-muted-foreground hover:bg-muted rounded-md">
                                 {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             </button>
@@ -634,8 +634,8 @@ export default function TraderDetailPage() {
                     </CollapsibleTrigger>
                 </div>
               
-                <CollapsibleContent className="w-full text-center">
-                    <div className="grid grid-cols-3 gap-y-4 pt-4">
+                <CollapsibleContent>
+                    <div className="grid grid-cols-3 gap-y-4 pt-4 text-center">
                         <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
                         <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
                         <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
@@ -808,3 +808,5 @@ export default function TraderDetailPage() {
     </>
   )
 }
+
+    
