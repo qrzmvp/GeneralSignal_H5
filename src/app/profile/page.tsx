@@ -27,6 +27,7 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { 
+    ArrowRightLeft,
     BarChart, 
     ChevronRight, 
     Copy, 
@@ -337,6 +338,11 @@ export default function ProfilePage() {
                 >
                     <BarChart className="h-6 w-6" />
                     <span className="text-xs font-medium">将军榜</span>
+                </button>
+            </Link>
+             <Link href="/trade" passHref className="contents">
+                <button className="flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full -mt-8 shadow-lg transform transition-transform active:scale-90">
+                    <ArrowRightLeft className="w-7 h-7" />
                 </button>
             </Link>
             <Link href="/profile" passHref className="flex-1 contents">
