@@ -718,6 +718,36 @@ export default function TraderDetailPage() {
             </TabsContent>
         </Tabs>
       </main>
+      
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
+        <div className="grid grid-cols-3 items-center h-full text-center">
+            <Link href="/" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
+                <button
+                    onClick={() => {}}
+                    className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+                >
+                    <BarChart className="h-6 w-6" />
+                    <span className="text-xs font-medium">将军榜</span>
+                </button>
+            </Link>
+            <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
+                 <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                    <ArrowRightLeft className="w-7 h-7" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
+            </Link>
+            <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
+              <button
+                  onClick={() => {}}
+                  className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+              >
+                  <User className="h-6 w-6" />
+                  <span className="text-xs font-medium">我的</span>
+              </button>
+            </Link>
+        </div>
+      </nav>
 
       <footer className="fixed bottom-0 left-0 right-0 z-10 bg-background/80 border-t border-border/50 backdrop-blur-sm p-4">
         <Button className="w-full font-bold text-lg h-11 rounded-full" onClick={() => setIsSheetOpen(true)}>立即跟单</Button>

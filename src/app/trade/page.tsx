@@ -41,10 +41,12 @@ const accounts: Account[] = [
 function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     if (exchange === 'okx') {
         return (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16.9416 7.05835L7.0584 16.9415" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M7.0584 7.05835L16.9416 16.9415" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 21.1667C17.0625 21.1667 21.1667 17.0625 21.1667 12C21.1667 6.93752 17.0625 2.83334 12 2.83334C6.93752 2.83334 2.83337 6.93752 2.83337 12C2.83337 17.0625 6.93752 21.1667 12 21.1667Z" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-foreground">
+                <path d="M6.3125 10.9375H10.9375V6.3125H6.3125V10.9375Z" fill="currentColor"/>
+                <path d="M13.0625 10.9375H17.6875V6.3125H13.0625V10.9375Z" fill="currentColor"/>
+                <path d="M6.3125 17.6875H10.9375V13.0625H6.3125V17.6875Z" fill="currentColor"/>
+                <path d="M13.0625 17.6875H17.6875V13.0625H13.0625V17.6875Z" fill="currentColor"/>
+                <path d="M3 5.3125C3 3.99625 3.99625 3 5.3125 3H18.6875C20.0037 3 21 3.99625 21 5.3125V18.6875C21 20.0037 20.0037 21 18.6875 21H5.3125C3.99625 21 3 20.0037 3 18.6875V5.3125Z" stroke="currentColor" strokeWidth="2"/>
             </svg>
         )
     }
@@ -83,7 +85,7 @@ export default function TradePage() {
                             <SelectValue>
                                 <div className="flex items-center gap-2">
                                      {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
-                                    <span>{selectedAccount?.name}</span>
+                                    <span>{selectedAccount?.name.replace(/OKX-|Binance-/, '')}</span>
                                     {selectedAccount && (
                                         <Badge 
                                             className={
@@ -157,12 +159,12 @@ export default function TradePage() {
                             <span className="text-xs font-medium">将军榜</span>
                         </button>
                     </Link>
-                    <div className="relative flex flex-col items-center justify-center h-full">
-                         <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                    <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
+                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
                             <ArrowRightLeft className="w-7 h-7" />
-                        </Link>
-                        <span className="text-xs font-medium text-muted-foreground pt-7">交易</span>
-                    </div>
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
+                    </Link>
                     <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                     <button
                         onClick={() => setActiveTab('profile')}
