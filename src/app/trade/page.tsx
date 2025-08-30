@@ -130,7 +130,7 @@ export default function TradePage() {
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4">
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-between items-start pb-4">
                                 <div className="text-left space-y-1">
                                     <p className="text-sm text-muted-foreground">
                                         账户总资产 (USDT)
@@ -143,7 +143,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-6 text-left">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-4 text-left">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
@@ -151,8 +151,8 @@ export default function TradePage() {
                                 <MetricItem label="占用保证金" value="10,000.00" />
                                 <MetricItem label="累计盈亏比" value="7.8: 1" />
                             </CollapsibleContent>
-                             <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center items-center text-muted-foreground rounded-md hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+                            <CollapsibleTrigger asChild>
+                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
                                     {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
