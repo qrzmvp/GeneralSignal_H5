@@ -143,7 +143,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-6 text-left mt-4 pt-4">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-6 text-left">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
@@ -152,7 +152,7 @@ export default function TradePage() {
                                 <MetricItem label="累计盈亏比" value="7.8: 1" />
                             </CollapsibleContent>
                              <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-accent/50 transition-colors rounded-md pt-2">
+                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-accent/50 transition-colors rounded-md">
                                     {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
