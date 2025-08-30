@@ -593,16 +593,18 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-3 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-          <CardContent className="p-4 flex flex-col items-center">
+          <CardContent className="p-4">
             <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="w-full">
-                <div className="relative">
-                    <Avatar className="h-24 w-24 border-2 border-primary">
-                        <AvatarImage src={trader.avatar} alt={trader.name} />
-                        <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    {badge && (
-                        <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
-                    )}
+                <div className="flex justify-center">
+                    <div className="relative">
+                        <Avatar className="h-20 w-20 border-2 border-primary">
+                            <AvatarImage src={trader.avatar} alt={trader.name} />
+                            <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {badge && (
+                            <Crown className={`absolute -top-1 -left-1 h-7 w-7 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                        )}
+                    </div>
                 </div>
                 <div className="text-center mt-3">
                     <p className="text-sm text-muted-foreground">{trader.description}</p>
@@ -614,14 +616,17 @@ export default function TraderDetailPage() {
                 </div>
 
                 <div className="w-full">
-                    <div className="flex w-full justify-center gap-4 mt-4">
-                        <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
-                            自动跟单
-                        </Button>
-                        <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => e.stopPropagation()}>
-                            策略回测
-                        </Button>
-                    </div>
+                    <CollapsibleTrigger asChild>
+                        <div className="flex w-full justify-center gap-4 mt-4">
+                            <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
+                                自动跟单
+                            </Button>
+                            <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => e.stopPropagation()}>
+                                策略回测
+                            </Button>
+                        </div>
+                    </CollapsibleTrigger>
+                    
                     <CollapsibleTrigger asChild>
                         <div className="relative flex justify-center items-center w-full">
                             <button className="flex-shrink-0 mx-auto bg-card p-1 rounded-full border -mt-px text-muted-foreground hover:bg-muted">
@@ -631,19 +636,19 @@ export default function TraderDetailPage() {
                     </CollapsibleTrigger>
                 </div>
               
-              <CollapsibleContent className="w-full text-center">
-                  <div className="flex justify-between items-center cursor-pointer mb-4 pt-2">
-                      <span className="font-semibold text-base">关键指标</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-y-4">
-                      <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
-                      <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
-                      <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
-                      <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
-                      <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
-                      <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
-                  </div>
-              </CollapsibleContent>
+                <CollapsibleContent className="w-full text-center">
+                    <div className="cursor-pointer mb-4 pt-2">
+                        <span className="font-semibold text-base">关键指标</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-y-4">
+                        <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
+                        <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
+                        <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
+                        <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
+                        <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
+                        <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
+                    </div>
+                </CollapsibleContent>
             </Collapsible>
           </CardContent>
         </Card>
