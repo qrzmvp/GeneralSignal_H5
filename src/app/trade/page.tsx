@@ -34,13 +34,13 @@ interface Account {
     id: string;
     name: string;
     type: 'live' | 'demo';
-    exchange: 'okx' | 'binance' | 'demo';
+    exchange: 'okx' | 'binance' | 'bitget';
 }
 
 const accounts: Account[] = [
     { id: 'okx-10001', name: '10001', type: 'live', exchange: 'okx' },
     { id: 'binance-20002', name: '20002', type: 'live', exchange: 'binance' },
-    { id: 'demo-1', name: '模拟账户', type: 'demo', exchange: 'demo' },
+    { id: 'demo-1', name: '模拟账户', type: 'demo', exchange: 'bitget' },
 ]
 
 function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
@@ -57,6 +57,16 @@ function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
                 <path d="M5.875 12L8.9375 15.0625L7.40625 16.5938L4.34375 13.5312L2.8125 12L4.34375 10.4688L5.875 12Z" fill="currentColor"/>
                 <path d="M12 18.125L8.9375 15.0625L7.40625 16.5938L10.4688 19.6562L12 21.1875L13.5312 19.6562L16.5938 16.5938L15.0625 15.0625L12 18.125Z" fill="currentColor"/>
                 <path d="M12 5.875L15.0625 8.9375L16.5938 7.40625L13.5312 4.34375L12 2.8125L10.4688 4.34375L7.40625 7.40625L8.9375 8.9375L12 5.875Z" fill="currentColor"/>
+            </svg>
+        )
+    }
+    if (exchange === 'bitget') {
+        return (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.33398 5.33301L8.00065 2.66634L10.6673 5.33301H5.33398Z" fill="#FFAA00"/>
+                <path d="M14.6667 5.33301L17.3333 7.99967L14.6667 10.6663H9.33333L12 7.99967L9.33333 5.33301H14.6667Z" fill="#FFAA00"/>
+                <path d="M5.33398 14.667L8.00065 17.3337L10.6673 14.667H5.33398Z" fill="#FFAA00"/>
+                <path d="M5.33398 9.33301L2.66732 11.9997L5.33398 14.6663V9.33301Z" fill="#FFAA00"/>
             </svg>
         )
     }
@@ -135,7 +145,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-0">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
