@@ -563,9 +563,11 @@ export default function TraderDetailPage() {
     <div className="bg-background min-h-screen text-foreground flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-        <button onClick={() => router.back()} className="p-2 -ml-2">
-            <ChevronLeft className="h-6 w-6" />
-        </button>
+        <Link href="/" passHref>
+            <Button variant="ghost" size="icon" className="-ml-2">
+                <ChevronLeft className="h-6 w-6" />
+            </Button>
+        </Link>
         <h1 className="text-lg font-bold">{trader.name}</h1>
         <div className="w-9"></div> {/* Placeholder for spacing */}
       </header>
@@ -573,31 +575,31 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-6 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4 w-full">
-              <div className="flex flex-col items-center shrink-0">
-                  <div className="relative">
-                      <Avatar className="h-24 w-24 border-2 border-primary">
-                          <AvatarImage src={trader.avatar} alt={trader.name} />
-                          <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      {badge && (
-                          <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
-                      )}
-                  </div>
-                  <Button className="font-bold text-base h-11 rounded-lg mt-3" onClick={() => setIsSheetOpen(true)}>
-                      <Plus className="mr-2 h-5 w-5" />
-                      跟单
-                  </Button>
-              </div>
-              <div className="w-full space-y-3">
-                  <p className="text-sm text-muted-foreground">{trader.description}</p>
-                  <div className="flex flex-wrap justify-start gap-2">
+          <CardContent className="p-4 flex flex-col items-center">
+            <div className="relative">
+                <Avatar className="h-24 w-24 border-2 border-primary">
+                    <AvatarImage src={trader.avatar} alt={trader.name} />
+                    <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                {badge && (
+                    <Crown className={`absolute -top-2 -left-2 h-8 w-8 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                )}
+            </div>
+            <div className="text-center mt-3">
+                 <p className="text-sm text-muted-foreground">{trader.description}</p>
+                 <div className="flex flex-wrap justify-center gap-2 mt-3">
                       {trader.tags?.map(tag => (
                           <Badge key={tag} variant="secondary">{tag}</Badge>
                       ))}
                   </div>
-              </div>
+            </div>
+            <div className="flex w-full justify-center gap-4 mt-4">
+                <Button className="font-bold text-base h-11 rounded-full px-6 flex-1" onClick={() => setIsSheetOpen(true)}>
+                    自动跟单
+                </Button>
+                <Button variant="secondary" className="font-bold text-base h-11 rounded-full px-6 flex-1">
+                    策略回测
+                </Button>
             </div>
           </CardContent>
         </Card>
@@ -768,3 +770,5 @@ export default function TraderDetailPage() {
     </>
   )
 }
+
+    
