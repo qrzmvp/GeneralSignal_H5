@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -728,7 +727,6 @@ export default function TraderDetailPage() {
             <Link 
                 href="/" 
                 passHref
-                onClick={() => {}}
                 className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
             >
                 <BarChart className="h-6 w-6" />
@@ -743,7 +741,6 @@ export default function TraderDetailPage() {
             <Link 
                 href="/profile" 
                 passHref
-                onClick={() => {}}
                 className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
             >
                 <User className="h-6 w-6" />
@@ -752,7 +749,7 @@ export default function TraderDetailPage() {
         </div>
       </nav>
 
-      <Button className="fixed w-[calc(100%-2rem)] font-bold text-lg h-11 rounded-full z-10 bg-background/80 border-t border-border/50 backdrop-blur-sm left-4 right-4 bottom-4" onClick={() => setIsSheetOpen(true)}>立即跟单</Button>
+      <Button className="fixed w-[calc(100%-2rem)] font-bold text-lg h-11 rounded-full z-10 bg-primary left-4 right-4 bottom-[4.5rem]" onClick={() => setIsSheetOpen(true)}>立即跟单</Button>
 
     </div>
     <FollowOrderSheet 

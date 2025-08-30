@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -514,10 +513,7 @@ export default function LeaderboardPage() {
             <Link
                 href="/profile"
                 passHref
-                onClick={() => setActiveTab('profile')}
-                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
-                activeTab === 'profile' ? 'text-primary' : 'text-muted-foreground'
-                }`}
+                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
             >
                 <User className="h-6 w-6" />
                 <span className="text-xs font-medium">我的</span>

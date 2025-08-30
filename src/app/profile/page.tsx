@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react';
@@ -377,10 +376,7 @@ export default function ProfilePage() {
             <Link 
                 href="/" 
                 passHref
-                onClick={() => setActiveTab('leaderboard')}
-                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
-                activeTab === 'leaderboard' ? 'text-primary' : 'text-muted-foreground'
-                }`}
+                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
             >
                 <BarChart className="h-6 w-6" />
                 <span className="text-xs font-medium">将军榜</span>
@@ -394,7 +390,6 @@ export default function ProfilePage() {
             <Link 
                 href="/profile" 
                 passHref
-                onClick={() => setActiveTab('profile')}
                 className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
                 activeTab === 'profile' ? 'text-primary' : 'text-muted-foreground'
                 }`}

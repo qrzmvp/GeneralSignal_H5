@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react';
@@ -118,7 +117,7 @@ export default function TradePage() {
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
-                            <div className="flex justify-between items-start pb-4">
+                            <div className="flex justify-between items-start pb-0">
                                 <div className="text-left space-y-1">
                                     <div className="flex items-center gap-2">
                                         <p className="text-sm text-muted-foreground">
@@ -138,8 +137,8 @@ export default function TradePage() {
                                     </div>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
-                                <Button variant="outline" size="sm" className="rounded-full">
-                                    跟单设置
+                                <Button variant="outline" size="icon" className="rounded-full">
+                                    <Settings className="w-4 h-4"/>
                                 </Button>
                             </div>
                             
@@ -169,7 +168,6 @@ export default function TradePage() {
                     <Link 
                         href="/" 
                         passHref
-                        onClick={() => setActiveTab('leaderboard')}
                         className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
                     >
                         <BarChart className="h-6 w-6" />
@@ -184,7 +182,6 @@ export default function TradePage() {
                     <Link 
                         href="/profile" 
                         passHref
-                        onClick={() => setActiveTab('profile')}
                         className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
                     >
                         <User className="h-6 w-6" />
