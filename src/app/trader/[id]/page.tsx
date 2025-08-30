@@ -594,10 +594,10 @@ export default function TraderDetailPage() {
                   </div>
             </div>
             <div className="flex w-full justify-center gap-4 mt-4">
-                <Button className="font-bold text-base h-11 rounded-full px-6 flex-1" onClick={() => setIsSheetOpen(true)}>
+                <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={() => setIsSheetOpen(true)}>
                     自动跟单
                 </Button>
-                <Button variant="secondary" className="font-bold text-base h-11 rounded-full px-6 flex-1">
+                <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1">
                     策略回测
                 </Button>
             </div>
@@ -735,10 +735,10 @@ export default function TraderDetailPage() {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
         <div className="grid grid-cols-3 items-center h-full text-center">
-            <Link 
-                href="/" 
+            <Link
+                href="/"
                 passHref
-                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
             >
                 <BarChart className="h-6 w-6" />
                 <span className="text-xs font-medium">将军榜</span>
@@ -749,10 +749,10 @@ export default function TraderDetailPage() {
                 </div>
                 <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
             </Link>
-            <Link 
-                href="/profile" 
+            <Link
+                href="/profile"
                 passHref
-                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
             >
                 <User className="h-6 w-6" />
                 <span className="text-xs font-medium">我的</span>
@@ -770,5 +770,3 @@ export default function TraderDetailPage() {
     </>
   )
 }
-
-    
