@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -20,6 +20,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
+import { allTraders } from '@/app/page';
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
@@ -74,15 +77,50 @@ function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     return null;
 }
 
+function FilterDropdown({ label, options, onSelect, setLabel }: { label: string; options: string[]; onSelect: (option: string) => void; setLabel?: (label: string) => void; }) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm p-0 h-auto">
+            {label}
+            <ChevronDown className="w-4 h-4 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {options.map((option) => (
+            <DropdownMenuItem key={option} onSelect={() => {
+              onSelect(option);
+              if (setLabel) setLabel(option);
+            }}>
+              {option}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
 
 export default function TradePage() {
     const [activeTab, setActiveTab] = useState('trade');
     const [selectedAccountId, setSelectedAccountId] = useState(accounts[0].id);
     const [isMetricsOpen, setIsMetricsOpen] = useState(true);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    
+    // Filters for Current Orders
+    const [directionFilter, setDirectionFilter] = useState('全部方向');
+    const [pairFilter, setPairFilter] = useState('全部币种');
+    const [timeFilterLabel, setTimeFilterLabel] = useState('近三个月');
+
+    // Filters for Current Positions
+    const [posDirectionFilter, setPosDirectionFilter] = useState('全部方向');
+    const [posPairFilter, setPosPairFilter] = useState('全部币种');
+    const [posTimeFilterLabel, setPosTimeFilterLabel] = useState('近三个月');
 
     const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
 
     return (
+        <>
         <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
                 <div className="w-9"></div>
@@ -135,7 +173,7 @@ export default function TradePage() {
                                     </div>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
-                                <Button variant="ghost" size="icon" className="text-muted-foreground -mr-2 -mt-1">
+                                <Button variant="ghost" size="icon" className="text-muted-foreground -mr-2 -mt-1" onClick={() => setIsSheetOpen(true)}>
                                     <Settings className="w-5 h-5" />
                                 </Button>
                             </div>
@@ -164,12 +202,56 @@ export default function TradePage() {
                         <TabsTrigger value="current">当前挂单</TabsTrigger>
                         <TabsTrigger value="positions">当前持仓</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="current" className="mt-4">
+                    <TabsContent value="current" className="mt-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <FilterDropdown
+                                    label={directionFilter}
+                                    options={['全部方向', '做多', '做空']}
+                                    onSelect={setDirectionFilter}
+                                    setLabel={setDirectionFilter}
+                                />
+                                <FilterDropdown
+                                    label={pairFilter}
+                                    options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                                    onSelect={setPairFilter}
+                                    setLabel={setPairFilter}
+                                />
+                            </div>
+                            <FilterDropdown
+                                label={timeFilterLabel}
+                                options={['近三个月', '近半年', '近一年']}
+                                onSelect={setTimeFilterLabel}
+                                setLabel={setTimeFilterLabel}
+                            />
+                        </div>
                         <div className="text-center text-muted-foreground py-10">
                             暂无挂单
                         </div>
                     </TabsContent>
-                    <TabsContent value="positions" className="mt-4">
+                    <TabsContent value="positions" className="mt-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <FilterDropdown
+                                    label={posDirectionFilter}
+                                    options={['全部方向', '做多', '做空']}
+                                    onSelect={setPosDirectionFilter}
+                                    setLabel={setPosDirectionFilter}
+                                />
+                                <FilterDropdown
+                                    label={posPairFilter}
+                                    options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                                    onSelect={setPosPairFilter}
+                                    setLabel={setPosPairFilter}
+                                />
+                            </div>
+                            <FilterDropdown
+                                label={posTimeFilterLabel}
+                                options={['近三个月', '近半年', '近一年']}
+                                onSelect={setPosTimeFilterLabel}
+                                setLabel={setPosTimeFilterLabel}
+                            />
+                        </div>
                         <div className="text-center text-muted-foreground py-10">
                             暂无持仓
                         </div>
@@ -206,5 +288,12 @@ export default function TradePage() {
                 </div>
             </nav>
         </div>
+        <FollowOrderSheet 
+            isOpen={isSheetOpen} 
+            onOpenChange={setIsSheetOpen} 
+            traders={allTraders}
+            defaultTraderId={null}
+        />
+        </>
     )
 }

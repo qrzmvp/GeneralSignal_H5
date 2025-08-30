@@ -312,9 +312,15 @@ function HistoricalSignalCard({ signal }: { signal: any }) {
                     <InfoPill label="平仓盈亏比" value={signal.pnlRatio} />
                 </div>
                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
+                    <InfoPill label="开仓时间" value={signal.createdAt} />
+                 </div>
+                 <div className="flex justify-between items-center -mt-2">
+                    <InfoPill label="平仓时间" value={signal.endedAt} />
+                 </div>
+                 <div className="flex justify-between items-center mt-1 pt-3 border-t border-border/50">
                     <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <Clock className="w-3 h-3" />
-                        {signal.createdAt}
+                        数据更新于: {signal.endedAt}
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">{signal.status}</span>
                 </div>
@@ -420,6 +426,10 @@ export default function TraderDetailPage() {
         const isLong = Math.random() > 0.5;
         const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
         const entryPrice = Math.random() * 500 + 100;
+        const startDate = new Date(2024, 3, 18 - (i % 9), 18, 30 + (i%10), 0);
+        const endDate = new Date(startDate.getTime() + (Math.random() * 72 + 8) * 60 * 60 * 1000); // 8-80 hours later
+        const formatDate = (date: Date) => date.toISOString().replace('T', ' ').substring(0, 19);
+
         return {
             id: i + 100, // Avoid key collision
             pair: `${pair}-USDT-SWAP`,
@@ -430,7 +440,8 @@ export default function TraderDetailPage() {
             takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
             stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
             pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-            createdAt: `2024-04-1${8 - (i % 9)} 18:3${i % 10}:00`,
+            createdAt: formatDate(startDate),
+            endedAt: formatDate(endDate),
             orderType: '限价单',
             type: '永续合约',
             marginMode: '全仓',
@@ -593,8 +604,7 @@ export default function TraderDetailPage() {
       <main className="flex-grow overflow-auto p-4 space-y-3 pb-28">
         {/* Basic Info */}
         <Card className="bg-card/80 border-border/50 overflow-hidden relative">
-          <CardContent className="p-4">
-            <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="w-full">
+            <CardContent className="p-4">
                 <div className="flex justify-center">
                     <div className="relative">
                         <Avatar className="h-20 w-20 border-2 border-primary">
@@ -614,38 +624,36 @@ export default function TraderDetailPage() {
                         ))}
                     </div>
                 </div>
-
-                <div className="w-full">
-                    <div className="flex w-full justify-center gap-4 mt-4">
-                        <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
-                            自动跟单
-                        </Button>
-                        <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1">
-                            策略回测
-                        </Button>
+                <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="w-full">
+                    <div className="w-full">
+                        <div className="flex w-full justify-center gap-4 mt-4">
+                            <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
+                                自动跟单
+                            </Button>
+                            <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1">
+                                策略回测
+                            </Button>
+                        </div>
                     </div>
-                    
-                    <CollapsibleTrigger asChild>
-                        <div className="relative flex justify-center items-center w-full">
+                    <div className="relative flex justify-center items-center w-full">
+                        <CollapsibleTrigger asChild>
                             <button className="flex-shrink-0 mx-auto p-1 text-muted-foreground hover:bg-muted rounded-md">
                                 {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             </button>
-                        </div>
-                    </CollapsibleTrigger>
-                </div>
-              
-                <CollapsibleContent>
-                    <div className="grid grid-cols-3 gap-y-4 pt-4 text-center">
-                        <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
-                        <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
-                        <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
-                        <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
-                        <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
-                        <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
+                        </CollapsibleTrigger>
                     </div>
-                </CollapsibleContent>
-            </Collapsible>
-          </CardContent>
+                    <CollapsibleContent>
+                        <div className="grid grid-cols-3 gap-y-4 pt-4 text-center">
+                            <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
+                            <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
+                            <MetricItem label="盈亏比" value={trader.pnlRatio} valueClassName="text-foreground" />
+                            <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
+                            <MetricItem label="累计跟单" value={trader.followers} valueClassName="text-foreground" />
+                            <MetricItem label="累计天数(天)" value={trader.days} valueClassName="text-foreground" />
+                        </div>
+                    </CollapsibleContent>
+                </Collapsible>
+            </CardContent>
         </Card>
 
         { dataLoading ? (
@@ -808,5 +816,3 @@ export default function TraderDetailPage() {
     </>
   )
 }
-
-    
