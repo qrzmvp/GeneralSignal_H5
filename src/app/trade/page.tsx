@@ -152,7 +152,7 @@ export default function TradePage() {
                                 <MetricItem label="累计盈亏比" value="7.8: 1" />
                             </CollapsibleContent>
                              <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-accent/50 transition-colors rounded-md">
+                                <button className="w-full flex justify-center items-center text-muted-foreground rounded-md hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
                                     {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
