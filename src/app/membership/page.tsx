@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import { useSwipeable } from 'react-swipeable';
 
 interface Plan {
   id: string;
@@ -113,11 +114,29 @@ function ComparisonSection() {
     );
 }
 
+const TABS = ['auto', 'manual'];
+
 export default function MembershipPage() {
     const router = useRouter();
     const [selectedTab, setSelectedTab] = useState('auto');
     const [manualSelectedPlan, setManualSelectedPlan] = useState('manual-yearly');
     const [autoSelectedPlan, setAutoSelectedPlan] = useState('auto-yearly');
+
+    const swipeHandlers = useSwipeable({
+        onSwipedLeft: () => {
+            const currentIndex = TABS.indexOf(selectedTab);
+            if (currentIndex < TABS.length - 1) {
+                setSelectedTab(TABS[currentIndex + 1]);
+            }
+        },
+        onSwipedRight: () => {
+            const currentIndex = TABS.indexOf(selectedTab);
+            if (currentIndex > 0) {
+                setSelectedTab(TABS[currentIndex - 1]);
+            }
+        },
+        trackMouse: true
+    });
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -137,20 +156,22 @@ export default function MembershipPage() {
                         <TabsTrigger value="auto">自动跟单</TabsTrigger>
                         <TabsTrigger value="manual">手动跟单</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="auto" className="mt-6">
-                        <PlanSelector
-                            plans={autoPlans}
-                            selectedPlan={autoSelectedPlan}
-                            setSelectedPlan={setAutoSelectedPlan}
-                        />
-                    </TabsContent>
-                    <TabsContent value="manual" className="mt-6">
-                        <PlanSelector
-                            plans={manualPlans}
-                            selectedPlan={manualSelectedPlan}
-                            setSelectedPlan={setManualSelectedPlan}
-                        />
-                    </TabsContent>
+                    <div {...swipeHandlers}>
+                        <TabsContent value="auto" className="mt-6">
+                            <PlanSelector
+                                plans={autoPlans}
+                                selectedPlan={autoSelectedPlan}
+                                setSelectedPlan={setAutoSelectedPlan}
+                            />
+                        </TabsContent>
+                        <TabsContent value="manual" className="mt-6">
+                            <PlanSelector
+                                plans={manualPlans}
+                                selectedPlan={manualSelectedPlan}
+                                setSelectedPlan={setManualSelectedPlan}
+                            />
+                        </TabsContent>
+                    </div>
                 </Tabs>
                 <ComparisonSection />
             </main>
