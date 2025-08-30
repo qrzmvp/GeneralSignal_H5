@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from 'react';
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Settings, ChevronUp, ChevronDown } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -83,7 +84,7 @@ export default function TradePage() {
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-                 <div className="w-9"></div> {/* Placeholder for spacing */}
+                <div className="w-9"></div>
                 <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
                     <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
                         <SelectValue>
@@ -105,7 +106,7 @@ export default function TradePage() {
                     </SelectContent>
                 </Select>
                 <Button variant="ghost" size="icon">
-                    <Settings className="w-5 h-5"/>
+                    <Plus className="w-5 h-5"/>
                 </Button>
             </header>
 
@@ -133,9 +134,6 @@ export default function TradePage() {
                                     </div>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
-                                <Button variant="outline" size="icon" className="rounded-full">
-                                    <Settings className="w-4 h-4"/>
-                                </Button>
                             </div>
                             
                             <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
@@ -161,8 +159,8 @@ export default function TradePage() {
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
                 <div className="grid grid-cols-3 items-center h-full text-center">
-                    <Link 
-                        href="/" 
+                    <Link
+                        href="/"
                         passHref
                         className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
                     >
@@ -175,8 +173,8 @@ export default function TradePage() {
                         </div>
                         <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
                     </Link>
-                    <Link 
-                        href="/profile" 
+                    <Link
+                        href="/profile"
                         passHref
                         className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
                     >
