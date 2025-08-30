@@ -41,7 +41,7 @@ export default function TradePage() {
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 space-y-6">
                          <Select defaultValue="okx-10001">
                             <SelectTrigger className="w-full bg-card border-border/60 text-lg font-semibold">
                                 <SelectValue />
@@ -52,7 +52,7 @@ export default function TradePage() {
                             </SelectContent>
                         </Select>
 
-                        <div className="mt-6 text-center">
+                        <div className="text-center">
                             <p className="text-sm text-muted-foreground flex items-center justify-center">
                                 账户总资产
                                 <Button variant="ghost" size="sm" className="ml-1 h-auto p-1 text-xs">
@@ -61,15 +61,17 @@ export default function TradePage() {
                             </p>
                             <p className="text-4xl font-bold tracking-tight break-all">88,238,882,388,823.39</p>
                         </div>
-                        
-                        <div className="mt-6 grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-6 border-t border-border/30">
-                            <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
-                            <MetricItem label="可用保证金" value="10,000.00" />
-                            <MetricItem label="累计信号" value="50" />
-                            <MetricItem label="胜率" value="84.00%" />
-                            <MetricItem label="占用保证金" value="10,000.00" />
-                            <MetricItem label="累计盈亏比" value="7.8: 1" />
-                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-card/50 border-border/30">
+                    <CardContent className="p-4 grid grid-cols-3 gap-x-4 gap-y-6 text-left">
+                        <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
+                        <MetricItem label="可用保证金" value="10,000.00" />
+                        <MetricItem label="累计信号" value="50" />
+                        <MetricItem label="胜率" value="84.00%" />
+                        <MetricItem label="占用保证金" value="10,000.00" />
+                        <MetricItem label="累计盈亏比" value="7.8: 1" />
                     </CardContent>
                 </Card>
             </main>
@@ -88,9 +90,17 @@ export default function TradePage() {
                             <span className="text-xs font-medium">将军榜</span>
                         </button>
                     </Link>
-                    <Link href="/trade" passHref className="contents">
-                        <button className="flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full -mt-8 shadow-lg transform transition-transform active:scale-90">
-                            <ArrowRightLeft className="w-7 h-7" />
+                    <Link href="/trade" passHref className="flex-1 contents">
+                        <button
+                            onClick={() => setActiveTab('trade')}
+                            className={`flex flex-col items-center justify-center space-y-1 transition-colors -mt-6 ${
+                            activeTab === 'trade' ? 'text-primary' : 'text-muted-foreground'
+                            }`}
+                        >
+                            <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg transform transition-transform active:scale-90">
+                                <ArrowRightLeft className="w-6 h-6" />
+                            </div>
+                            <span className="text-xs font-medium">交易</span>
                         </button>
                     </Link>
                     <Link href="/profile" passHref className="flex-1 contents">

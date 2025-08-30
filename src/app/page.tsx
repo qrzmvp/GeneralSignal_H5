@@ -505,9 +505,17 @@ export default function LeaderboardPage() {
                     <span className="text-xs font-medium">将军榜</span>
                 </button>
             </Link>
-            <Link href="/trade" passHref className="contents">
-                <button className="flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-full -mt-8 shadow-lg transform transition-transform active:scale-90">
-                    <ArrowRightLeft className="w-7 h-7" />
+            <Link href="/trade" passHref className="flex-1 contents">
+                <button
+                    onClick={() => setActiveTab('trade')}
+                    className={`flex flex-col items-center justify-center space-y-1 transition-colors -mt-6 ${
+                    activeTab === 'trade' ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                >
+                    <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg transform transition-transform active:scale-90">
+                        <ArrowRightLeft className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-medium">交易</span>
                 </button>
             </Link>
             <Link href="/profile" passHref className="flex-1 contents">
