@@ -143,7 +143,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-4 border-t border-border/50">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-6 text-left mt-4 pt-4">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
@@ -175,7 +175,7 @@ export default function TradePage() {
                         </button>
                     </Link>
                     <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
-                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-2 border-card transition-transform active:scale-95">
+                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
                             <ArrowRightLeft className="w-7 h-7" />
                         </div>
                         <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
