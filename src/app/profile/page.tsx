@@ -346,7 +346,7 @@ export default function ProfilePage() {
                 <CardContent className="p-0">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="outline" className="w-full justify-center gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/50">
+                            <Button variant="secondary" className="w-full justify-center gap-2 text-muted-foreground">
                                 <LogOut className="w-4 h-4" />
                                 退出登录
                             </Button>
@@ -383,7 +383,7 @@ export default function ProfilePage() {
             </Link>
             <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
                  <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
-                    <ArrowRightLeft className="w-7 h-7" />
+                    <ArrowRightLeft className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
             </Link>

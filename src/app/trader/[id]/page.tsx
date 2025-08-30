@@ -734,7 +734,7 @@ export default function TraderDetailPage() {
             </Link>
             <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
                  <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
-                    <ArrowRightLeft className="w-7 h-7" />
+                    <ArrowRightLeft className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
             </Link>
