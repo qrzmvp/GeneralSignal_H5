@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -154,14 +154,12 @@ export default function TradePage() {
                                 </div>
                             </CollapsibleContent>
 
-                            <div className="flex justify-center -mb-2">
-                                <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground">
-                                        {isMetricsOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                                        <span className="sr-only">Toggle</span>
-                                    </Button>
-                                </CollapsibleTrigger>
-                            </div>
+                            <CollapsibleTrigger asChild>
+                                <button className="w-full flex justify-center py-1 text-muted-foreground hover:bg-accent rounded-md transition-colors">
+                                    {isMetricsOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                    <span className="sr-only">Toggle</span>
+                                </button>
+                            </CollapsibleTrigger>
                         </Collapsible>
                     </CardContent>
                 </Card>
