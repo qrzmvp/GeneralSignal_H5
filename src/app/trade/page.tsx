@@ -24,13 +24,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
 import { allTraders } from '@/lib/data';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
 import { cn } from '@/lib/utils';
 
 
 const PAGE_SIZE = 5;
-const TABS = ['current', 'positions'];
 
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
@@ -42,21 +41,12 @@ function MetricItem({ label, value, subValue, valueColor }: { label: string, val
   )
 }
 
-function InfoPill({ label, value, valueClassName }: { label: string, value: string | number, valueClassName?: string }) {
-    return (
-      <div className="flex items-center justify-between text-sm py-1.5">
-        <span className="text-muted-foreground">{label}</span>
-        <span className={`font-medium text-foreground ${valueClassName}`}>{value}</span>
-      </div>
-    )
-}
-
 function PendingOrderCard({ order }: { order: any }) {
     return (
         <Card className="bg-card/50 border-border/30">
             <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-base flex items-center gap-2">
+                     <h3 className="font-bold text-base flex items-center gap-2">
                         {order.pair}
                         <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
                             'text-xs',
@@ -72,7 +62,7 @@ function PendingOrderCard({ order }: { order: any }) {
                 </div>
 
                 <div className="flex justify-between items-center text-xs">
-                     <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="px-2 py-0 text-xs">限价</Badge>
                         <Badge className={`px-2 py-0 text-xs ${order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{order.direction}</Badge>
                         <Badge variant="secondary" className="px-2 py-0 text-xs">{order.marginMode}</Badge>
@@ -118,7 +108,6 @@ function PendingOrderCard({ order }: { order: any }) {
     );
 }
 
-
 interface Account {
     id: string;
     name: string;
@@ -132,59 +121,46 @@ const accounts: Account[] = [
     { id: 'demo-1', name: '模拟账户', type: 'demo', exchange: 'bitget' },
 ]
 
-function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
-    if (exchange === 'okx') {
-        return (
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_105_186)"><path d="M13 21H21V13H13V21Z" fill="currentColor"></path><path d="M27 21H35V13H27V21Z" fill="currentColor"></path><path d="M13 35H21V27H13V35Z" fill="currentColor"></path><path d="M27 35H35V27H27V35Z" fill="currentColor"></path><path fillRule="evenodd" clipRule="evenodd" d="M38 6H10C7.79086 6 6 7.79086 6 10V38C6 40.2091 7.79086 42 10 42H38C40.2091 42 42 40.2091 42 38V10C42 7.79086 40.2091 6 38 6ZM10 40H38C39.1046 40 40 39.1046 40 38V10C40 8.89543 39.1046 8 38 8H10C8.89543 8 8 8.89543 8 10V38C8 39.1046 8.89543 40 10 40Z" fill="currentColor"></path></g><defs><clipPath id="clip0_105_186"><rect width="48" height="48" fill="white"></rect></clipPath></defs></svg>
-        )
+const mockAccountData: { [key: string]: any } = {
+    'okx-10001': {
+        totalAssets: 88238.39,
+        pnl: 54.00,
+        availableMargin: 10000.00,
+        usedMargin: 10000.00,
+        winRate: 84.00,
+        totalSignals: 50,
+        pnlRatio: '7.8:1',
+        pendingOrders: Array.from({ length: 8 }, (_, i) => ({
+            id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', sourceType: i % 3 === 0 ? 'auto' : 'manual', marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
+        }))
+    },
+    'binance-20002': {
+        totalAssets: 150345.12,
+        pnl: 125.50,
+        availableMargin: 50000.00,
+        usedMargin: 25000.00,
+        winRate: 92.30,
+        totalSignals: 120,
+        pnlRatio: '12.5:1',
+        pendingOrders: Array.from({ length: 4 }, (_, i) => ({
+            id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', sourceType: 'auto', marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
+        }))
+    },
+    'demo-1': {
+        totalAssets: 10000.00,
+        pnl: 10.2,
+        availableMargin: 8000.00,
+        usedMargin: 2000.00,
+        winRate: 60.00,
+        totalSignals: 15,
+        pnlRatio: '1.5:1',
+        pendingOrders: Array.from({ length: 2 }, (_, i) => ({
+            id: `demo-${i}`, pair: 'SOL/USDT 永续', direction: '开多', sourceType: 'manual', marginMode: '全仓', leverage: '5x', timestamp: `08/23 1${i+5}:00:12`, amount: (100 + Math.random() * 50).toFixed(2), filled: 0, price: (170 + Math.random() * 5).toFixed(2), takeProfit: null, stopLoss: (160).toFixed(2), pnlRatio: '--'
+        }))
     }
-    if (exchange === 'binance') {
-        return (
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-foreground">
-                <path d="M12 15.0625L15.0625 12L12 8.9375L8.9375 12L12 15.0625Z" fill="currentColor"/>
-                <path d="M18.125 12L15.0625 8.9375L16.5938 7.40625L19.6562 10.4688L21.1875 12L19.6562 13.5312L18.125 12Z" fill="currentColor"/>
-                <path d="M5.875 12L8.9375 15.0625L7.40625 16.5938L4.34375 13.5312L2.8125 12L4.34375 10.4688L5.875 12Z" fill="currentColor"/>
-                <path d="M12 18.125L8.9375 15.0625L7.40625 16.5938L10.4688 19.6562L12 21.1875L13.5312 19.6562L16.5938 16.5938L15.0625 15.0625L12 18.125Z" fill="currentColor"/>
-                <path d="M12 5.875L15.0625 8.9375L16.5938 7.40625L13.5312 4.34375L12 2.8125L10.4688 4.34375L7.40625 7.40625L8.9375 8.9375L12 5.875Z" fill="currentColor"/>
-            </svg>
-        )
-    }
-    if (exchange === 'bitget') {
-        return (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.33398 5.33301L8.00065 2.66634L10.6673 5.33301H5.33398Z" fill="#FFAA00"/>
-                <path d="M14.6667 5.33301L17.3333 7.99967L14.6667 10.6663H9.33333L12 7.99967L9.33333 5.33301H14.6667Z" fill="#FFAA00"/>
-                <path d="M5.33398 14.667L8.00065 17.3337L10.6673 14.667H5.33398Z" fill="#FFAA00"/>
-                <path d="M5.33398 9.33301L2.66732 11.9997L5.33398 14.6663V9.33301Z" fill="#FFAA00"/>
-            </svg>
-        )
-    }
-    return null;
-}
+};
 
-function FilterDropdown({ label, options, onSelect, setLabel }: { label: string; options: string[]; onSelect: (option: string) => void; setLabel?: (label: string) => void; }) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm p-0 h-auto">
-            {label}
-            <ChevronDown className="w-4 h-4 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {options.map((option) => (
-            <DropdownMenuItem key={option} onSelect={() => {
-              onSelect(option);
-              if (setLabel) setLabel(option);
-            }}>
-              {option}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
+const TABS = ['current', 'positions'];
 
 export default function TradePage() {
     const [activeTab, setActiveTab] = useState('current');
@@ -202,15 +178,25 @@ export default function TradePage() {
     const [posPairFilter, setPosPairFilter] = useState('全部币种');
     const [posTimeFilterLabel, setPosTimeFilterLabel] = useState('近三个月');
 
+    const [accountData, setAccountData] = useState<any>(null);
+    const [isSwitchingAccount, setIsSwitchingAccount] = useState(true);
+    const [currentOrders, setCurrentOrders] = useState<any[]>([]);
+
     const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
-    
-    // State for pending orders list
-    const [allPendingOrders, setAllPendingOrders] = useState<any[]>([]);
-    const [pendingOrders, setPendingOrders] = useState<any[]>([]);
-    const [pendingOrdersPage, setPendingOrdersPage] = useState(1);
-    const [pendingOrdersLoading, setPendingOrdersLoading] = useState(true);
-    const [pendingOrdersHasMore, setPendingOrdersHasMore] = useState(true);
-    const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
+
+    useEffect(() => {
+        setIsSwitchingAccount(true);
+        // Simulate API call
+        const timer = setTimeout(() => {
+            const data = mockAccountData[selectedAccountId];
+            setAccountData(data);
+            setCurrentOrders(data.pendingOrders || []);
+            setIsSwitchingAccount(false);
+        }, 500); // 0.5 second delay to simulate network
+
+        return () => clearTimeout(timer);
+    }, [selectedAccountId]);
+
 
     const swipeHandlers = useSwipeable({
         onSwiped: (eventData) => {
@@ -223,58 +209,6 @@ export default function TradePage() {
         },
         trackMouse: true,
     });
-
-    useEffect(() => {
-        const generatedOrders = Array.from({ length: 25 }, (_, i) => {
-            const isLong = Math.random() > 0.5;
-            const price = 3965 + (Math.random() - 0.5) * 100;
-            const hasTakeProfit = Math.random() > 0.2;
-            const takeProfit = hasTakeProfit ? price * 1.02 : null;
-            const sourceTraderIndex = Math.floor(Math.random() * 3);
-            const sourceType = Math.random() > 0.5 ? 'auto' : 'manual';
-            return {
-                id: i,
-                pair: 'ETHUSDT 永续',
-                direction: isLong ? '开多' : '开空',
-                marginMode: '全仓',
-                leverage: '2x',
-                timestamp: `08/23 19:0${i % 10}:12`,
-                amount: (11.9 + Math.random() * 5).toFixed(2),
-                filled: 0,
-                price: price.toFixed(2),
-                takeProfit: takeProfit ? takeProfit.toFixed(2) : null,
-                stopLoss: (price * 0.95).toFixed(2),
-                pnlRatio: hasTakeProfit ? `${(Math.random() * 2 + 1).toFixed(1)}:1` : '--',
-                sourceTrader: allTraders[sourceTraderIndex].name,
-                sourceType: sourceType,
-            };
-        });
-        setAllPendingOrders(generatedOrders);
-
-        const initialOrders = generatedOrders.slice(0, PAGE_SIZE);
-        setPendingOrders(initialOrders);
-        setPendingOrdersPage(2);
-        setPendingOrdersHasMore(initialOrders.length < generatedOrders.length);
-        setPendingOrdersLoading(false);
-    }, []);
-
-    const loadMorePendingOrders = useCallback(() => {
-        if (pendingOrdersLoading || !pendingOrdersHasMore) return;
-        setPendingOrdersLoading(true);
-        setTimeout(() => {
-            const newOrders = allPendingOrders.slice((pendingOrdersPage - 1) * PAGE_SIZE, pendingOrdersPage * PAGE_SIZE);
-            setPendingOrders(prev => [...prev, ...newOrders]);
-            setPendingOrdersPage(prev => prev + 1);
-            setPendingOrdersHasMore((pendingOrdersPage * PAGE_SIZE) < allPendingOrders.length);
-            setPendingOrdersLoading(false);
-        }, 1000);
-    }, [pendingOrdersLoading, pendingOrdersHasMore, pendingOrdersPage, allPendingOrders]);
-
-    useEffect(() => {
-        if (inView) {
-            loadMorePendingOrders();
-        }
-    }, [inView, loadMorePendingOrders]);
 
 
     return (
@@ -311,6 +245,12 @@ export default function TradePage() {
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
+                            {isSwitchingAccount ? (
+                                <div className="flex justify-center items-center h-48">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                            <>
                             <div className="flex justify-between items-start pb-0">
                                 <div className="text-left space-y-1 flex-grow">
                                     <div className="flex items-center gap-2">
@@ -329,7 +269,7 @@ export default function TradePage() {
                                             </Badge>
                                         )}
                                     </div>
-                                    <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
+                                    <p className="text-2xl font-bold tracking-tight break-all">{accountData?.totalAssets.toLocaleString()}</p>
                                 </div>
                                 <Button variant="ghost" size="icon" className="text-muted-foreground -mr-2 -mt-1" onClick={() => setIsSheetOpen(true)}>
                                     <Settings className="w-5 h-5" />
@@ -337,12 +277,12 @@ export default function TradePage() {
                             </div>
                             
                             <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
-                                <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
-                                <MetricItem label="可用保证金" value="10,000.00" />
-                                <MetricItem label="累计信号" value="50" />
-                                <MetricItem label="胜率" value="84.00%" />
-                                <MetricItem label="占用保证金" value="10,000.00" />
-                                <MetricItem label="累计盈亏比" value="7.8: 1" />
+                                <MetricItem label="总收益率" value={`+${accountData?.pnl}%`} valueColor="text-green-400" />
+                                <MetricItem label="可用保证金" value={accountData?.availableMargin.toLocaleString()} />
+                                <MetricItem label="累计信号" value={`${accountData?.totalSignals}`} />
+                                <MetricItem label="胜率" value={`${accountData?.winRate}%`} />
+                                <MetricItem label="占用保证金" value={accountData?.usedMargin.toLocaleString()} />
+                                <MetricItem label="累计盈亏比" value={accountData?.pnlRatio} />
                             </CollapsibleContent>
 
                             <CollapsibleTrigger asChild>
@@ -351,6 +291,8 @@ export default function TradePage() {
                                     <span className="sr-only">Toggle</span>
                                 </button>
                             </CollapsibleTrigger>
+                            </>
+                            )}
                         </CardContent>
                     </Collapsible>
                 </Card>
@@ -365,7 +307,6 @@ export default function TradePage() {
                                 "transform -translate-x-full": activeTab === 'positions',
                                 "transform translate-x-0": activeTab === 'current'
                             })}>
-
                             <div className="w-full flex-shrink-0">
                                 <div className="mt-4 space-y-3">
                                     <div className="flex justify-between items-center">
@@ -390,25 +331,21 @@ export default function TradePage() {
                                             setLabel={setTimeFilterLabel}
                                         />
                                     </div>
-                                    <div className="space-y-3">
-                                        {pendingOrders.map(order => (
-                                            <PendingOrderCard key={order.id} order={order} />
-                                        ))}
-                                    </div>
-                                    <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                                        {pendingOrdersLoading && (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                <span>加载中...</span>
-                                            </>
-                                        )}
-                                        {!pendingOrdersLoading && !pendingOrdersHasMore && pendingOrders.length > 0 && (
-                                            <span>已经到底了</span>
-                                        )}
-                                        {!pendingOrdersLoading && pendingOrders.length === 0 && (
-                                            <span>暂无挂单</span>
-                                        )}
-                                    </div>
+                                    {isSwitchingAccount ? (
+                                        <div className="flex justify-center items-center h-40">
+                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                        </div>
+                                    ) : currentOrders.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {currentOrders.map(order => (
+                                                <PendingOrderCard key={order.id} order={order} />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center text-muted-foreground py-10">
+                                            暂无挂单
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             
@@ -436,9 +373,15 @@ export default function TradePage() {
                                             setLabel={setPosTimeFilterLabel}
                                         />
                                     </div>
-                                    <div className="text-center text-muted-foreground py-10">
-                                        暂无持仓
-                                    </div>
+                                    {isSwitchingAccount ? (
+                                         <div className="flex justify-center items-center h-40">
+                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                        </div>
+                                    ) : (
+                                        <div className="text-center text-muted-foreground py-10">
+                                            暂无持仓
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
