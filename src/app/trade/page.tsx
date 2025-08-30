@@ -142,7 +142,7 @@ export default function TradePage() {
                                 </Button>
                             </div>
                             
-                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-0">
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-0 text-left pt-2">
                                 <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                 <MetricItem label="可用保证金" value="10,000.00" />
                                 <MetricItem label="累计信号" value="50" />
