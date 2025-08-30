@@ -128,9 +128,9 @@ export default function TradePage() {
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4 relative">
-                         <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="relative">
-                            <div className="flex justify-between items-start pb-8 border-b border-border/50">
+                    <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
+                        <CardContent className="p-4">
+                            <div className="flex justify-between items-start pb-4">
                                 <div className="text-left space-y-1">
                                     <p className="text-sm text-muted-foreground">
                                         账户总资产 (USDT)
@@ -142,26 +142,23 @@ export default function TradePage() {
                                     跟单设置
                                 </Button>
                             </div>
-
-                            <CollapsibleTrigger asChild>
-                                <button className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10 h-6 w-6 flex items-center justify-center rounded-full bg-card border border-border/50 text-muted-foreground hover:bg-accent/50 transition-colors">
+                            
+                            <CollapsibleContent className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-6 pb-2 border-t border-border/50">
+                                <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
+                                <MetricItem label="可用保证金" value="10,000.00" />
+                                <MetricItem label="累计信号" value="50" />
+                                <MetricItem label="胜率" value="84.00%" />
+                                <MetricItem label="占用保证金" value="10,000.00" />
+                                <MetricItem label="累计盈亏比" value="7.8: 1" />
+                            </CollapsibleContent>
+                             <CollapsibleTrigger asChild>
+                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-accent/50 transition-colors rounded-md py-0">
                                     {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
                             </CollapsibleTrigger>
-                            
-                            <CollapsibleContent>
-                                <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-6 pb-2">
-                                    <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
-                                    <MetricItem label="可用保证金" value="10,000.00" />
-                                    <MetricItem label="累计信号" value="50" />
-                                    <MetricItem label="胜率" value="84.00%" />
-                                    <MetricItem label="占用保证金" value="10,000.00" />
-                                    <MetricItem label="累计盈亏比" value="7.8: 1" />
-                                </div>
-                            </CollapsibleContent>
-                        </Collapsible>
-                    </CardContent>
+                        </CardContent>
+                    </Collapsible>
                 </Card>
             </main>
 
@@ -178,7 +175,7 @@ export default function TradePage() {
                         </button>
                     </Link>
                     <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
-                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-2 border-card transition-transform active:scale-95">
                             <ArrowRightLeft className="w-7 h-7" />
                         </div>
                         <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
