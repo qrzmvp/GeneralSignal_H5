@@ -130,16 +130,15 @@ export default function TradePage() {
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-between items-start pb-0">
                                 <div className="text-left space-y-1">
                                     <p className="text-sm text-muted-foreground">
                                         账户总资产 (USDT)
                                     </p>
                                     <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
                                 </div>
-                                <Button variant="outline" size="sm" className="gap-2">
+                                <Button variant="outline" size="icon" className="rounded-full">
                                     <Settings className="w-4 h-4"/>
-                                    跟单设置
                                 </Button>
                             </div>
                             
@@ -153,7 +152,7 @@ export default function TradePage() {
                             </CollapsibleContent>
 
                             <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 pt-2">
+                                <button className="w-full flex justify-center items-center text-muted-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mt-1">
                                     {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
