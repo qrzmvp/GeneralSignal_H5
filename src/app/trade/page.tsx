@@ -29,13 +29,39 @@ interface Account {
     id: string;
     name: string;
     type: 'live' | 'demo';
+    exchange: 'okx' | 'binance' | 'demo';
 }
 
 const accounts: Account[] = [
-    { id: 'okx-10001', name: 'OKX-10001', type: 'live' },
-    { id: 'binance-20002', name: 'Binance-20002', type: 'live' },
-    { id: 'demo-1', name: '模拟账户', type: 'demo' },
+    { id: 'okx-10001', name: 'OKX-10001', type: 'live', exchange: 'okx' },
+    { id: 'binance-20002', name: 'Binance-20002', type: 'live', exchange: 'binance' },
+    { id: 'demo-1', name: '模拟账户', type: 'demo', exchange: 'demo' },
 ]
+
+function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
+    if (exchange === 'okx') {
+        return (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16.9416 7.05835L7.0584 16.9415" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.0584 7.05835L16.9416 16.9415" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 21.1667C17.0625 21.1667 21.1667 17.0625 21.1667 12C21.1667 6.93752 17.0625 2.83334 12 2.83334C6.93752 2.83334 2.83337 6.93752 2.83337 12C2.83337 17.0625 6.93752 21.1667 12 21.1667Z" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+        )
+    }
+    if (exchange === 'binance') {
+        return (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15.0625L15.0625 12L12 8.9375L8.9375 12L12 15.0625Z" fill="currentColor"/>
+                <path d="M18.125 12L15.0625 8.9375L16.5938 7.40625L19.6562 10.4688L21.1875 12L19.6562 13.5312L18.125 12Z" fill="currentColor"/>
+                <path d="M5.875 12L8.9375 15.0625L7.40625 16.5938L4.34375 13.5312L2.8125 12L4.34375 10.4688L5.875 12Z" fill="currentColor"/>
+                <path d="M12 18.125L8.9375 15.0625L7.40625 16.5938L10.4688 19.6562L12 21.1875L13.5312 19.6562L16.5938 16.5938L15.0625 15.0625L12 18.125Z" fill="currentColor"/>
+                <path d="M12 5.875L15.0625 8.9375L16.5938 7.40625L13.5312 4.34375L12 2.8125L10.4688 4.34375L7.40625 7.40625L8.9375 8.9375L12 5.875Z" fill="currentColor"/>
+            </svg>
+        )
+    }
+    return null;
+}
+
 
 export default function TradePage() {
     const [activeTab, setActiveTab] = useState('trade');
@@ -56,9 +82,16 @@ export default function TradePage() {
                         <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 gap-2">
                             <SelectValue>
                                 <div className="flex items-center gap-2">
+                                     {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
                                     <span>{selectedAccount?.name}</span>
                                     {selectedAccount && (
-                                        <Badge variant={selectedAccount.type === 'live' ? 'default' : 'secondary'} className="bg-green-500/20 text-green-400 border-green-500/30">
+                                        <Badge 
+                                            className={
+                                                selectedAccount.type === 'live' 
+                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0"
+                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0"
+                                            }
+                                        >
                                             {selectedAccount.type === 'live' ? '实盘' : '模拟'}
                                         </Badge>
                                     )}
@@ -69,8 +102,15 @@ export default function TradePage() {
                              {accounts.map(account => (
                                 <SelectItem key={account.id} value={account.id}>
                                     <div className="flex items-center gap-3">
+                                        <ExchangeIcon exchange={account.exchange} />
                                         <span>{account.name}</span>
-                                        <Badge variant={account.type === 'live' ? 'default' : 'secondary'} className="bg-green-500/20 text-green-400 border-green-500/30">
+                                        <Badge
+                                            className={
+                                                account.type === 'live'
+                                                ? "bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1.5 py-0"
+                                                : "bg-secondary text-secondary-foreground border-border text-xs px-1.5 py-0"
+                                            }
+                                        >
                                             {account.type === 'live' ? '实盘' : '模拟'}
                                         </Badge>
                                     </div>
@@ -86,7 +126,7 @@ export default function TradePage() {
                 <Card className="bg-card/50 border-border/30">
                     <CardContent className="p-4 space-y-6">
                         <div className="text-left space-y-1">
-                            <p className="text-lg text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">
                                 账户总资产 (USDT)
                             </p>
                             <p className="text-2xl font-bold tracking-tight break-all">88,238.39</p>
@@ -117,14 +157,12 @@ export default function TradePage() {
                             <span className="text-xs font-medium">将军榜</span>
                         </button>
                     </Link>
-                     <Link href="/trade" passHref className="flex flex-col items-center justify-center h-full">
-                        <div className="relative flex flex-col items-center justify-center w-full h-full">
-                            <div className="absolute -top-7 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
-                                <ArrowRightLeft className="w-7 h-7" />
-                            </div>
-                            <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
-                        </div>
-                    </Link>
+                    <div className="relative flex flex-col items-center justify-center h-full">
+                         <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                            <ArrowRightLeft className="w-7 h-7" />
+                        </Link>
+                        <span className="text-xs font-medium text-muted-foreground pt-7">交易</span>
+                    </div>
                     <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                     <button
                         onClick={() => setActiveTab('profile')}
