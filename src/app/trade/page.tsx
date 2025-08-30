@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronsUpDown } from 'lucide-react';
+import { ChevronLeft, BarChart, User, ArrowRightLeft, Settings, ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -46,13 +46,7 @@ const accounts: Account[] = [
 function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     if (exchange === 'okx') {
         return (
-             <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 21H21V13H13V21Z" fill="currentColor"/>
-                <path d="M27 21H35V13H27V21Z" fill="currentColor"/>
-                <path d="M13 35H21V27H13V35Z" fill="currentColor"/>
-                <path d="M27 35H35V27H27V35Z" fill="currentColor"/>
-                <path d="M6 9C6 7.34315 7.34315 6 9 6H39C40.6569 6 42 7.34315 42 9V39C42 40.6569 40.6569 42 39 42H9C7.34315 42 6 40.6569 6 39V9Z" stroke="currentColor" strokeWidth="4"/>
-            </svg>
+             <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8v-8h-8v8Zm14 0h8v-8h-8v8ZM13 35h8v-8h-8v8Zm14 0h8v-8h-8v8Z" fill="currentColor"></path><path d="M6 9C6 7.343 7.343 6 9 6h30c1.657 0 3 1.343 3 3v30c0 1.657-1.343 3-3 3H9c-1.657 0-3-1.343-3-3V9Z" stroke="currentColor" strokeWidth="4"></path></svg>
         )
     }
     if (exchange === 'binance') {
@@ -73,6 +67,7 @@ function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
 export default function TradePage() {
     const [activeTab, setActiveTab] = useState('trade');
     const [selectedAccountId, setSelectedAccountId] = useState(accounts[0].id);
+    const [isMetricsOpen, setIsMetricsOpen] = useState(true);
 
     const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
 
@@ -133,8 +128,8 @@ export default function TradePage() {
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
                 <Card className="bg-card/50 border-border/30">
-                    <CardContent className="p-4 space-y-4">
-                         <Collapsible defaultOpen={true}>
+                    <CardContent className="p-4">
+                         <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen}>
                             <div className="flex justify-between items-start">
                                 <div className="text-left space-y-1">
                                     <p className="text-sm text-muted-foreground">
@@ -147,18 +142,9 @@ export default function TradePage() {
                                     跟单设置
                                 </Button>
                             </div>
-                            
-                            <div className="flex justify-center my-2">
-                                <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground">
-                                        <ChevronsUpDown className="w-4 h-4" />
-                                        <span className="sr-only">Toggle</span>
-                                    </Button>
-                                </CollapsibleTrigger>
-                            </div>
 
                             <CollapsibleContent>
-                                <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-2">
+                                <div className="grid grid-cols-3 gap-x-4 gap-y-6 text-left pt-6 pb-4">
                                     <MetricItem label="总收益率" value="+54.00%" valueColor="text-green-400" />
                                     <MetricItem label="可用保证金" value="10,000.00" />
                                     <MetricItem label="累计信号" value="50" />
@@ -167,6 +153,15 @@ export default function TradePage() {
                                     <MetricItem label="累计盈亏比" value="7.8: 1" />
                                 </div>
                             </CollapsibleContent>
+
+                            <div className="flex justify-center -mb-2">
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground">
+                                        {isMetricsOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                        <span className="sr-only">Toggle</span>
+                                    </Button>
+                                </CollapsibleTrigger>
+                            </div>
                         </Collapsible>
                     </CardContent>
                 </Card>
@@ -184,12 +179,14 @@ export default function TradePage() {
                             <span className="text-xs font-medium">将军榜</span>
                         </button>
                     </Link>
-                    <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
-                         <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
-                            <ArrowRightLeft className="w-7 h-7" />
-                        </div>
+                    <div className="relative flex flex-col items-center justify-center h-full">
+                        <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center">
+                             <div className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                                <ArrowRightLeft className="w-7 h-7" />
+                            </div>
+                        </Link>
                         <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
-                    </Link>
+                    </div>
                     <Link href="/profile" passHref className="flex flex-col items-center justify-center space-y-1 h-full">
                     <button
                         onClick={() => setActiveTab('profile')}
