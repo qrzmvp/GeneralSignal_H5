@@ -46,7 +46,7 @@ const accounts: Account[] = [
 function ExchangeIcon({ exchange }: { exchange: Account['exchange']}) {
     if (exchange === 'okx') {
         return (
-             <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8v-8h-8v8Zm14 0h8v-8h-8v8ZM13 35h8v-8h-8v8Zm14 0h8v-8h-8v8Z" fill="currentColor"></path><path d="M6 9C6 7.343 7.343 6 9 6h30c1.657 0 3 1.343 3 3v30c0 1.657-1.343 3-3 3H9c-1.657 0-3-1.343-3-3V9Z" stroke="currentColor" strokeWidth="4"></path></svg>
+            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8v-8h-8v8Zm14 0h8v-8h-8v8ZM13 35h8v-8h-8v8Zm14 0h8v-8h-8v8Z" fill="currentColor"></path><path d="M6 9C6 7.343 7.343 6 9 6h30c1.657 0 3 1.343 3 3v30c0 1.657-1.343 3-3 3H9c-1.657 0-3-1.343-3-3V9Z" stroke="currentColor" strokeWidth="4"></path></svg>
         )
     }
     if (exchange === 'binance') {
@@ -155,8 +155,8 @@ export default function TradePage() {
                             </CollapsibleContent>
 
                             <CollapsibleTrigger asChild>
-                                <button className="w-full flex justify-center py-1 text-muted-foreground hover:bg-accent rounded-md transition-colors">
-                                    {isMetricsOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                <button className="w-full flex justify-center text-muted-foreground hover:bg-accent rounded-md transition-colors">
+                                    {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                     <span className="sr-only">Toggle</span>
                                 </button>
                             </CollapsibleTrigger>
