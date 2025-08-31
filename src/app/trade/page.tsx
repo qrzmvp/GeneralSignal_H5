@@ -162,8 +162,8 @@ const mockAccountData: { [key: string]: any } = {
 
 function ExchangeIcon({ exchange }: { exchange: 'okx' | 'binance' | 'bitget' }) {
     const logos: { [key: string]: React.ReactNode } = {
-        okx: <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-white text-[8px] font-bold">OKX</div>,
-        binance: <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-black text-[7px] font-bold">BNB</div>,
+        okx: <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-white text-[8px] font-bold">O</div>,
+        binance: <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-black text-[7px] font-bold">B</div>,
         bitget: <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-[7px] font-bold">BG</div>,
     };
     return logos[exchange] || null;
@@ -457,3 +457,5 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     </DropdownMenu>
   );
 }
+
+    
