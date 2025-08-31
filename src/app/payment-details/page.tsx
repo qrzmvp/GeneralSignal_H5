@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronDown, Copy, Bot, ShieldCheck, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Copy, Bot, Loader2, MousePointerClick } from 'lucide-react';
 import { SimpleToast } from '@/app/components/SimpleToast';
 
 
@@ -27,7 +27,7 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
             break;
         case 1:
             paymentType = '手动跟单 · 3个月';
-            icon = <ShieldCheck className="w-5 h-5 text-blue-400" />;
+            icon = <MousePointerClick className="w-5 h-5 text-blue-400" />;
             typeKey = 'manual-quarter';
             break;
         case 2:
@@ -37,7 +37,7 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
             break;
         default:
             paymentType = '手动跟单 · 1年';
-            icon = <ShieldCheck className="w-5 h-5 text-blue-400" />;
+            icon = <MousePointerClick className="w-5 h-5 text-blue-400" />;
             typeKey = 'manual-year';
             break;
     }
