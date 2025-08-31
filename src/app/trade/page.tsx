@@ -27,6 +27,7 @@ import { allTraders } from '@/lib/data';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const PAGE_SIZE = 5;
@@ -55,8 +56,14 @@ function PendingOrderCard({ order }: { order: any }) {
                             {order.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </h3>
-                    <div className="text-sm text-muted-foreground">
-                        {order.sourceName ? `来自 ${order.sourceName}` : '来自 系统'}
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                        {order.sourceAvatar && (
+                            <Avatar className="w-5 h-5">
+                                <AvatarImage src={order.sourceAvatar} alt={order.sourceName} />
+                                <AvatarFallback>{order.sourceName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                        )}
+                        <span>{`来自 ${order.sourceName}`}</span>
                     </div>
                 </div>
 
@@ -130,11 +137,12 @@ const mockAccountData: { [key: string]: any } = {
         pnlRatio: '7.8:1',
         pendingOrders: Array.from({ length: 8 }, (_, i) => {
             const sourceType = i % 3 === 0 ? 'auto' : 'manual';
-            const sourceName = ['Woods', 'Hbj', 'Jonh'][i % 3];
+            const sourceTrader = allTraders[i % 3];
             return {
                 id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
                 sourceType: sourceType,
-                sourceName: sourceName,
+                sourceName: sourceTrader.name,
+                sourceAvatar: sourceTrader.avatar,
                 marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
             }
         })
@@ -147,12 +155,16 @@ const mockAccountData: { [key: string]: any } = {
         winRate: 92.30,
         totalSignals: 120,
         pnlRatio: '12.5:1',
-        pendingOrders: Array.from({ length: 4 }, (_, i) => ({
-            id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
-            sourceType: 'auto', 
-            sourceName: ['Woods', 'Hbj'][i % 2],
-            marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
-        }))
+        pendingOrders: Array.from({ length: 4 }, (_, i) => {
+            const sourceTrader = allTraders[i % 2];
+            return {
+                id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
+                sourceType: 'auto', 
+                sourceName: sourceTrader.name,
+                sourceAvatar: sourceTrader.avatar,
+                marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
+            }
+        })
     },
 };
 
@@ -517,4 +529,5 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 
 
     
+
 
