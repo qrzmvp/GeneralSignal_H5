@@ -28,6 +28,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useSwipeable } from 'react-swipeable';
+import { Badge } from '@/components/ui/badge';
 
 // Mock Data
 const mockApiKeys = [
@@ -39,7 +40,8 @@ const mockApiKeys = [
         apiSecret: 'sec...ret',
         passphrase: 'pass...ase',
         createdAt: '2023-08-01 10:30:15',
-        updatedAt: '2023-08-20 14:05:22'
+        updatedAt: '2023-08-20 14:05:22',
+        status: 'running' as 'running' | 'stopped'
     },
     { 
         id: 'binance-1', 
@@ -49,7 +51,8 @@ const mockApiKeys = [
         apiSecret: 'scr...t12',
         passphrase: '',
         createdAt: '2023-07-15 09:00:41',
-        updatedAt: '2023-07-15 09:00:41'
+        updatedAt: '2023-07-15 09:00:41',
+        status: 'stopped' as 'running' | 'stopped'
     }
 ];
 
@@ -170,7 +173,7 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
     );
 }
 
-function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
+function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
   return (
     <Card className="bg-card/50 border-border/30">
       <CardContent className="p-4 space-y-3">
@@ -178,6 +181,17 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
             <div className="flex items-center gap-3">
                 <ExchangeIcon exchange={apiKey.exchange as 'okx' | 'binance'} />
                 <h3 className="font-bold text-lg">{apiKey.name}</h3>
+                <Badge
+                    className={cn(
+                        'text-xs px-2 py-1 border-0 flex items-center gap-1.5',
+                        apiKey.status === 'running'
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                >
+                    <div className={cn("w-2 h-2 rounded-full", apiKey.status === 'running' ? 'bg-green-500' : 'bg-muted-foreground/50')} />
+                    {apiKey.status === 'running' ? '运行中' : '已停止'}
+                </Badge>
             </div>
             <div className="flex items-center gap-1">
                 <ApiDialog apiKey={apiKey}>
@@ -312,3 +326,5 @@ export default function MyApiPage() {
         </div>
     );
 }
+
+    

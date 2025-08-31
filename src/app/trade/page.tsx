@@ -119,11 +119,12 @@ interface Account {
     name: string;
     type: 'live' | 'demo';
     exchange: 'okx' | 'binance';
+    status: 'running' | 'stopped';
 }
 
 const accounts: Account[] = [
-    { id: 'okx-10001', name: '10001', type: 'live', exchange: 'okx' },
-    { id: 'binance-20002', name: '20002', type: 'live', exchange: 'binance' },
+    { id: 'okx-10001', name: '10001', type: 'live', exchange: 'okx', status: 'running' },
+    { id: 'binance-20002', name: '20002', type: 'live', exchange: 'binance', status: 'stopped' },
 ]
 
 const mockAccountData: { [key: string]: any } = {
@@ -307,13 +308,17 @@ export default function TradePage() {
                                         </p>
                                         {selectedAccount && (
                                             <Badge
-                                                className={`text-xs px-1.5 py-0.5 border-0 ${
-                                                    selectedAccount.type === 'live'
-                                                    ? "bg-green-500/20 text-green-400"
-                                                    : "bg-secondary text-secondary-foreground"
-                                                }`}
+                                                className={cn(
+                                                    'text-xs px-1.5 py-0.5 border-0',
+                                                    selectedAccount.type === 'live' && selectedAccount.status === 'running' && "bg-green-500/20 text-green-400",
+                                                    selectedAccount.type === 'live' && selectedAccount.status === 'stopped' && "bg-muted text-muted-foreground",
+                                                    selectedAccount.type === 'demo' && "bg-secondary text-secondary-foreground"
+                                                )}
                                             >
-                                                {selectedAccount.type === 'live' ? '实盘' : '模拟'}
+                                                {selectedAccount.type === 'live' 
+                                                    ? (selectedAccount.status === 'running' ? '实盘运行中' : '实盘已停止')
+                                                    : '模拟'
+                                                }
                                             </Badge>
                                         )}
                                     </div>
@@ -512,3 +517,5 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     </DropdownMenu>
   );
 }
+
+    
