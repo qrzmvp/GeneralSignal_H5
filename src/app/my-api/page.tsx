@@ -233,31 +233,42 @@ export default function MyApiPage() {
                     </TabsList>
                 </div>
                 
-                <main className="flex-grow overflow-auto p-4 space-y-4" {...swipeHandlers}>
-                    <TabsContent value="okx" className="mt-0 space-y-4">
-                        {okxKeys.length === 0 ? (
-                            <div className="text-center text-muted-foreground pt-20">
-                                <p>您还没有绑定任何OKX API。</p>
-                                <p>请点击下方按钮新增。</p>
+                <main className="flex-grow overflow-auto p-4" >
+                    <div {...swipeHandlers} className="overflow-hidden">
+                        <div className={cn("flex transition-transform duration-300", {
+                            "transform -translate-x-full": activeTab === 'binance',
+                            "transform translate-x-0": activeTab === 'okx'
+                        })}>
+                             <div className="w-full flex-shrink-0">
+                                <TabsContent value="okx" className="mt-0 space-y-4">
+                                    {okxKeys.length === 0 ? (
+                                        <div className="text-center text-muted-foreground pt-20">
+                                            <p>您还没有绑定任何OKX API。</p>
+                                            <p>请点击下方按钮新增。</p>
+                                        </div>
+                                    ) : (
+                                        okxKeys.map(key => (
+                                            <ApiCard key={key.id} apiKey={key} />
+                                        ))
+                                    )}
+                                </TabsContent>
                             </div>
-                        ) : (
-                            okxKeys.map(key => (
-                                <ApiCard key={key.id} apiKey={key} />
-                            ))
-                        )}
-                    </TabsContent>
-                    <TabsContent value="binance" className="mt-0 space-y-4">
-                         {binanceKeys.length === 0 ? (
-                            <div className="text-center text-muted-foreground pt-20">
-                                <p>您还没有绑定任何Binance API。</p>
-                                <p>请点击下方按钮新增。</p>
+                            <div className="w-full flex-shrink-0">
+                                <TabsContent value="binance" className="mt-0 space-y-4">
+                                    {binanceKeys.length === 0 ? (
+                                        <div className="text-center text-muted-foreground pt-20">
+                                            <p>您还没有绑定任何Binance API。</p>
+                                            <p>请点击下方按钮新增。</p>
+                                        </div>
+                                    ) : (
+                                        binanceKeys.map(key => (
+                                            <ApiCard key={key.id} apiKey={key} />
+                                        ))
+                                    )}
+                                </TabsContent>
                             </div>
-                        ) : (
-                            binanceKeys.map(key => (
-                                <ApiCard key={key.id} apiKey={key} />
-                            ))
-                        )}
-                    </TabsContent>
+                        </div>
+                    </div>
                 </main>
             </Tabs>
 
