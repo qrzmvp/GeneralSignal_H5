@@ -21,7 +21,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet';
 import { allTraders } from '@/lib/data';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -487,24 +487,22 @@ export default function TradePage() {
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
                                             <FilterDropdown
-                                                label={directionFilter}
+                                                label={directionFilter === '全部方向' ? '方向' : directionFilter}
                                                 options={['全部方向', '做多', '做空']}
                                                 onSelect={setDirectionFilter}
-                                                setLabel={setDirectionFilter}
                                             />
                                             <FilterDropdown
-                                                label={pairFilter}
+                                                label={pairFilter === '全部币种' ? '币种' : pairFilter}
                                                 options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
                                                 onSelect={setPairFilter}
-                                                setLabel={setPairFilter}
                                             />
+                                            <FollowTypeFilterDropdown title="跟单" />
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <FilterDropdown
                                                 label={timeFilterLabel}
                                                 options={['近三个月', '近半年', '近一年']}
                                                 onSelect={setTimeFilterLabel}
-                                                setLabel={setTimeFilterLabel}
                                             />
                                             <Button variant="ghost" size="icon" onClick={handleRefresh} className="h-8 w-8 text-muted-foreground">
                                                 <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
@@ -534,24 +532,22 @@ export default function TradePage() {
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
                                             <FilterDropdown
-                                                label={posDirectionFilter}
+                                                label={posDirectionFilter === '全部方向' ? '方向' : posDirectionFilter}
                                                 options={['全部方向', '做多', '做空']}
                                                 onSelect={setPosDirectionFilter}
-                                                setLabel={setPosDirectionFilter}
                                             />
                                             <FilterDropdown
-                                                label={posPairFilter}
+                                                label={posPairFilter === '全部币种' ? '币种' : posPairFilter}
                                                 options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
                                                 onSelect={setPosPairFilter}
-                                                setLabel={setPosPairFilter}
                                             />
+                                            <FollowTypeFilterDropdown title="跟单" />
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <FilterDropdown
                                                 label={posTimeFilterLabel}
                                                 options={['近三个月', '近半年', '近一年']}
                                                 onSelect={setPosTimeFilterLabel}
-                                                setLabel={setPosTimeFilterLabel}
                                             />
                                              <Button variant="ghost" size="icon" onClick={handleRefresh} className="h-8 w-8 text-muted-foreground">
                                                 <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
@@ -622,7 +618,7 @@ export default function TradePage() {
     )
 }
 
-function FilterDropdown({ label, options, onSelect, setLabel }: { label: string; options: string[]; onSelect: (option: string) => void; setLabel?: (label: string) => void; }) {
+function FilterDropdown({ label, options, onSelect }: { label: string; options: string[]; onSelect: (option: string) => void; }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -633,14 +629,48 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {options.map((option) => (
-          <DropdownMenuItem key={option} onSelect={() => {
-            onSelect(option);
-            if (setLabel) setLabel(option);
-          }}>
+          <DropdownMenuItem key={option} onSelect={() => onSelect(option)}>
             {option}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+function FollowTypeFilterDropdown({ title }: { title: string }) {
+    const [showAuto, setShowAuto] = useState(true);
+    const [showManual, setShowManual] = useState(true);
+
+    const getLabel = () => {
+        if (showAuto && showManual) return title;
+        if (showAuto) return '自动';
+        if (showManual) return '手动';
+        return '无';
+    };
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm p-0 h-auto">
+                    {getLabel()}
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuCheckboxItem
+                    checked={showAuto}
+                    onCheckedChange={setShowAuto}
+                >
+                    自动
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                    checked={showManual}
+                    onCheckedChange={setShowManual}
+                >
+                    手动
+                </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
 }
