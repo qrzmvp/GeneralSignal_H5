@@ -146,11 +146,11 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
                 <ExchangeIcon exchange={apiKey.exchange as 'okx' | 'binance'} />
                 <h3 className="font-bold text-lg">{apiKey.name}</h3>
             </div>
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+            <div className="flex items-center gap-1 p-1 bg-background/50 rounded-full">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/20 hover:text-primary rounded-full">
                     <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/20 hover:text-destructive rounded-full">
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </div>
