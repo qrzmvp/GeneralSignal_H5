@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronLeft, ShieldCheck, Zap, Bot, BarChart4, TrendingUp, Gem, Check, X } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, Zap, Bot, BarChart4, TrendingUp, Gem, Check, X, Wallet, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useSwipeable } from 'react-swipeable';
+import { SimpleToast } from '../components/SimpleToast';
 
 interface Plan {
   id: string;
@@ -43,6 +44,73 @@ const comparisonData = [
   { feature: '社区专属活动', manual: true, auto: true },
 ];
 
+const paymentMethods = {
+    'trc20': 'TXYZ...abcd...efgh',
+    'erc20': '0x12...cdef...3456'
+};
+
+function PaymentSection() {
+    const [selectedMethod, setSelectedMethod] = useState('trc20');
+    const [showToast, setShowToast] = useState(false);
+
+    const handleCopy = (address: string) => {
+        navigator.clipboard.writeText(address);
+        setShowToast(true);
+    };
+    
+    const currentAddress = paymentMethods[selectedMethod as keyof typeof paymentMethods];
+
+    return (
+        <>
+        {showToast && <SimpleToast message="地址已复制" onDismiss={() => setShowToast(false)} />}
+        <Card className="bg-card/50 border-border/30">
+            <CardHeader className="flex-row items-center gap-3 space-y-0 p-4">
+                <Wallet className="w-6 h-6 text-primary" />
+                <CardTitle className="text-lg">支付方式</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+                <RadioGroup value={selectedMethod} onValueChange={setSelectedMethod}>
+                    <div className="space-y-3">
+                        <Label
+                            htmlFor="trc20"
+                            className={cn(
+                                'flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-all',
+                                'bg-muted/30 border-transparent',
+                                {'bg-primary/10 border-primary': selectedMethod === 'trc20'}
+                            )}
+                        >
+                            <div className="font-semibold">TRC20</div>
+                            <RadioGroupItem value="trc20" id="trc20" />
+                        </Label>
+                         <Label
+                            htmlFor="erc20"
+                            className={cn(
+                                'flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-all',
+                                'bg-muted/30 border-transparent',
+                                {'bg-primary/10 border-primary': selectedMethod === 'erc20'}
+                            )}
+                        >
+                            <div className="font-semibold">ERC20</div>
+                            <RadioGroupItem value="erc20" id="erc20" />
+                        </Label>
+                    </div>
+                </RadioGroup>
+                
+                <div className="mt-4 rounded-lg bg-muted/30 p-3 space-y-2">
+                    <div className="text-sm text-muted-foreground">收款地址</div>
+                    <div className="flex items-center justify-between gap-2">
+                        <p className="font-mono text-base text-foreground break-all">{currentAddress}</p>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => handleCopy(currentAddress)}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+        </>
+    );
+}
+
 function PlanSelector({ plans, selectedPlan, setSelectedPlan }: { plans: Plan[], selectedPlan: string, setSelectedPlan: (id: string) => void }) {
     return (
         <div className="w-full space-y-6">
@@ -72,9 +140,12 @@ function PlanSelector({ plans, selectedPlan, setSelectedPlan }: { plans: Plan[],
                     </Label>
                 ))}
             </RadioGroup>
-            <Button className="w-full h-12 text-base font-bold">
-                立即开通
-            </Button>
+            <div className="space-y-4">
+                <PaymentSection />
+                <Button className="w-full h-12 text-base font-bold">
+                    立即开通
+                </Button>
+            </div>
         </div>
     );
 }

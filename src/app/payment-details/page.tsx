@@ -97,7 +97,7 @@ function PaymentCard({ payment }: { payment: typeof allMockPayments[0] }) {
         </div>
         <div className="border-t border-border/30 pt-1">
             <InfoPill label="支付方式" value={payment.paymentMethod} />
-            <InfoPill label="支付地址" value={payment.paymentAddress} isAddress />
+            <InfoPill label="收款地址" value={payment.paymentAddress} isAddress />
             <InfoPill label="付款地址" value={payment.senderAddress} isAddress />
             <InfoPill label="支付完成时间" value={payment.completionTime} />
         </div>
