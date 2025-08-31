@@ -228,30 +228,34 @@ export default function TradePage() {
         <>
         <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-                <div className="w-16"></div>
-                <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                    <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
-                        <SelectValue>
-                            <div className="flex items-center gap-2">
-                                 {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
-                                <span>{selectedAccount?.name}</span>
-                            </div>
-                        </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                         {accounts.map(account => (
-                            <SelectItem key={account.id} value={account.id}>
-                                <div className="flex items-center gap-3">
-                                    <ExchangeIcon exchange={account.exchange} />
-                                    <span>{account.name}</span>
+                <div className="w-16 flex-shrink-0"></div>
+                <div className="flex-grow flex justify-center">
+                    <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                        <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
+                            <SelectValue>
+                                <div className="flex items-center gap-2">
+                                     {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
+                                    <span>{selectedAccount?.name}</span>
                                 </div>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Link href="/my-api">
-                    <Button variant="link" className="text-primary px-0 hover:no-underline">新增</Button>
-                </Link>
+                            </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                             {accounts.map(account => (
+                                <SelectItem key={account.id} value={account.id}>
+                                    <div className="flex items-center gap-3">
+                                        <ExchangeIcon exchange={account.exchange} />
+                                        <span>{account.name}</span>
+                                    </div>
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="w-16 flex-shrink-0 flex justify-end">
+                    <Link href="/my-api">
+                        <Button variant="link" className="text-primary px-0 hover:no-underline">新增</Button>
+                    </Link>
+                </div>
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-4">
