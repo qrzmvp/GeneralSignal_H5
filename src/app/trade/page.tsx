@@ -160,11 +160,29 @@ const mockAccountData: { [key: string]: any } = {
     }
 };
 
-function ExchangeIcon({ exchange }: { exchange: 'okx' | 'binance' | 'bitget' }) {
+function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | 'bitget', className?: string }) {
     const logos: { [key: string]: React.ReactNode } = {
-        okx: <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-white text-[8px] font-bold">O</div>,
-        binance: <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-black text-[7px] font-bold">B</div>,
-        bitget: <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-[7px] font-bold">BG</div>,
+        okx: (
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" clipRule="evenodd" d="M24 48C37.2548 48 48 37.2548 48 24C48 10.7452 37.2548 0 24 0C10.7452 0 0 10.7452 0 24C0 37.2548 10.7452 48 24 48ZM30.4376 13.4146L24.0053 19.8469L17.5731 13.4146L13.4146 17.5731L19.8468 24.0053L13.4146 30.4376L17.5731 34.596L24.0053 28.1638L30.4376 34.596L34.596 30.4376L28.1638 24.0053L34.596 17.5731L30.4376 13.4146Z" fill="currentColor"/>
+            </svg>
+        ),
+        binance: (
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" clipRule="evenodd" d="M48 96C74.5097 96 96 74.5097 96 48C96 21.4903 74.5097 0 48 0C21.4903 0 0 21.4903 0 48C0 74.5097 21.4903 96 48 96Z" fill="#F0B90B"/>
+                <path fillRule="evenodd" clipRule="evenodd" d="M48 69.5L26.5 48L48 26.5L69.5 48L48 69.5ZM37.25 48L48 58.75L58.75 48L48 37.25L37.25 48Z" fill="white"/>
+                <path d="M26.5 48L15.75 37.25L37.25 37.25L26.5 48Z" fill="white"/>
+                <path d="M69.5 48L80.25 58.75H58.75L69.5 48Z" fill="white"/>
+                <path d="M48 26.5L37.25 15.75V37.25L48 26.5Z" fill="white"/>
+                <path d="M48 69.5L58.75 80.25V58.75L48 69.5Z" fill="white"/>
+            </svg>
+        ),
+        bitget: (
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#2166E5" d="M512 1024C229.232 1024 0 794.768 0 512S229.232 0 512 0s512 229.232 512 512-229.232 512-512 512z"/>
+                <path fill="#fff" d="M618.336 295.632a32.544 32.544 0 0 0-45.984 0l-226.08 226.08a32.544 32.544 0 0 0 0 45.984l226.08 226.08a32.512 32.512 0 0 0 45.984-45.984L415.296 544.704l203.04-203.088a32.512 32.512 0 0 0 0-45.984z"/>
+            </svg>
+        ),
     };
     return logos[exchange] || null;
 }
@@ -227,7 +245,7 @@ export default function TradePage() {
                     <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
                         <SelectValue>
                             <div className="flex items-center gap-2">
-                                 {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
+                                 {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} className="text-foreground"/>}
                                 <span>{selectedAccount?.name}</span>
                             </div>
                         </SelectValue>
