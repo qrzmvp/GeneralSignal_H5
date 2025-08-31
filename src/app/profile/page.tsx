@@ -282,7 +282,7 @@ export default function ProfilePage() {
                     <div className="divide-y divide-border/30">
                         <ProfileItem href="/membership" icon={<Crown className="text-yellow-400"/>} label="购买会员" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem icon={<ReceiptText className="text-primary"/>} label="付费明细" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
-                        <ProfileItem icon={<Wallet className="text-primary"/>} label="我的资产" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+                        <ProfileItem href="/my-api" icon={<KeyRound className="text-primary"/>} label="我的API" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem icon={<Settings className="text-primary"/>} label="跟单设置" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                     </div>
                  </CardContent>
