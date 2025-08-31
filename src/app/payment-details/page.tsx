@@ -15,12 +15,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronDown, Bot, Loader2, AlertTriangle, X, Edit, Copy } from 'lucide-react';
 import { SimpleToast } from '@/app/components/SimpleToast';
 import { Badge } from '@/components/ui/badge';
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-} from "@/components/ui/carousel"
-import Autoplay from "embla-carousel-autoplay"
 
 
 const allMockPayments = Array.from({ length: 30 }, (_, i) => {
@@ -29,25 +23,23 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
     const statusOptions = ['支付成功', '支付失败', '审核中'];
     const status = statusOptions[i % 3];
     const HandCopyIcon = () => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        width="24" 
+        height="24" 
         viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
         className="w-5 h-5 text-blue-400"
       >
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72" />
-        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72" />
-        <path d="M8 2v2" />
-        <path d="M12 2v2" />
-        <path d="M16 2v2" />
-        <path d="M21 8h-2" />
-        <path d="M21 12h-2" />
+        <path d="M9.8 19.4c-1.3.5-2.8.3-3.9-.6-1.1-.9-1.8-2.3-1.8-3.7 0-3.3 2.7-6.1 6-6.1s6 2.7 6 6.1c0 1.4-.7 2.8-1.8 3.7-1.1.9-2.6 1.1-3.9.6" />
+        <path d="M12.5 12.5V16" />
+        <path d="M12.5 8.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Z" />
+        <path d="M9.4 6.6c.2-.5.5-.9.9-1.2" />
+        <path d="M14.6 6.6c-.2-.5-.5-.9-.9-1.2" />
       </svg>
     );
 
@@ -180,43 +172,34 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 
 function NotificationBanner() {
     const [isVisible, setIsVisible] = useState(true);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     const notifications = [
         "支付可能存在延迟，请耐心等待",
         "若长时间审核中请联系客服处理"
     ];
 
+     useEffect(() => {
+        if (!isVisible) return;
+        const interval = setInterval(() => {
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % notifications.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [isVisible, notifications.length]);
+
     if (!isVisible) {
         return null;
     }
 
     return (
-        <div className="h-8 bg-yellow-500/10 text-yellow-200 px-4 relative flex items-center">
-            <Carousel
-                opts={{
-                    align: "start",
-                    loop: true,
-                }}
-                plugins={[
-                    Autoplay({
-                      delay: 4000,
-                    }),
-                ]}
-                orientation="vertical"
-                className="w-full h-full overflow-hidden"
-            >
-                <CarouselContent className="-mt-4 h-full">
-                    {notifications.map((text, index) => (
-                        <CarouselItem key={index} className="pt-4 basis-full flex items-center gap-3">
-                            <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
-                            <p className="text-sm truncate">{text}</p>
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-            </Carousel>
-            <Button 
-                variant="ghost" 
-                size="icon" 
+        <div className="h-8 bg-yellow-500/10 text-yellow-200 px-4 relative flex items-center overflow-hidden">
+            <div className="flex items-center gap-3 w-full">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                <p className="text-sm truncate flex-grow">{notifications[currentIndex]}</p>
+            </div>
+            <Button
+                variant="ghost"
+                size="icon"
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-yellow-200/70 hover:text-yellow-200 hover:bg-white/10"
                 onClick={() => setIsVisible(false)}
             >
