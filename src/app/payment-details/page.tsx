@@ -203,11 +203,11 @@ function NotificationBanner() {
                     }),
                 ]}
                 orientation="vertical"
-                className="w-full h-full overflow-hidden"
+                className="w-full h-full"
             >
-                <CarouselContent className="h-full">
+                <CarouselContent className="h-8">
                     {notifications.map((text, index) => (
-                        <CarouselItem key={index} className="flex items-center gap-3">
+                        <CarouselItem key={index} className="flex items-center h-full gap-3">
                             <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
                             <p className="text-sm truncate">{text}</p>
                         </CarouselItem>
