@@ -191,7 +191,7 @@ function NotificationBanner() {
     }
 
     return (
-        <div className="h-8 flex items-center bg-yellow-500/10 text-yellow-200 px-4 relative">
+        <div className="h-8 bg-yellow-500/10 text-yellow-200 px-4 relative flex items-center">
             <Carousel
                 opts={{
                     align: "start",
@@ -203,11 +203,11 @@ function NotificationBanner() {
                     }),
                 ]}
                 orientation="vertical"
-                className="w-full h-full"
+                className="w-full h-full overflow-hidden"
             >
-                <CarouselContent className="h-8">
+                <CarouselContent className="-mt-4 h-full">
                     {notifications.map((text, index) => (
-                        <CarouselItem key={index} className="flex items-center h-full gap-3">
+                        <CarouselItem key={index} className="pt-4 basis-full flex items-center gap-3">
                             <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
                             <p className="text-sm truncate">{text}</p>
                         </CarouselItem>
