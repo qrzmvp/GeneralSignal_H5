@@ -150,7 +150,7 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
                     <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </div>
