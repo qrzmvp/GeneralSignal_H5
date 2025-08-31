@@ -1,8 +1,9 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useInView } from 'react-intersection-observer';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,31 +12,51 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronDown, Copy, Bot, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Copy, Bot, ShieldCheck, Loader2 } from 'lucide-react';
 import { SimpleToast } from '@/app/components/SimpleToast';
 
-const mockPayments = [
-    { 
-        id: '1', 
-        paymentMethod: 'TRC20',
-        paymentAddress: 'TXYZ...abcd',
-        senderAddress: 'TABC...wxyz',
-        paymentType: '自动跟单 · 1年',
-        completionTime: '2024-05-20 10:30:15',
-        icon: <Bot className="w-5 h-5 text-green-400" />,
-        type: 'auto'
-    },
-    { 
-        id: '2', 
-        paymentMethod: 'TRC20',
-        paymentAddress: 'TXYZ...abcd',
-        senderAddress: 'TDEF...uvwx',
-        paymentType: '手动跟单 · 3个月',
-        completionTime: '2024-02-15 09:00:41',
-        icon: <ShieldCheck className="w-5 h-5 text-blue-400" />,
-        type: 'manual'
+
+const allMockPayments = Array.from({ length: 30 }, (_, i) => {
+    const type = i % 4;
+    let paymentType, icon, typeKey;
+    switch (type) {
+        case 0:
+            paymentType = '自动跟单 · 1年';
+            icon = <Bot className="w-5 h-5 text-green-400" />;
+            typeKey = 'auto-year';
+            break;
+        case 1:
+            paymentType = '手动跟单 · 3个月';
+            icon = <ShieldCheck className="w-5 h-5 text-blue-400" />;
+            typeKey = 'manual-quarter';
+            break;
+        case 2:
+            paymentType = '自动跟单 · 1个月';
+            icon = <Bot className="w-5 h-5 text-green-400" />;
+            typeKey = 'auto-month';
+            break;
+        default:
+            paymentType = '手动跟单 · 1年';
+            icon = <ShieldCheck className="w-5 h-5 text-blue-400" />;
+            typeKey = 'manual-year';
+            break;
     }
-];
+    const paymentMethod = i % 3 === 0 ? 'ERC20' : 'TRC20';
+    const date = new Date(2024, 4 - Math.floor(i / 10), 28 - (i % 28), 10, 30, 15);
+
+    return { 
+        id: `${i + 1}`, 
+        paymentMethod,
+        paymentAddress: 'TXYZ...abcd',
+        senderAddress: `T${[...Array(3)].map(() => Math.random().toString(36)[2]).join('')}...${[...Array(4)].map(() => Math.random().toString(36)[2]).join('')}`,
+        paymentType,
+        completionTime: date.toISOString().replace('T', ' ').substring(0, 19),
+        icon,
+        type: typeKey
+    };
+});
+
+const PAGE_SIZE = 10;
 
 function InfoPill({ label, value, action, isAddress = false }: { label: string; value: string; action?: React.ReactNode; isAddress?: boolean }) {
     const [showToast, setShowToast] = useState(false);
@@ -64,7 +85,7 @@ function InfoPill({ label, value, action, isAddress = false }: { label: string; 
     )
 }
 
-function PaymentCard({ payment }: { payment: typeof mockPayments[0] }) {
+function PaymentCard({ payment }: { payment: typeof allMockPayments[0] }) {
   return (
     <Card className="bg-card/50 border-border/30">
       <CardContent className="p-4 space-y-2">
@@ -110,8 +131,44 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 
 
 export default function PaymentDetailsPage() {
-    const [payments, setPayments] = useState(mockPayments);
+    const [payments, setPayments] = useState<(typeof allMockPayments[0])[]>([]);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [hasMore, setHasMore] = useState(true);
+    const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
+    
     const [timeFilterLabel, setTimeFilterLabel] = useState('近三个月');
+    const [methodFilter, setMethodFilter] = useState('全部方式');
+    const [typeFilter, setTypeFilter] = useState('全部类型');
+
+    const loadMorePayments = useCallback(() => {
+        if (loading || !hasMore) return;
+        setLoading(true);
+        
+        setTimeout(() => {
+            const newPayments = allMockPayments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+            setPayments(prev => [...prev, ...newPayments]);
+            setPage(prev => prev + 1);
+            setHasMore(page * PAGE_SIZE < allMockPayments.length);
+            setLoading(false);
+        }, 1000);
+    }, [loading, hasMore, page]);
+    
+    useEffect(() => {
+        // Initial load
+        setLoading(true);
+        setPayments(allMockPayments.slice(0, PAGE_SIZE));
+        setPage(2);
+        setHasMore(PAGE_SIZE < allMockPayments.length);
+        setLoading(false);
+    }, []);
+
+    useEffect(() => {
+        if (inView && !loading) {
+            loadMorePayments();
+        }
+    }, [inView, loading, loadMorePayments]);
+
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -126,7 +183,21 @@ export default function PaymentDetailsPage() {
             </header>
             
             <main className="flex-grow overflow-auto p-4 space-y-4">
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                         <FilterDropdown
+                            label={methodFilter}
+                            options={['全部方式', 'TRC20', 'ERC20']}
+                            onSelect={setMethodFilter}
+                            setLabel={setMethodFilter}
+                        />
+                        <FilterDropdown
+                            label={typeFilter}
+                            options={['全部类型', '自动跟单', '手动跟单']}
+                            onSelect={setTypeFilter}
+                            setLabel={setTypeFilter}
+                        />
+                    </div>
                     <FilterDropdown
                         label={timeFilterLabel}
                         options={['近三个月', '近半年', '近一年']}
@@ -134,7 +205,7 @@ export default function PaymentDetailsPage() {
                         setLabel={setTimeFilterLabel}
                     />
                 </div>
-                {payments.length === 0 ? (
+                {payments.length === 0 && !loading ? (
                     <div className="text-center text-muted-foreground pt-20">
                         <p>暂无付费记录</p>
                     </div>
@@ -145,9 +216,18 @@ export default function PaymentDetailsPage() {
                         ))}
                     </div>
                 )}
+                <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                    {loading && (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>加载中...</span>
+                        </>
+                    )}
+                    {!loading && !hasMore && payments.length > 0 && (
+                        <span>已经到底了</span>
+                    )}
+                </div>
             </main>
         </div>
     );
 }
-
-    
