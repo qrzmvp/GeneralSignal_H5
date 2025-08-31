@@ -10,7 +10,8 @@ import {
   Plus,
   Loader2,
   Crown,
-  ArrowRightLeft
+  ArrowRightLeft,
+  X,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -258,10 +259,20 @@ export default function LeaderboardPage() {
                 <Input
                 type="search"
                 placeholder="请输入交易员名称和描述"
-                className="pl-10 w-full bg-card border-border/60 rounded-full"
+                className="pl-10 pr-10 w-full bg-card border-border/60 rounded-full [&::-webkit-search-cancel-button]:hidden"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                 {searchQuery && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-foreground"
+                        onClick={() => setSearchQuery('')}
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
             </div>
 
