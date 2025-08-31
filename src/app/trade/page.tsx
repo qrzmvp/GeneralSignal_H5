@@ -49,7 +49,7 @@ function PositionCard({ position }: { position: any }) {
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <h3 className="font-bold text-base">{position.pair}</h3>
-                        <Badge variant={position.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
+                         <Badge variant={position.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
                             'text-xs flex items-center gap-1',
                             position.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
@@ -75,7 +75,7 @@ function PositionCard({ position }: { position: any }) {
                     <Badge variant="secondary" className="px-2 py-0.5 text-xs">{position.leverage}</Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left border-t border-border/30 pt-3">
+                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left border-t border-border/30 pt-3">
                     <div>
                         <p className="text-xs text-muted-foreground">收益额 (USDT)</p>
                         <p className={`text-sm font-semibold mt-1 ${position.pnl > 0 ? 'text-green-400' : 'text-red-400'}`}>{position.pnl > 0 ? '+' : ''}{position.pnl.toFixed(2)}</p>
@@ -85,6 +85,7 @@ function PositionCard({ position }: { position: any }) {
                         <p className={`text-sm font-semibold mt-1 ${position.pnlRate > 0 ? 'text-green-400' : 'text-red-400'}`}>{position.pnlRate > 0 ? '+' : ''}{position.pnlRate.toFixed(2)}%</p>
                     </div>
                 </div>
+
 
                 <div className="grid grid-cols-3 gap-4 text-left border-t border-border/30 pt-3">
                     <div>
@@ -366,12 +367,16 @@ export default function TradePage() {
 
 
     const swipeHandlers = useSwipeable({
-        onSwiped: (eventData) => {
-            const direction = eventData.dir === 'Left' ? 1 : -1;
+        onSwipedLeft: () => {
             const currentIndex = TABS.indexOf(activeTab);
-            const nextIndex = currentIndex + direction;
-            if (nextIndex >= 0 && nextIndex < TABS.length) {
-                setActiveTab(TABS[nextIndex]);
+            if (currentIndex < TABS.length - 1) {
+                setActiveTab(TABS[currentIndex + 1]);
+            }
+        },
+        onSwipedRight: () => {
+             const currentIndex = TABS.indexOf(activeTab);
+            if (currentIndex > 0) {
+                setActiveTab(TABS[currentIndex - 1]);
             }
         },
         trackMouse: true,
@@ -577,30 +582,30 @@ export default function TradePage() {
 
             </main>
 
-            <nav className="fixed bottom-0 left-0 right-0 z-20 flex-shrink-0 bg-card border-t border-border/50 h-16">
+            <nav className="fixed bottom-0 left-0 right-0 z-20 h-16 flex-shrink-0 border-t border-border/50 bg-card">
                 <div className="grid h-full grid-cols-3 text-center">
                     <Link
                         href="/"
                         passHref
-                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors w-full h-full"
+                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
                     >
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <Link
-                        href="/trade"
-                        passHref
-                        className="flex flex-col items-center justify-center w-full h-full"
-                    >
-                        <div className="relative -top-5 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95">
-                                <ArrowRightLeft className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-medium -mt-5 text-primary">交易</span>
-                    </Link>
+                    <div className="flex flex-col items-center justify-center">
+                         <Link
+                            href="/trade"
+                            passHref
+                            className="relative -top-5 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
+                        >
+                            <ArrowRightLeft className="w-6 h-6" />
+                        </Link>
+                        <span className="relative -top-5 text-xs font-medium text-primary">交易</span>
+                    </div>
                     <Link
                         href="/profile"
                         passHref
-                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors w-full h-full"
+                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
