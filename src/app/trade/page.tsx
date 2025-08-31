@@ -130,10 +130,11 @@ const mockAccountData: { [key: string]: any } = {
         pnlRatio: '7.8:1',
         pendingOrders: Array.from({ length: 8 }, (_, i) => {
             const sourceType = i % 3 === 0 ? 'auto' : 'manual';
+            const sourceName = ['Woods', 'Hbj', 'Jonh'][i % 3];
             return {
                 id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
                 sourceType: sourceType,
-                sourceName: sourceType === 'manual' ? ['Woods', 'Hbj'][i%2] : null,
+                sourceName: sourceName,
                 marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
             }
         })
@@ -147,7 +148,10 @@ const mockAccountData: { [key: string]: any } = {
         totalSignals: 120,
         pnlRatio: '12.5:1',
         pendingOrders: Array.from({ length: 4 }, (_, i) => ({
-            id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', sourceType: 'auto', sourceName: null, marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
+            id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
+            sourceType: 'auto', 
+            sourceName: ['Woods', 'Hbj'][i % 2],
+            marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
         }))
     },
 };
@@ -513,3 +517,4 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 
 
     
+
