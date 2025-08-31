@@ -50,13 +50,14 @@ function PositionCard({ position }: { position: any }) {
                     <h3 className="font-bold text-base flex items-center gap-2">
                         {position.pair}
                     </h3>
-                    <div className="flex items-center gap-1.5">
-                        <Button variant="ghost" size="icon" className="w-7 h-7">
-                            <Layers className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="w-7 h-7">
-                            <Upload className="w-4 h-4" />
-                        </Button>
+                    <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+                        {position.sourceAvatar && (
+                            <Avatar className="w-5 h-5">
+                                <AvatarImage src={position.sourceAvatar} alt={position.sourceName} />
+                                <AvatarFallback>{position.sourceName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                        )}
+                        <span className="text-xs truncate">{position.sourceName}</span>
                     </div>
                 </div>
 
@@ -218,6 +219,7 @@ const mockAccountData: { [key: string]: any } = {
         currentPositions: Array.from({ length: 3 }, (_, i) => {
             const isLong = i % 2 === 0;
             const entryPrice = 68000 - i * 500;
+            const sourceTrader = allTraders[(i + 2) % allTraders.length];
             return {
                 id: `okx-pos-${i}`,
                 pair: 'BTC/USDT 永续',
@@ -232,6 +234,8 @@ const mockAccountData: { [key: string]: any } = {
                 entryPrice: entryPrice,
                 markPrice: entryPrice * (isLong ? 1.01 : 0.99),
                 liqPrice: entryPrice * (isLong ? 0.9 : 1.1),
+                sourceName: sourceTrader.name,
+                sourceAvatar: sourceTrader.avatar,
             }
         }),
     },
@@ -548,28 +552,30 @@ export default function TradePage() {
 
             </main>
 
-            <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
-                <div className="grid grid-cols-3 items-center h-full text-center">
-                    <Link 
-                        href="/" 
+            <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-16 flex-shrink-0 border-t border-border/50 bg-card">
+                <div className="grid h-full w-full grid-cols-3 items-center text-center">
+                    <Link
+                        href="/"
                         passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                        className="flex h-full w-full flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
                     >
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <div className="relative flex flex-col items-center justify-center h-full">
-                        <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
-                             <Link href="/trade" passHref>
-                                <ArrowRightLeft className="w-6 h-6" />
-                            </Link>
-                        </div>
-                        <span className="text-xs font-medium pt-8 text-primary">交易</span>
+                    <div className="relative flex h-full flex-col items-center justify-center">
+                        <Link
+                            href="/trade"
+                            passHref
+                            className="absolute -top-5 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
+                        >
+                            <ArrowRightLeft className="h-6 w-6" />
+                        </Link>
+                        <span className="pt-8 text-xs font-medium text-primary">交易</span>
                     </div>
                     <Link
                         href="/profile"
                         passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                        className="flex h-full w-full flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
