@@ -55,7 +55,9 @@ import {
     Settings, 
     User, 
     Wallet,
-    X
+    X,
+    Users,
+    Ticket
 } from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
 import { Label } from '@/components/ui/label';
@@ -212,14 +214,14 @@ export default function ProfilePage() {
     const user = {
         name: 'CryptoKing',
         id: '88888888',
-        email: 'crypto.king@example.com',
+        invitationCode: 'INVT8888',
         avatar: 'https://i.pravatar.cc/150?u=cryptoking',
         membership: '年度会员'
     }
 
-    const handleCopyId = () => {
+    const handleCopy = (text: string) => {
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(user.id);
+            navigator.clipboard.writeText(text);
             setShowToast(true);
         }
     }
@@ -264,13 +266,16 @@ export default function ProfilePage() {
                         </h2>
                         <div className="flex items-center text-xs text-muted-foreground">
                             <span>ID: {user.id}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={handleCopyId}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => handleCopy(user.id)}>
                                 <Copy className="h-3 w-3" />
                             </Button>
                         </div>
                          <div className="flex items-center text-xs text-muted-foreground gap-1">
-                            <Mail className="w-3 h-3" />
-                            <span>{user.email || '--'}</span>
+                            <Ticket className="w-3 h-3" />
+                            <span>邀请码: {user.invitationCode}</span>
+                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(user.invitationCode)}>
+                                <Copy className="h-3 w-3" />
+                            </Button>
                         </div>
                     </div>
                 </CardContent>
@@ -283,6 +288,7 @@ export default function ProfilePage() {
                         <ProfileItem href="/membership" icon={<Crown className="text-yellow-400"/>} label="购买会员" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem href="/payment-details" icon={<ReceiptText className="text-primary"/>} label="付费明细" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem href="/my-api" icon={<KeyRound className="text-primary"/>} label="我的API" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+                        <ProfileItem href="/invite" icon={<Users className="text-primary"/>} label="邀请好友" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                     </div>
                  </CardContent>
             </Card>
