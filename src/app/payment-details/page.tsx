@@ -20,6 +20,7 @@ import {
     CarouselContent,
     CarouselItem,
 } from "@/components/ui/carousel"
+import Autoplay from "embla-carousel-autoplay"
 
 
 const allMockPayments = Array.from({ length: 30 }, (_, i) => {
@@ -161,28 +162,32 @@ function NotificationBanner() {
     ];
 
     return (
-        <Card className="bg-yellow-500/10 border-yellow-500/20 text-yellow-200">
+        <div className="bg-yellow-500/10 text-yellow-200 px-4 py-2">
             <Carousel
                 opts={{
                     align: "start",
                     loop: true,
                 }}
-                className="w-full"
+                plugins={[
+                    Autoplay({
+                      delay: 4000,
+                    }),
+                ]}
+                orientation="vertical"
+                className="w-full h-8 overflow-hidden"
             >
-                <CarouselContent>
+                <CarouselContent className="-mt-2 h-full">
                     {notifications.map((text, index) => (
-                        <CarouselItem key={index}>
-                            <div className="p-3">
-                                <div className="flex items-center gap-3">
-                                    <AlertTriangle className="w-5 h-5 text-yellow-400" />
-                                    <p className="text-sm">{text}</p>
-                                </div>
+                        <CarouselItem key={index} className="pt-2">
+                            <div className="flex items-center gap-3">
+                                <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                                <p className="text-sm truncate">{text}</p>
                             </div>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
             </Carousel>
-        </Card>
+        </div>
     )
 }
 
@@ -238,9 +243,10 @@ export default function PaymentDetailsPage() {
                 <h1 className="text-lg font-bold">付费明细</h1>
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
+
+            <NotificationBanner />
             
             <main className="flex-grow overflow-auto p-4 space-y-4">
-                <NotificationBanner />
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                          <FilterDropdown
@@ -289,5 +295,3 @@ export default function PaymentDetailsPage() {
         </div>
     );
 }
-
-    

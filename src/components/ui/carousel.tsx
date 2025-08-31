@@ -54,7 +54,7 @@ const Carousel = React.forwardRef<
       orientation = "horizontal",
       opts,
       setApi,
-      plugins = [Autoplay({ delay: 3000, stopOnInteraction: true })],
+      plugins,
       className,
       children,
       ...props
@@ -263,5 +263,3 @@ export {
   CarouselPrevious,
   CarouselNext,
 }
-
-    
