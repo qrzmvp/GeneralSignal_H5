@@ -228,7 +228,7 @@ export default function TradePage() {
         <>
         <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
             <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-                <div className="w-9"></div>
+                <div className="w-16"></div>
                 <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
                     <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
                         <SelectValue>
@@ -250,9 +250,7 @@ export default function TradePage() {
                     </SelectContent>
                 </Select>
                 <Link href="/my-api">
-                    <Button variant="ghost" size="icon">
-                        <Plus className="w-5 h-5"/>
-                    </Button>
+                    <Button variant="link" className="text-primary px-0 hover:no-underline">新增</Button>
                 </Link>
             </header>
 
@@ -475,5 +473,9 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 
 
 
+
+    
+
+    
 
     
