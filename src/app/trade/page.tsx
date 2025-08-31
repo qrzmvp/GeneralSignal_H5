@@ -56,14 +56,14 @@ function PositionCard({ position }: { position: any }) {
                             {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
                         </Badge>
                     </div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         {position.sourceAvatar && (
-                            <Avatar className="w-5 h-5">
+                            <Avatar className="h-5 w-5">
                                 <AvatarImage src={position.sourceAvatar} alt={position.sourceName} />
                                 <AvatarFallback>{position.sourceName?.charAt(0)}</AvatarFallback>
                             </Avatar>
                         )}
-                        <span className="text-xs truncate">{position.sourceName}</span>
+                        <span className="truncate text-xs">{position.sourceName}</span>
                     </div>
                 </div>
 
@@ -639,14 +639,11 @@ function FilterDropdown({ label, options, onSelect }: { label: string; options: 
 }
 
 function FollowTypeFilterDropdown({ title }: { title: string }) {
-    const [showAuto, setShowAuto] = useState(true);
-    const [showManual, setShowManual] = useState(true);
+    const [selectedType, setSelectedType] = useState('全部');
 
     const getLabel = () => {
-        if (showAuto && showManual) return title;
-        if (showAuto) return '自动';
-        if (showManual) return '手动';
-        return '无';
+        if (selectedType === '全部') return title;
+        return selectedType;
     };
 
     return (
@@ -657,19 +654,16 @@ function FollowTypeFilterDropdown({ title }: { title: string }) {
                     <ChevronDown className="w-4 h-4 ml-1" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuCheckboxItem
-                    checked={showAuto}
-                    onCheckedChange={setShowAuto}
-                >
+            <DropdownMenuContent align="start">
+                <DropdownMenuItem onSelect={() => setSelectedType('全部')}>
+                    全部
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setSelectedType('自动')}>
                     自动
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                    checked={showManual}
-                    onCheckedChange={setShowManual}
-                >
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setSelectedType('手动')}>
                     手动
-                </DropdownMenuCheckboxItem>
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
