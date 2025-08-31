@@ -163,29 +163,32 @@ const mockAccountData: { [key: string]: any } = {
 function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | 'bitget', className?: string }) {
     const logos: { [key: string]: React.ReactNode } = {
         okx: (
-            <svg className={cn("w-5 h-5", className)} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fillRule="evenodd" clipRule="evenodd" d="M24 48C37.2548 48 48 37.2548 48 24C48 10.7452 37.2548 0 24 0C10.7452 0 0 10.7452 0 24C0 37.2548 10.7452 48 24 48ZM30.4376 13.4146L24.0053 19.8469L17.5731 13.4146L13.4146 17.5731L19.8468 24.0053L13.4146 30.4376L17.5731 34.596L24.0053 28.1638L30.4376 34.596L34.596 30.4376L28.1638 24.0053L34.596 17.5731L30.4376 13.4146Z" fill="currentColor"/>
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="10" cy="10" r="10" fill="black"/>
+                <path d="M5 5L7.5 10L5 15H7.8L10 10.8L12.2 15H15L12.5 10L15 5H12.2L10 9.2L7.8 5H5Z" fill="white"/>
             </svg>
         ),
         binance: (
-            <svg className={cn("w-5 h-5", className)} viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fillRule="evenodd" clipRule="evenodd" d="M48 96C74.5097 96 96 74.5097 96 48C96 21.4903 74.5097 0 48 0C21.4903 0 0 21.4903 0 48C0 74.5097 21.4903 96 48 96Z" fill="#F0B90B"/>
-                <path fillRule="evenodd" clipRule="evenodd" d="M48 69.5L26.5 48L48 26.5L69.5 48L48 69.5ZM37.25 48L48 58.75L58.75 48L48 37.25L37.25 48Z" fill="white"/>
-                <path d="M26.5 48L15.75 37.25L37.25 37.25L26.5 48Z" fill="white"/>
-                <path d="M69.5 48L80.25 58.75H58.75L69.5 48Z" fill="white"/>
-                <path d="M48 26.5L37.25 15.75V37.25L48 26.5Z" fill="white"/>
-                <path d="M48 69.5L58.75 80.25V58.75L48 69.5Z" fill="white"/>
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="10" cy="10" r="10" fill="#F0B90B"/>
+                <path d="M6.05769 10L10 13.9423L13.9423 10L10 6.05769L6.05769 10Z" fill="white"/>
+                <path d="M10 11.827L11.827 10L10 8.173L8.173 10L10 11.827Z" fill="white"/>
+                <path d="M4.23 10L2.30769 8.077L6.15385 8.077L4.23 10Z" fill="white"/>
+                <path d="M15.7692 10L17.6923 11.923H13.8462L15.7692 10Z" fill="white"/>
+                <path d="M10 6.15385L8.07692 4.23V8.07692L10 6.15385Z" fill="white"/>
+                <path d="M10 13.8462L11.9231 15.7692V11.9231L10 13.8462Z" fill="white"/>
             </svg>
         ),
         bitget: (
-            <svg className={cn("w-5 h-5", className)} viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                <path fill="#2166E5" d="M512 1024C229.232 1024 0 794.768 0 512S229.232 0 512 0s512 229.232 512 512-229.232 512-512 512z"/>
-                <path fill="#fff" d="M618.336 295.632a32.544 32.544 0 0 0-45.984 0l-226.08 226.08a32.544 32.544 0 0 0 0 45.984l226.08 226.08a32.512 32.512 0 0 0 45.984-45.984L415.296 544.704l203.04-203.088a32.512 32.512 0 0 0 0-45.984z"/>
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="10" cy="10" r="10" fill="#2166E5"/>
+                <path d="M12.8083 6.08209C12.4419 5.71573 11.8581 5.71573 11.4917 6.08209L7.19173 10.3821C6.82537 10.7485 6.82537 11.3322 7.19173 11.6986L11.4917 16.0001C11.8581 16.3664 12.4419 16.3664 12.8083 16.0001C13.1746 15.6337 13.1746 15.05 12.8083 14.6836L9.12463 11.0303L12.8083 7.4566C13.1746 7.09024 13.1746 6.50645 12.8083 6.08209Z" fill="white"/>
             </svg>
         ),
     };
     return logos[exchange] || null;
 }
+
 
 const TABS = ['current', 'positions'];
 
@@ -475,5 +478,7 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     </DropdownMenu>
   );
 }
+
+    
 
     
