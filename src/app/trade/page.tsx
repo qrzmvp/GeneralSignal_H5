@@ -118,7 +118,6 @@ interface Account {
 const accounts: Account[] = [
     { id: 'okx-10001', name: '10001', type: 'live', exchange: 'okx' },
     { id: 'binance-20002', name: '20002', type: 'live', exchange: 'binance' },
-    { id: 'demo-1', name: '模拟账户', type: 'demo', exchange: 'bitget' },
 ]
 
 const mockAccountData: { [key: string]: any } = {
@@ -169,14 +168,14 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | '
             </svg>
         ),
         binance: (
-            <svg className={cn("w-5 h-5", className)} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="10" cy="10" r="10" fill="#F0B90B"/>
-                <path d="M6.05769 10L10 13.9423L13.9423 10L10 6.05769L6.05769 10Z" fill="white"/>
-                <path d="M10 11.827L11.827 10L10 8.173L8.173 10L10 11.827Z" fill="white"/>
-                <path d="M4.23 10L2.30769 8.077L6.15385 8.077L4.23 10Z" fill="white"/>
-                <path d="M15.7692 10L17.6923 11.923H13.8462L15.7692 10Z" fill="white"/>
-                <path d="M10 6.15385L8.07692 4.23V8.07692L10 6.15385Z" fill="white"/>
-                <path d="M10 13.8462L11.9231 15.7692V11.9231L10 13.8462Z" fill="white"/>
+             <svg className={cn("w-5 h-5", className)} viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M48 0C21.49 0 0 21.49 0 48C0 74.51 21.49 96 48 96C74.51 96 96 74.51 96 48C96 21.49 74.51 0 48 0Z" fill="#F0B90B"/>
+                <path d="M25.32 48.01L48.02 70.69L70.72 48.01L48.02 25.33L25.32 48.01Z" fill="white"/>
+                <path d="M48.02 56.84L56.86 48.01L48.02 39.18L39.18 48.01L48.02 56.84Z" fill="white"/>
+                <path d="M19.82 48.01L14.42 42.62H31.02L19.82 48.01Z" fill="white"/>
+                <path d="M76.22 48.01L81.62 53.4H65.02L76.22 48.01Z" fill="white"/>
+                <path d="M48.02 31.01L42.62 25.62V36.41L48.02 31.01Z" fill="white"/>
+                <path d="M48.02 65.01L53.42 70.4V59.61L48.02 65.01Z" fill="white"/>
             </svg>
         ),
         bitget: (
@@ -248,7 +247,7 @@ export default function TradePage() {
                     <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2">
                         <SelectValue>
                             <div className="flex items-center gap-2">
-                                 {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} className="text-foreground"/>}
+                                 {selectedAccount && <ExchangeIcon exchange={selectedAccount.exchange} />}
                                 <span>{selectedAccount?.name}</span>
                             </div>
                         </SelectValue>
