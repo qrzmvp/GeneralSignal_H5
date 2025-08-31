@@ -161,12 +161,12 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', cl
         ),
         binance: (
             <svg className={cn("w-5 h-5", className)} viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="96" height="96" fill="black"/>
-                <path d="M64.2197 48.002L76.8016 35.4201L64.2197 22.8382L51.6378 35.4201L64.2197 48.002Z" fill="#F0B90B"/>
-                <path d="M51.6378 60.5839L64.2197 73.1658L76.8016 60.5839L64.2197 48.002L51.6378 60.5839Z" fill="#F0B90B"/>
-                <path d="M39.0559 48.002L51.6378 35.4201L39.0559 22.8382L26.474 35.4201L39.0559 48.002Z" fill="#F0B90B"/>
-                <path d="M51.6378 60.5839L39.0559 48.002L26.474 60.5839L39.0559 73.1658L51.6378 60.5839Z" fill="#F0B90B"/>
-                <path d="M51.6378 48.002L57.9288 41.7111L51.6378 35.4201L45.3469 41.7111L51.6378 48.002Z" fill="#F0B90B"/>
+              <rect width="96" height="96" fill="black"/>
+              <path d="M64.2197 48.002L76.8016 35.4201L64.2197 22.8382L51.6378 35.4201L64.2197 48.002Z" fill="#F0B90B"/>
+              <path d="M51.6378 60.5839L64.2197 73.1658L76.8016 60.5839L64.2197 48.002L51.6378 60.5839Z" fill="#F0B90B"/>
+              <path d="M39.0559 48.002L51.6378 35.4201L39.0559 22.8382L26.474 35.4201L39.0559 48.002Z" fill="#F0B90B"/>
+              <path d="M51.6378 60.5839L39.0559 48.002L26.474 60.5839L39.0559 73.1658L51.6378 60.5839Z" fill="#F0B90B"/>
+              <path d="M51.6378 48.002L57.9288 41.7111L51.6378 35.4201L45.3469 41.7111L51.6378 48.002Z" fill="#F0B90B"/>
             </svg>
         ),
     };
@@ -466,6 +466,7 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     
 
     
+
 
 
 
