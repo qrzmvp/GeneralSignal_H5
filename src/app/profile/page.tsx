@@ -64,6 +64,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { AvatarEditor } from '../components/AvatarEditor';
 
 
 function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
@@ -211,13 +212,13 @@ export default function ProfilePage() {
     const router = useRouter();
 
     // Mock data
-    const user = {
+    const [user, setUser] = useState({
         name: 'CryptoKing',
         id: '88888888',
         invitationCode: 'INVT8888',
         avatar: 'https://i.pravatar.cc/150?u=cryptoking',
         membership: '年度会员'
-    }
+    });
 
     const handleCopy = (text: string) => {
         if (navigator.clipboard) {
@@ -230,6 +231,10 @@ export default function ProfilePage() {
         // In a real app, you would clear auth tokens, etc.
         router.push('/login');
     }
+
+    const handleAvatarChange = (newAvatar: string) => {
+        setUser(prevUser => ({...prevUser, avatar: newAvatar}));
+    };
 
   return (
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
@@ -249,10 +254,12 @@ export default function ProfilePage() {
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         
-                        <button className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors border-2 border-card">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">编辑头像</span>
-                        </button>
+                        <AvatarEditor onSave={handleAvatarChange}>
+                            <button className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors border-2 border-card">
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">编辑头像</span>
+                            </button>
+                        </AvatarEditor>
                     </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold flex items-center gap-2">
@@ -397,4 +404,5 @@ export default function ProfilePage() {
 }
 
     
+
 
