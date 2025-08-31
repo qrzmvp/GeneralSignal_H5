@@ -151,7 +151,6 @@ function FilterDropdown({ label }: { label: string }) {
 }
 
 export default function LeaderboardPage() {
-    const [activeTab, setActiveTab] = useState('leaderboard');
     const [page, setPage] = useState(1);
     const [traders, setTraders] = useState<Trader[]>([]);
     const [loading, setLoading] = useState(true);
@@ -325,23 +324,21 @@ export default function LeaderboardPage() {
             <Link 
                 href="/" 
                 passHref
-                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full ${
-                activeTab === 'leaderboard' ? 'text-primary' : 'text-muted-foreground'
-                }`}
+                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-primary"
             >
                 <BarChart className="h-6 w-6" />
                 <span className="text-xs font-medium">将军榜</span>
             </Link>
-             <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
+             <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full text-muted-foreground">
                  <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
                     <ArrowRightLeft className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
+                <span className="text-xs font-medium pt-8">交易</span>
             </Link>
             <Link
                 href="/profile"
                 passHref
-                className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
             >
                 <User className="h-6 w-6" />
                 <span className="text-xs font-medium">我的</span>
