@@ -443,11 +443,14 @@ export default function TradePage() {
                                                 )}
                                             >
                                                 {selectedAccount.type === 'live' 
-                                                    ? <>
+                                                    ? <div className="flex items-center gap-1.5">
                                                         <span>实盘</span>
-                                                        <div className={cn("w-2 h-2 rounded-full", selectedAccount.status === 'running' ? 'bg-green-500' : 'bg-muted-foreground/50')} />
+                                                        <div className={cn(
+                                                            "w-2 h-2 rounded-full",
+                                                            selectedAccount.status === 'running' ? 'bg-green-500 pulsing-light' : 'bg-muted-foreground/50'
+                                                        )} />
                                                         <span>{selectedAccount.status === 'running' ? '运行中' : '已停止'}</span>
-                                                      </>
+                                                      </div>
                                                     : '模拟'
                                                 }
                                             </Badge>
@@ -596,12 +599,8 @@ export default function TradePage() {
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <div className="flex flex-col items-center justify-center h-full relative">
-                         <Link
-                            href="/trade"
-                            passHref
-                            className="absolute -top-5 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
-                        >
+                    <div className="relative flex flex-col items-center justify-center h-full">
+                         <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
                             <ArrowRightLeft className="w-6 h-6" />
                         </Link>
                         <span className="text-xs font-medium text-primary pt-8">交易</span>
@@ -677,4 +676,3 @@ function FollowTypeFilterDropdown({ title }: { title: string }) {
         </DropdownMenu>
     );
 }
-
