@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
@@ -37,6 +38,7 @@ import { useInView } from 'react-intersection-observer'
 import { Badge } from '@/components/ui/badge'
 import { FollowOrderSheet } from './components/FollowOrderSheet'
 import { allTraders, Trader } from '@/lib/data'
+import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 10;
 const RANK_BADGES: {[key: number]: { color: string }} = {
@@ -155,11 +157,11 @@ export default function LeaderboardPage() {
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
-    const headerTitleRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLElement>(null);
     const [sortedTraders, setSortedTraders] = useState<Trader[]>([]);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedTraderId, setSelectedTraderId] = useState<number | null>(null);
+    const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
     useEffect(() => {
         // Start with loading true
@@ -211,21 +213,12 @@ export default function LeaderboardPage() {
     }, [inView, hasMore, loading, searchQuery]);
     
     useEffect(() => {
-        const headerTitle = headerTitleRef.current;
         const mainContent = mainContentRef.current;
-
-        if (!mainContent || !headerTitle) return;
+        if (!mainContent) return;
 
         const handleScroll = () => {
-            if (mainContent.scrollTop > 10) {
-                headerTitle.style.height = '0';
-                headerTitle.style.opacity = '0';
-                headerTitle.style.marginTop = '0';
-            } else {
-                headerTitle.style.height = '3.5rem';
-                headerTitle.style.opacity = '1';
-                headerTitle.style.marginTop = '0';
-            }
+            const isScrolled = mainContent.scrollTop > 10;
+            setIsHeaderVisible(!isScrolled);
         };
 
         mainContent.addEventListener('scroll', handleScroll);
@@ -246,7 +239,14 @@ export default function LeaderboardPage() {
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
       
       <header className="flex-shrink-0">
-        <div ref={headerTitleRef} className="flex items-center justify-center p-4 h-14 transition-all duration-300 ease-in-out overflow-hidden">
+        <div 
+          className="flex items-center justify-center p-4 transition-all duration-300 ease-in-out overflow-hidden"
+          style={{ 
+            height: isHeaderVisible ? '3.5rem' : '0rem',
+            opacity: isHeaderVisible ? 1 : 0,
+            marginTop: isHeaderVisible ? '0' : '0',
+          }}
+        >
           <h1 className="font-bold text-lg">将军榜单</h1>
         </div>
 
@@ -327,7 +327,7 @@ export default function LeaderboardPage() {
                 <span className="text-xs font-medium">将军榜</span>
             </Link>
              <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
-                 <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border border-border/50 transition-transform active:scale-95">
+                 <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
                     <ArrowRightLeft className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
@@ -352,3 +352,5 @@ export default function LeaderboardPage() {
     </>
   )
 }
+
+    
