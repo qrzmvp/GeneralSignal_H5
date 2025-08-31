@@ -4,6 +4,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -104,13 +105,23 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] p-0 flex flex-col bg-background/95 backdrop-blur-sm">
-                <SheetHeader className="text-center p-4 border-b flex-shrink-0 sticky top-0 bg-background/80 z-10">
+            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] flex flex-col bg-background/95 backdrop-blur-sm">
+                <SheetHeader className="text-center p-4 border-b flex-shrink-0 relative">
                     <SheetTitle>跟单设置</SheetTitle>
+                     <SheetClose asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2"
+                            onClick={() => onOpenChange(false)}
+                        >
+                            <X className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                    </SheetClose>
                 </SheetHeader>
                 
-                <div className="flex-grow overflow-y-auto no-scrollbar">
-                    <div className="p-4 space-y-6">
+                <div className="flex-grow overflow-y-auto no-scrollbar p-4">
+                    <div className="space-y-6">
 
                         <div className="space-y-4 p-4 rounded-lg bg-muted/30">
                             <Label className="text-base font-semibold">基础设置</Label>
@@ -268,7 +279,7 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
                         </div>
                     </div>
                 </div>
-                <SheetFooter className="p-4 border-t flex-shrink-0 bg-background/80 sticky bottom-0 z-10">
+                <SheetFooter className="p-4 border-t flex-shrink-0 bg-background/80">
                     <Button type="submit" className="w-full h-12 text-base font-bold" onClick={() => onOpenChange(false)}>确认跟单</Button>
                 </SheetFooter>
             </SheetContent>
