@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,20 @@ import { Label } from "@/components/ui/label";
 interface RegisterFormProps {
     onSwitchToLogin: () => void;
     onRegisterSuccess: () => void;
+    invitationCode?: string | null;
 }
 
-export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps) {
+export function RegisterForm({ onSwitchToLogin, onRegisterSuccess, invitationCode }: RegisterFormProps) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [code, setCode] = useState(invitationCode || "");
+
+  useEffect(() => {
+    if (invitationCode) {
+      setCode(invitationCode);
+    }
+  }, [invitationCode]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -82,9 +90,19 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFor
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
               >
-                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showConfirmWord ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+          </div>
+           <div className="grid gap-2">
+            <Label htmlFor="invitation-code">邀请码 (可选)</Label>
+            <Input 
+              id="invitation-code" 
+              value={code} 
+              onChange={(e) => setCode(e.target.value)} 
+              placeholder="请输入邀请码"
+              className="bg-background/50"
+            />
           </div>
         </CardContent>
         <CardFooter className="flex-col gap-4">

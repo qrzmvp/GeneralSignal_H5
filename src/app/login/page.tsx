@@ -1,17 +1,19 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { LoginForm } from '../components/LoginForm'
 import { RegisterForm } from '../components/RegisterForm'
 import { CryptoBackground } from '../components/CryptoBackground'
 
 type AppState = 'login' | 'register'
 
-export default function App() {
+function LoginPageContent() {
   const [currentPage, setCurrentPage] = useState<AppState>('login')
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invitationCode = searchParams.get('ref');
 
   const handleSwitchToRegister = () => {
     setCurrentPage('register')
@@ -46,10 +48,19 @@ export default function App() {
             <RegisterForm 
               onSwitchToLogin={handleSwitchToLogin}
               onRegisterSuccess={handleRegisterSuccess}
+              invitationCode={invitationCode}
             />
           )}
         </div>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
   )
 }
