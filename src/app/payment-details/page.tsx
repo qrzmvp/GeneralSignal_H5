@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronDown, Copy, Bot, Loader2, AlertTriangle, X } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Copy, Bot, Loader2, AlertTriangle, X, Edit } from 'lucide-react';
 import { SimpleToast } from '@/app/components/SimpleToast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -180,7 +180,7 @@ function NotificationBanner() {
                     }),
                 ]}
                 orientation="vertical"
-                className="w-full h-6 overflow-hidden"
+                className="w-full overflow-hidden"
             >
                 <CarouselContent className="h-full">
                     {notifications.map((text, index) => (
