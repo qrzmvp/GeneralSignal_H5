@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2, RefreshCw, Layers, Upload, Bot } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2, RefreshCw, Layers, Upload, Bot, ClipboardCopy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -53,7 +53,7 @@ function PositionCard({ position }: { position: any }) {
                             'text-xs flex items-center gap-1',
                             position.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
-                            {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                            {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
                         </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -129,7 +129,7 @@ function PendingOrderCard({ order }: { order: any }) {
                             'text-xs flex items-center gap-1',
                             order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
-                            {order.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                            {order.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
                         </Badge>
                     </h3>
                     <div className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -585,18 +585,25 @@ export default function TradePage() {
                 <div className="grid h-full grid-cols-3 text-center">
                     <Link
                         href="/"
+                        passHref
                         className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors w-full h-full"
                     >
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <div className="flex items-center justify-center">
-                        <Link href="/trade" className="relative -top-5 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95">
+                    <Link
+                        href="/trade"
+                        passHref
+                        className="flex flex-col items-center justify-center w-full h-full"
+                    >
+                        <div className="relative -top-5 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95">
                                 <ArrowRightLeft className="w-6 h-6" />
-                        </Link>
-                    </div>
+                        </div>
+                        <span className="text-xs font-medium -mt-5 text-primary">交易</span>
+                    </Link>
                     <Link
                         href="/profile"
+                        passHref
                         className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors w-full h-full"
                     >
                         <User className="h-6 w-6" />
