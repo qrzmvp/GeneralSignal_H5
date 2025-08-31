@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
@@ -74,7 +75,6 @@ function PositionCard({ position }: { position: any }) {
                             position.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
                             {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <HandClickIcon />}
-                            {position.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -151,7 +151,6 @@ function PendingOrderCard({ order }: { order: any }) {
                             order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
                             {order.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <HandClickIcon />}
-                            {order.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </h3>
                     <div className="text-sm text-muted-foreground flex items-center gap-1.5">
