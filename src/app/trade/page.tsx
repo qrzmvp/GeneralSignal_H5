@@ -32,27 +32,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const PAGE_SIZE = 5;
 
-const HandClickIcon = () => (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        className="w-4 h-4"
-      >
-        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-        <path d="M12 10v4" />
-        <path d="M10 14h4" />
-        <path d="M18 10h1.5a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1.5" />
-        <path d="M6 10H4.5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2H6" />
-      </svg>
-    );
-
 function MetricItem({ label, value, subValue, valueColor }: { label: string, value: string, subValue?: string, valueColor?: string }) {
   return (
     <div className="flex flex-col space-y-1">
@@ -74,7 +53,7 @@ function PositionCard({ position }: { position: any }) {
                             'text-xs flex items-center gap-1',
                             position.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
-                            {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <HandClickIcon />}
+                            {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
                         </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -150,7 +129,7 @@ function PendingOrderCard({ order }: { order: any }) {
                             'text-xs flex items-center gap-1',
                             order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
-                            {order.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <HandClickIcon />}
+                            {order.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
                         </Badge>
                     </h3>
                     <div className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -602,26 +581,23 @@ export default function TradePage() {
 
             </main>
 
-            <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
-                <div className="grid grid-cols-3 items-center h-full text-center">
+            <nav className="fixed bottom-0 left-0 right-0 z-20 flex-shrink-0 bg-card border-t border-border/50 h-16">
+                <div className="grid h-full grid-cols-3 text-center">
                     <Link
                         href="/"
-                        passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors w-full h-full"
                     >
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <div className="relative flex flex-col items-center justify-center h-full">
-                        <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
-                            <ArrowRightLeft className="w-6 h-6" />
+                    <div className="flex items-center justify-center">
+                        <Link href="/trade" className="relative -top-5 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95">
+                                <ArrowRightLeft className="w-6 h-6" />
                         </Link>
-                        <span className="text-xs font-medium pt-8 text-primary">交易</span>
                     </div>
                     <Link
                         href="/profile"
-                        passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors w-full h-full"
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
