@@ -215,7 +215,7 @@ export default function TraderDetailPage() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
-  const traderId = params.id ? parseInt(params.id as string, 10) : null;
+  const traderId = parseInt(params.id as string, 10);
   const rank = searchParams.get('rank') ? parseInt(searchParams.get('rank') as string, 10) : null;
   const trader = traders.find(t => t.id === traderId);
   const badge = rank && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
