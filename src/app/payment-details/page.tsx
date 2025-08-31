@@ -12,13 +12,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronDown, Copy, Bot, Loader2, MousePointerClick } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Copy, Bot, Loader2, MousePointerClick, AlertTriangle } from 'lucide-react';
 import { SimpleToast } from '@/app/components/SimpleToast';
+import { Badge } from '@/components/ui/badge';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+} from "@/components/ui/carousel"
 
 
 const allMockPayments = Array.from({ length: 30 }, (_, i) => {
     const type = i % 4;
     let paymentType, icon, typeKey;
+    const statusOptions = ['支付成功', '支付失败', '审核中'];
+    const status = statusOptions[i % 3];
+
     switch (type) {
         case 0:
             paymentType = '自动跟单 · 1年';
@@ -52,7 +61,8 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
         paymentType,
         completionTime: date.toISOString().replace('T', ' ').substring(0, 19),
         icon,
-        type: typeKey
+        type: typeKey,
+        status,
     };
 });
 
@@ -86,14 +96,29 @@ function InfoPill({ label, value, action, isAddress = false }: { label: string; 
 }
 
 function PaymentCard({ payment }: { payment: typeof allMockPayments[0] }) {
+    const statusVariant: { [key: string]: 'default' | 'destructive' | 'secondary' } = {
+        '支付成功': 'default',
+        '支付失败': 'destructive',
+        '审核中': 'secondary'
+    };
+
+    const statusColor: { [key: string]: string } = {
+        '支付成功': 'bg-green-500/20 text-green-400 border-green-500/30',
+        '支付失败': 'bg-red-500/20 text-red-400 border-red-500/30',
+        '审核中': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+    };
+  
   return (
-    <Card className="bg-card/50 border-border/30">
+    <Card className="bg-card/50 border-border/30 overflow-hidden relative">
       <CardContent className="p-4 space-y-2">
         <div className="flex justify-between items-center pb-2">
             <div className="flex items-center gap-3">
                 {payment.icon}
                 <h3 className="font-bold text-base">{payment.paymentType}</h3>
             </div>
+             <Badge variant="outline" className={statusColor[payment.status]}>
+                {payment.status}
+            </Badge>
         </div>
         <div className="border-t border-border/30 pt-1">
             <InfoPill label="支付方式" value={payment.paymentMethod} />
@@ -127,6 +152,38 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+function NotificationBanner() {
+    const notifications = [
+        "支付可能存在延迟，请耐心等待",
+        "若长时间审核中请联系客服处理"
+    ];
+
+    return (
+        <Card className="bg-yellow-500/10 border-yellow-500/20 text-yellow-200">
+            <Carousel
+                opts={{
+                    align: "start",
+                    loop: true,
+                }}
+                className="w-full"
+            >
+                <CarouselContent>
+                    {notifications.map((text, index) => (
+                        <CarouselItem key={index}>
+                            <div className="p-3">
+                                <div className="flex items-center gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                                    <p className="text-sm">{text}</p>
+                                </div>
+                            </div>
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+            </Carousel>
+        </Card>
+    )
 }
 
 
@@ -183,6 +240,7 @@ export default function PaymentDetailsPage() {
             </header>
             
             <main className="flex-grow overflow-auto p-4 space-y-4">
+                <NotificationBanner />
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                          <FilterDropdown
@@ -231,3 +289,5 @@ export default function PaymentDetailsPage() {
         </div>
     );
 }
+
+    
