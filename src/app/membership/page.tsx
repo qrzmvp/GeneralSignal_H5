@@ -219,7 +219,7 @@ export default function MembershipPage() {
                 </Link>
                 <h1 className="text-lg font-bold">会员中心</h1>
                 <Link href="/payment-details">
-                    <Button variant="link" className="text-primary px-0">付费明细</Button>
+                    <Button variant="link" className="text-primary px-0 hover:no-underline">付费明细</Button>
                 </Link>
             </header>
 
