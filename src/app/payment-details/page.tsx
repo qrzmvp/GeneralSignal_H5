@@ -272,7 +272,9 @@ export default function PaymentDetailsPage() {
                     </Button>
                 </Link>
                 <h1 className="text-lg font-bold">付费明细</h1>
-                <div className="w-9"></div> {/* Placeholder for spacing */}
+                <Link href="/membership">
+                    <Button variant="link" className="text-primary px-0">购买会员</Button>
+                </Link>
             </header>
 
             <NotificationBanner />

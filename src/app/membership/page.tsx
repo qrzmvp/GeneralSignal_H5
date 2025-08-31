@@ -218,7 +218,9 @@ export default function MembershipPage() {
                     </Button>
                 </Link>
                 <h1 className="text-lg font-bold">会员中心</h1>
-                <div className="w-9"></div> {/* Placeholder for spacing */}
+                <Link href="/payment-details">
+                    <Button variant="link" className="text-primary px-0">付费明细</Button>
+                </Link>
             </header>
 
             <main className="flex-grow overflow-auto p-4 space-y-8">
