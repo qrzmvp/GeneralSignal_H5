@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2 } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -55,9 +55,8 @@ function PendingOrderCard({ order }: { order: any }) {
                             {order.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </h3>
-                    <div className="flex items-center gap-2 text-sm">
-                        <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">编辑</Button>
-                        <Button variant="ghost" size="sm" className="p-0 h-auto text-primary">撤单</Button>
+                    <div className="text-sm text-muted-foreground">
+                        {order.sourceName ? `来自 ${order.sourceName}` : '自动跟单信号'}
                     </div>
                 </div>
 
@@ -129,9 +128,15 @@ const mockAccountData: { [key: string]: any } = {
         winRate: 84.00,
         totalSignals: 50,
         pnlRatio: '7.8:1',
-        pendingOrders: Array.from({ length: 8 }, (_, i) => ({
-            id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', sourceType: i % 3 === 0 ? 'auto' : 'manual', marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
-        }))
+        pendingOrders: Array.from({ length: 8 }, (_, i) => {
+            const sourceType = i % 3 === 0 ? 'auto' : 'manual';
+            return {
+                id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
+                sourceType: sourceType,
+                sourceName: sourceType === 'manual' ? ['Woods', 'Hbj'][i%2] : null,
+                marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
+            }
+        })
     },
     'binance-20002': {
         totalAssets: 150345.12,
@@ -142,7 +147,7 @@ const mockAccountData: { [key: string]: any } = {
         totalSignals: 120,
         pnlRatio: '12.5:1',
         pendingOrders: Array.from({ length: 4 }, (_, i) => ({
-            id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', sourceType: 'auto', marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
+            id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', sourceType: 'auto', sourceName: null, marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
         }))
     },
 };
@@ -195,6 +200,7 @@ export default function TradePage() {
 
     const [accountData, setAccountData] = useState<any>(null);
     const [isSwitchingAccount, setIsSwitchingAccount] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
 
@@ -209,6 +215,16 @@ export default function TradePage() {
 
         return () => clearTimeout(timer);
     }, [selectedAccountId]);
+
+    const handleRefresh = () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        // In a real app, you would re-fetch data here.
+        // For now, just simulate a delay.
+        setTimeout(() => {
+            setIsRefreshing(false);
+        }, 1000);
+    };
 
 
     const swipeHandlers = useSwipeable({
@@ -341,12 +357,17 @@ export default function TradePage() {
                                                 setLabel={setPairFilter}
                                             />
                                         </div>
-                                        <FilterDropdown
-                                            label={timeFilterLabel}
-                                            options={['近三个月', '近半年', '近一年']}
-                                            onSelect={setTimeFilterLabel}
-                                            setLabel={setTimeFilterLabel}
-                                        />
+                                        <div className="flex items-center gap-2">
+                                            <FilterDropdown
+                                                label={timeFilterLabel}
+                                                options={['近三个月', '近半年', '近一年']}
+                                                onSelect={setTimeFilterLabel}
+                                                setLabel={setTimeFilterLabel}
+                                            />
+                                            <Button variant="ghost" size="icon" onClick={handleRefresh} className="h-8 w-8 text-muted-foreground">
+                                                <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
+                                            </Button>
+                                        </div>
                                     </div>
                                     {isSwitchingAccount ? (
                                         <div className="flex justify-center items-center h-40">
@@ -383,12 +404,17 @@ export default function TradePage() {
                                                 setLabel={setPosPairFilter}
                                             />
                                         </div>
-                                        <FilterDropdown
-                                            label={posTimeFilterLabel}
-                                            options={['近三个月', '近半年', '近一年']}
-                                            onSelect={setPosTimeFilterLabel}
-                                            setLabel={setPosTimeFilterLabel}
-                                        />
+                                        <div className="flex items-center gap-2">
+                                            <FilterDropdown
+                                                label={posTimeFilterLabel}
+                                                options={['近三个月', '近半年', '近一年']}
+                                                onSelect={setPosTimeFilterLabel}
+                                                setLabel={setPosTimeFilterLabel}
+                                            />
+                                             <Button variant="ghost" size="icon" onClick={handleRefresh} className="h-8 w-8 text-muted-foreground">
+                                                <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
+                                            </Button>
+                                        </div>
                                     </div>
                                     {isSwitchingAccount ? (
                                          <div className="flex justify-center items-center h-40">
@@ -483,3 +509,4 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     
 
     
+
