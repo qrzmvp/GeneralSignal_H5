@@ -61,7 +61,7 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', cl
             </svg>
         ),
         binance: (
-             <svg className={cn("w-8 h-8", className)} viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className={cn("w-8 h-8", className)} viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="96" height="96" fill="black"/>
                 <path d="M64.2197 48.002L76.8016 35.4201L64.2197 22.8382L51.6378 35.4201L64.2197 48.002Z" fill="#F0B90B"/>
                 <path d="M51.6378 60.5839L64.2197 73.1658L76.8016 60.5839L64.2197 48.002L51.6378 60.5839Z" fill="#F0B90B"/>
@@ -146,11 +146,11 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
                 <ExchangeIcon exchange={apiKey.exchange as 'okx' | 'binance'} />
                 <h3 className="font-bold text-lg">{apiKey.name}</h3>
             </div>
-            <div className="flex items-center gap-1 p-1 bg-background/50 rounded-full">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/20 hover:text-primary rounded-full">
+            <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
                     <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/20 hover:text-destructive rounded-full">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </div>
