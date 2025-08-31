@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +23,8 @@ interface RegisterFormProps {
 
 export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFormProps) {
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -46,12 +49,42 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess }: RegisterFor
             <Input id="username-register" required autoComplete="username" className="bg-background/50"/>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email-register">邮箱</Label>
-            <Input id="email-register" type="email" required autoComplete="email" className="bg-background/50"/>
+            <Label htmlFor="password-register">密码</Label>
+            <div className="relative">
+              <Input 
+                id="password-register" 
+                type={showPassword ? "text" : "password"}
+                required 
+                autoComplete="new-password" 
+                className="bg-background/50 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password-register">密码</Label>
-            <Input id="password-register" type="password" required autoComplete="new-password" className="bg-background/50"/>
+            <Label htmlFor="confirm-password-register">再次输入密码</Label>
+             <div className="relative">
+              <Input 
+                id="confirm-password-register" 
+                type={showConfirmPassword ? "text" : "password"}
+                required 
+                autoComplete="new-password" 
+                className="bg-background/50 pr-10"
+              />
+               <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+              >
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex-col gap-4">

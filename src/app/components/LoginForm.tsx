@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Mail, User, Loader2, Bitcoin } from "lucide-react";
+import { Mail, User, Loader2, Bitcoin, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -69,14 +70,23 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password-login">密码</Label>
-                <Input 
-                  id="password-login" 
-                  type="password" 
-                  placeholder="请输入您的密码"
-                  required 
-                  autoComplete="current-password"
-                  className="bg-background/50"
-                />
+                <div className="relative">
+                  <Input 
+                    id="password-login" 
+                    type={showPassword ? "text" : "password"}
+                    placeholder="请输入您的密码"
+                    required 
+                    autoComplete="current-password"
+                    className="bg-background/50 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
             </div>
         </CardContent>
