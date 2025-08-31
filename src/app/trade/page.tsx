@@ -290,7 +290,7 @@ export default function TradePage() {
                 </div>
             </header>
 
-            <main className="flex-grow overflow-auto p-4 space-y-4">
+            <main className="flex-grow overflow-auto p-4 space-y-4 pb-24">
                 <Card className="bg-card/50 border-border/30">
                     <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} asChild>
                         <CardContent className="p-4 pb-2">
@@ -453,28 +453,26 @@ export default function TradePage() {
 
             </main>
 
-            <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-16 flex-shrink-0 border-t border-border/50 bg-card">
-                <div className="grid h-full w-full grid-cols-3 text-center">
-                    <Link
-                        href="/"
-                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
+            <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
+                <div className="grid grid-cols-3 items-center h-full text-center">
+                    <Link 
+                        href="/" 
+                        passHref
+                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
                     >
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <div className="flex flex-col items-center justify-center space-y-1 text-primary">
-                        <div className="relative">
-                        <div className="absolute -top-11 flex h-16 w-16 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95">
-                            <Link href="/trade">
-                            <ArrowRightLeft className="h-7 w-7" />
-                            </Link>
-                        </div>
-                        </div>
-                        <span className="pt-6 text-xs font-medium">交易</span>
+                    <div className="relative flex flex-col items-center justify-center h-full">
+                        <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
+                            <ArrowRightLeft className="w-6 h-6" />
+                        </Link>
+                        <span className="text-xs font-medium pt-8 text-primary">交易</span>
                     </div>
                     <Link
                         href="/profile"
-                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
+                        passHref
+                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
