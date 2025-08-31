@@ -27,6 +27,7 @@ import { ChevronLeft, Plus, Trash2, Edit } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useSwipeable } from 'react-swipeable';
 
 // Mock Data
 const mockApiKeys = [
@@ -191,12 +192,26 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
   )
 }
 
+const TABS = ['okx', 'binance'];
+
 export default function MyApiPage() {
     const [apiKeys, setApiKeys] = useState(mockApiKeys);
     const [activeTab, setActiveTab] = useState('okx');
 
     const okxKeys = apiKeys.filter(key => key.exchange === 'okx');
     const binanceKeys = apiKeys.filter(key => key.exchange === 'binance');
+
+    const swipeHandlers = useSwipeable({
+        onSwiped: (eventData) => {
+            const direction = eventData.dir === 'Left' ? 1 : -1;
+            const currentIndex = TABS.indexOf(activeTab);
+            const nextIndex = currentIndex + direction;
+            if (nextIndex >= 0 && nextIndex < TABS.length) {
+                setActiveTab(TABS[nextIndex]);
+            }
+        },
+        trackMouse: true,
+    });
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -218,7 +233,7 @@ export default function MyApiPage() {
                     </TabsList>
                 </div>
                 
-                <main className="flex-grow overflow-auto p-4 space-y-4">
+                <main className="flex-grow overflow-auto p-4 space-y-4" {...swipeHandlers}>
                     <TabsContent value="okx" className="mt-0 space-y-4">
                         {okxKeys.length === 0 ? (
                             <div className="text-center text-muted-foreground pt-20">

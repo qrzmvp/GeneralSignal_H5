@@ -295,7 +295,7 @@ export default function ProfilePage() {
                 </CardHeader>
                  <CardContent className="p-0">
                     <div className="divide-y divide-border/30">
-                        <ProfileItem icon={<KeyRound className="text-primary"/>} label="修改密码" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
+                        {/* <ProfileItem icon={<KeyRound className="text-primary"/>} label="修改密码" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} /> */}
                     </div>
                  </CardContent>
             </Card>
