@@ -112,7 +112,7 @@ interface Account {
     id: string;
     name: string;
     type: 'live' | 'demo';
-    exchange: 'okx' | 'binance' | 'bitget';
+    exchange: 'okx' | 'binance';
 }
 
 const accounts: Account[] = [
@@ -147,10 +147,10 @@ const mockAccountData: { [key: string]: any } = {
     },
 };
 
-function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | 'bitget', className?: string }) {
+function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', className?: string }) {
     const logos: { [key: string]: React.ReactNode } = {
         okx: (
-            <svg className={cn("w-5 h-5", className)} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+             <svg className={cn("w-5 h-5", className)} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="40" height="40" fill="black"/>
                 <rect x="8" y="8" width="8" height="8" fill="white"/>
                 <rect x="24" y="8" width="8" height="8" fill="white"/>
@@ -161,13 +161,8 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | '
         ),
         binance: (
             <svg className={cn("w-5 h-5", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="24" height="24" rx="2" fill="white"/>
                 <path d="M16.624 13.122L12 17.745l-4.624-4.623 2.122-2.122 2.502 2.502 2.502-2.502 2.122 2.122zM12 6.255l-2.502 2.502-2.122-2.122L12 1.99l4.624 4.645-2.122 2.122L12 6.255zM17.745 12l2.122-2.122L22.01 12l-2.143 2.122L17.745 12zM6.255 12l2.122 2.122L6.255 16.245 4.112 14.122 1.99 12l2.122-2.122L6.255 12zM12 17.745l-2.502-2.502L7.376 17.37l4.624 4.645 4.624-4.645-2.122-2.122L12 17.745z" fill="#F0B90B"/>
-            </svg>
-        ),
-        bitget: (
-            <svg className={cn("w-5 h-5", className)} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="10" cy="10" r="10" fill="#2166E5"/>
-                <path d="M12.8083 6.08209C12.4419 5.71573 11.8581 5.71573 11.4917 6.08209L7.19173 10.3821C6.82537 10.7485 6.82537 11.3322 7.19173 11.6986L11.4917 16.0001C11.8581 16.3664 12.4419 16.3664 12.8083 16.0001C13.1746 15.6337 13.1746 15.05 12.8083 14.6836L9.12463 11.0303L12.8083 7.4566C13.1746 7.09024 13.1746 6.50645 12.8083 6.08209Z" fill="white"/>
             </svg>
         ),
     };
@@ -467,4 +462,5 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     
 
     
+
 
