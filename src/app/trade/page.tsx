@@ -449,31 +449,34 @@ export default function TradePage() {
             </main>
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
-                <div className="grid grid-cols-3 items-center h-full text-center">
-                    <Link
-                        href="/"
-                        passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
-                    >
-                        <BarChart className="h-6 w-6" />
-                        <span className="text-xs font-medium">将军榜</span>
-                    </Link>
-                    <div className="relative flex flex-col items-center justify-center h-full">
-                        <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
-                           <ArrowRightLeft className="w-6 h-6" />
-                       </Link>
-                       <span className="text-xs font-medium pt-8 text-primary">交易</span>
-                   </div>
-                    <Link
-                        href="/profile"
-                        passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
-                    >
-                        <User className="h-6 w-6" />
-                        <span className="text-xs font-medium">我的</span>
-                    </Link>
+            <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-16 flex-shrink-0 border-t border-border/50 bg-card">
+              <div className="grid h-full w-full grid-cols-3 text-center">
+                <Link
+                  href="/"
+                  passHref
+                  className="flex flex-col items-center justify-center space-y-1 pt-1 text-muted-foreground transition-colors"
+                >
+                  <BarChart className="h-6 w-6" />
+                  <span className="text-xs font-medium">将军榜</span>
+                </Link>
+                <div className="flex items-center justify-center">
+                  <Link
+                    href="/trade"
+                    passHref
+                    className="flex h-14 w-14 -translate-y-5 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
+                  >
+                    <ArrowRightLeft className="h-6 w-6" />
+                  </Link>
                 </div>
+                <Link
+                  href="/profile"
+                  passHref
+                  className="flex flex-col items-center justify-center space-y-1 pt-1 text-muted-foreground transition-colors"
+                >
+                  <User className="h-6 w-6" />
+                  <span className="text-xs font-medium">我的</span>
+                </Link>
+              </div>
             </nav>
         </div>
         <FollowOrderSheet 
