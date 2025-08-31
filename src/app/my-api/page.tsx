@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -81,29 +81,59 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', cl
     return logos[exchange] || null;
 }
 
-function AddApiDialog() {
+function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | null, children: React.ReactNode }) {
+    const isEditMode = !!apiKey;
+
+    // Use state to manage form inputs
+    const [exchange, setExchange] = useState(apiKey?.exchange || '');
+    const [name, setName] = useState(apiKey?.name || '');
+    const [key, setKey] = useState(apiKey?.apiKey || '');
+    const [secret, setSecret] = useState(apiKey?.apiSecret || '');
+    const [passphrase, setPassphrase] = useState(apiKey?.passphrase || '');
+    const [open, setOpen] = useState(false);
+
+    // Effect to update form when dialog opens for editing
+    useEffect(() => {
+        if (open && isEditMode) {
+            setExchange(apiKey?.exchange || '');
+            setName(apiKey?.name || '');
+            setKey(apiKey?.apiKey || '');
+            setSecret(apiKey?.apiSecret || '');
+            setPassphrase(apiKey?.passphrase || '');
+        }
+        if (!open) {
+             // Reset form on close
+            setExchange('');
+            setName('');
+            setKey('');
+            setSecret('');
+            setPassphrase('');
+        }
+    }, [open, apiKey, isEditMode]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // In a real app, you would handle form submission logic here.
+        // For now, we just log it and close the dialog.
+        console.log({ exchange, name, key, secret, passphrase });
+        setOpen(false); // Close dialog on submit
+    };
+
     return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button className="w-full h-12 text-base font-bold">
-                    <Plus className="mr-2 h-5 w-5" />
-                    新增API
-                </Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
                 <DialogHeader>
-                    <DialogTitle>新增交易所API</DialogTitle>
-                    <DialogDescription>请填写您的交易所API信息以绑定账户。</DialogDescription>
+                    <DialogTitle>{isEditMode ? "编辑API" : "新增交易所API"}</DialogTitle>
+                    <DialogDescription>
+                        {isEditMode ? "请修改您的API信息。" : "请填写您的交易所API信息以绑定账户。"}
+                    </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={(e) => {
-                    // Basic form validation handled by `required` attribute
-                    // In a real app, you'd handle form submission logic here.
-                    console.log('Form submitted');
-                }}>
+                <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="exchange">交易所</Label>
-                            <Select required>
+                            <Select required value={exchange} onValueChange={setExchange}>
                                 <SelectTrigger id="exchange">
                                     <SelectValue placeholder="请选择交易所" />
                                 </SelectTrigger>
@@ -115,33 +145,29 @@ function AddApiDialog() {
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="name">账户名称</Label>
-                            <Input id="name" placeholder="为您的API起一个名称" required />
+                            <Input id="name" placeholder="为您的API起一个名称" required value={name} onChange={e => setName(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="api-key">API Key</Label>
-                            <Input id="api-key" placeholder="请输入API Key" required />
+                            <Input id="api-key" placeholder="请输入API Key" required value={key} onChange={e => setKey(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="api-secret">API Secret</Label>
-                            <Input id="api-secret" type="password" placeholder="请输入API Secret" required />
+                            <Input id="api-secret" type="password" placeholder="请输入API Secret" required value={secret} onChange={e => setSecret(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="passphrase">Passphrase</Label>
-                            <Input id="passphrase" type="password" placeholder="请输入Passphrase (如有)" required />
+                            <Input id="passphrase" type="password" placeholder="请输入Passphrase (如有)" value={passphrase} onChange={e => setPassphrase(e.target.value)} />
                         </div>
                     </div>
                     <DialogFooter className="flex-row justify-end gap-2">
-                        <DialogClose asChild>
-                            <Button type="button" variant="secondary">取消</Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                            <Button type="submit">确认绑定</Button>
-                        </DialogClose>
+                        <Button type="button" variant="secondary" onClick={() => setOpen(false)}>取消</Button>
+                        <Button type="submit">{isEditMode ? '确认修改' : '确认绑定'}</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
-    )
+    );
 }
 
 function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
@@ -154,9 +180,11 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
                 <h3 className="font-bold text-lg">{apiKey.name}</h3>
             </div>
             <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
-                    <Edit className="h-4 w-4" />
-                </Button>
+                <ApiDialog apiKey={apiKey}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                </ApiDialog>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
                     <Trash2 className="h-4 w-4" />
                 </Button>
@@ -274,10 +302,13 @@ export default function MyApiPage() {
             </Tabs>
 
             <footer className="sticky bottom-0 z-10 p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
-                <AddApiDialog />
+                <ApiDialog>
+                    <Button className="w-full h-12 text-base font-bold">
+                        <Plus className="mr-2 h-5 w-5" />
+                        新增API
+                    </Button>
+                </ApiDialog>
             </footer>
         </div>
     );
 }
-
-    
