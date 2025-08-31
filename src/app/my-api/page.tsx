@@ -56,13 +56,13 @@ const mockApiKeys = [
 function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', className?: string }) {
     const logos: { [key: string]: React.ReactNode } = {
         okx: (
-            <svg className={cn("w-8 h-8", className)} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+             <svg className={cn("w-8 h-8", className)} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="40" height="40" fill="black"/>
-                <path d="M12 12L16 16L12 20L8 16L12 12Z" fill="white"/>
-                <path d="M20 12L24 16L20 20L16 16L20 12Z" fill="white"/>
-                <path d="M28 12L32 16L28 20L24 16L28 12Z" fill="white"/>
-                <path d="M12 20L16 24L12 28L8 24L12 20Z" fill="white"/>
-                <path d="M28 20L32 24L28 28L24 24L28 20Z" fill="white"/>
+                <rect x="8" y="8" width="8" height="8" fill="white"/>
+                <rect x="24" y="8" width="8" height="8" fill="white"/>
+                <rect x="16" y="16" width="8" height="8" fill="white"/>
+                <rect x="8" y="24" width="8" height="8" fill="white"/>
+                <rect x="24" y="24" width="8" height="8" fill="white"/>
             </svg>
         ),
         binance: (
