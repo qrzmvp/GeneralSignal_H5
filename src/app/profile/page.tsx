@@ -352,7 +352,7 @@ export default function ProfilePage() {
                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                            <AlertDialogCancel>取消</AlertDialogCancel>
+                            <AlertDialogCancel variant="secondary">取消</AlertDialogCancel>
                             <AlertDialogAction onClick={handleLogout} className="bg-primary hover:bg-primary/90">确认退出</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
@@ -397,3 +397,4 @@ export default function ProfilePage() {
 }
 
     
+
