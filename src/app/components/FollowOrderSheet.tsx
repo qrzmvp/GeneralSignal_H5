@@ -105,19 +105,9 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] flex flex-col bg-background/95 backdrop-blur-sm">
-                <SheetHeader className="text-center p-4 border-b flex-shrink-0 relative">
+            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] flex flex-col bg-background/95 backdrop-blur-sm p-0">
+                <SheetHeader className="text-center p-4 border-b flex-shrink-0">
                     <SheetTitle>跟单设置</SheetTitle>
-                     <SheetClose asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2"
-                            onClick={() => onOpenChange(false)}
-                        >
-                            <X className="h-5 w-5 text-muted-foreground" />
-                        </Button>
-                    </SheetClose>
                 </SheetHeader>
                 
                 <div className="flex-grow overflow-y-auto no-scrollbar p-4">
