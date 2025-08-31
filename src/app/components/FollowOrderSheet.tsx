@@ -105,7 +105,7 @@ export function FollowOrderSheet({ isOpen, onOpenChange, traders, defaultTraderI
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="rounded-t-lg max-h-[90vh] flex flex-col bg-background/95 backdrop-blur-sm p-0">
+            <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col bg-background/95 backdrop-blur-sm p-0">
                 <SheetHeader className="text-center p-4 border-b flex-shrink-0">
                     <SheetTitle>跟单设置</SheetTitle>
                 </SheetHeader>
