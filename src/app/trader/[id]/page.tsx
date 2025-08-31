@@ -1,9 +1,17 @@
 
+
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   ChevronLeft,
   User,
@@ -421,18 +429,45 @@ export default function TraderDetailPage() {
 
   const activeTabIndex = TABS.findIndex(tab => tab.value === activeTab);
 
+  const handleTraderChange = (newTraderId: string) => {
+    const newRank = allTraders.findIndex(t => t.id === parseInt(newTraderId, 10)) + 1;
+    router.push(`/trader/${newTraderId}?rank=${newRank}`);
+  };
+
+
   return (
     <>
     <div className="bg-background min-h-screen text-foreground flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
-        <Link href="/" passHref>
-            <Button variant="ghost" size="icon" className="-ml-2">
-                <ChevronLeft className="h-6 w-6" />
-            </Button>
-        </Link>
-        <h1 className="text-lg font-bold">{trader.name}</h1>
-        <div className="w-9"></div> {/* Placeholder for spacing */}
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
+            <Link href="/" passHref>
+                <Button variant="ghost" size="icon" className="-ml-2">
+                    <ChevronLeft className="h-6 w-6" />
+                </Button>
+            </Link>
+             <Select value={traderId?.toString()} onValueChange={handleTraderChange}>
+                <SelectTrigger className="w-auto bg-transparent border-0 text-lg font-bold focus:ring-0 focus:ring-offset-0 gap-2 mx-auto">
+                    <SelectValue>
+                        <div className="flex items-center gap-2">
+                            <span>{trader.name}</span>
+                        </div>
+                    </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                     {allTraders.map(t => (
+                        <SelectItem key={t.id} value={t.id.toString()}>
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={t.avatar} alt={t.name} />
+                                    <AvatarFallback>{t.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{t.name}</span>
+                            </div>
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <div className="w-9"></div> {/* Placeholder for spacing */}
       </header>
 
       <main className="flex-grow overflow-auto p-4 space-y-3 pb-28">
@@ -664,5 +699,7 @@ export default function TraderDetailPage() {
     </>
   )
 }
+
+    
 
     
