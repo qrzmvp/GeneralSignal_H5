@@ -42,14 +42,17 @@ function MetricItem({ label, value, subValue, valueColor }: { label: string, val
   )
 }
 
-function PositionCard({ position }: { position: any }) {
+function PositionCard({ position, isHistorical }: { position: any, isHistorical: boolean }) {
+    const pnlColor = isHistorical ? 'text-muted-foreground' : position.pnl > 0 ? 'text-green-400' : 'text-red-400';
+    const textColor = isHistorical ? 'text-muted-foreground' : 'text-foreground';
+
     return (
-        <Card className="bg-card/50 border-border/30">
+        <Card className={cn("bg-card/50 border-border/30", isHistorical && "opacity-70")}>
             <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-base">{position.pair}</h3>
-                         <Badge variant={position.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
+                        <h3 className={cn("font-bold text-base", textColor)}>{position.pair}</h3>
+                        <Badge variant={position.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
                             'text-xs flex items-center gap-1',
                             position.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
                         )}>
@@ -68,21 +71,24 @@ function PositionCard({ position }: { position: any }) {
                 </div>
 
                 <div className="flex items-center gap-2 text-xs">
-                    <Badge className={cn('px-2 py-0.5 text-xs', position.direction === '多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
+                    <Badge className={cn('px-2 py-0.5 text-xs', isHistorical ? 'bg-muted text-muted-foreground' : position.direction === '多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
                         {position.direction}
                     </Badge>
                     <Badge variant="secondary" className="px-2 py-0.5 text-xs">{position.marginMode}</Badge>
                     <Badge variant="secondary" className="px-2 py-0.5 text-xs">{position.leverage}</Badge>
+                     {isHistorical && (
+                        <Badge variant="outline" className="px-2 py-0.5 text-xs text-muted-foreground">{position.closedStatus}</Badge>
+                    )}
                 </div>
 
                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left border-t border-border/30 pt-3">
                     <div>
                         <p className="text-xs text-muted-foreground">收益额 (USDT)</p>
-                        <p className={`text-sm font-semibold mt-1 ${position.pnl > 0 ? 'text-green-400' : 'text-red-400'}`}>{position.pnl > 0 ? '+' : ''}{position.pnl.toFixed(2)}</p>
+                        <p className={`text-sm font-semibold mt-1 ${pnlColor}`}>{position.pnl > 0 ? '+' : ''}{position.pnl.toFixed(2)}</p>
                     </div>
                      <div className="text-right">
                         <p className="text-xs text-muted-foreground">收益率</p>
-                        <p className={`text-sm font-semibold mt-1 ${position.pnlRate > 0 ? 'text-green-400' : 'text-red-400'}`}>{position.pnlRate > 0 ? '+' : ''}{position.pnlRate.toFixed(2)}%</p>
+                        <p className={`text-sm font-semibold mt-1 ${pnlColor}`}>{position.pnlRate > 0 ? '+' : ''}{position.pnlRate.toFixed(2)}%</p>
                     </div>
                 </div>
 
@@ -90,28 +96,46 @@ function PositionCard({ position }: { position: any }) {
                 <div className="grid grid-cols-3 gap-4 text-left border-t border-border/30 pt-3">
                     <div>
                         <p className="text-xs text-muted-foreground">持仓量 (USDT)</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{position.positionSize.toLocaleString()}</p>
+                        <p className={`text-sm font-semibold mt-1 ${textColor}`}>{position.positionSize.toLocaleString()}</p>
                     </div>
                      <div>
                         <p className="text-xs text-muted-foreground">保证金 (USDT)</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{position.margin.toLocaleString()}</p>
+                        <p className={`text-sm font-semibold mt-1 ${textColor}`}>{position.margin.toLocaleString()}</p>
                     </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">维持保证金率</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{position.maintenanceMarginRate}%</p>
-                    </div>
+                    {isHistorical ? (
+                        <div>
+                            <p className="text-xs text-muted-foreground">平仓均价</p>
+                            <p className={`text-sm font-semibold mt-1 ${textColor}`}>{position.closePrice.toLocaleString()}</p>
+                        </div>
+                    ) : (
+                        <div>
+                            <p className="text-xs text-muted-foreground">维持保证金率</p>
+                            <p className={`text-sm font-semibold mt-1 ${textColor}`}>{position.maintenanceMarginRate}%</p>
+                        </div>
+                    )}
                     <div>
                         <p className="text-xs text-muted-foreground">开仓均价</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{position.entryPrice.toLocaleString()}</p>
+                        <p className={`text-sm font-semibold mt-1 ${textColor}`}>{position.entryPrice.toLocaleString()}</p>
                     </div>
-                     <div>
-                        <p className="text-xs text-muted-foreground">标记价格</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{position.markPrice.toLocaleString()}</p>
-                    </div>
-                     <div>
-                        <p className="text-xs text-muted-foreground">预估强平价</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{position.liqPrice || '--'}</p>
-                    </div>
+                    {isHistorical ? (
+                        <>
+                           <div/>
+                           <div className="col-span-3 text-xs text-muted-foreground">
+                                {position.openTime} ~ {position.closeTime}
+                           </div>
+                        </>
+                    ) : (
+                        <>
+                         <div>
+                            <p className="text-xs text-muted-foreground">标记价格</p>
+                            <p className={`text-sm font-semibold mt-1 ${textColor}`}>{position.markPrice.toLocaleString()}</p>
+                        </div>
+                         <div>
+                            <p className="text-xs text-muted-foreground">预估强平价</p>
+                            <p className={`text-sm font-semibold mt-1 ${textColor}`}>{position.liqPrice || '--'}</p>
+                        </div>
+                        </>
+                    )}
                 </div>
             </CardContent>
         </Card>
@@ -119,12 +143,15 @@ function PositionCard({ position }: { position: any }) {
 }
 
 
-function PendingOrderCard({ order }: { order: any }) {
+function PendingOrderCard({ order, isHistorical }: { order: any, isHistorical: boolean }) {
+    const textColor = isHistorical ? 'text-muted-foreground' : 'text-foreground';
+    const priceColor = isHistorical ? 'text-muted-foreground' : 'text-primary';
+
     return (
-        <Card className="bg-card/50 border-border/30">
+        <Card className={cn("bg-card/50 border-border/30", isHistorical && "opacity-70")}>
             <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-center">
-                     <h3 className="font-bold text-base flex items-center gap-2">
+                     <h3 className={cn("font-bold text-base flex items-center gap-2", textColor)}>
                         {order.pair}
                         <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
                             'text-xs flex items-center gap-1',
@@ -147,9 +174,12 @@ function PendingOrderCard({ order }: { order: any }) {
                 <div className="flex justify-between items-center text-xs">
                    <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="px-2 py-0 text-xs">限价</Badge>
-                        <Badge className={`px-2 py-0 text-xs ${order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{order.direction}</Badge>
+                        <Badge className={cn('px-2 py-0 text-xs', isHistorical ? 'bg-muted text-muted-foreground' : order.direction === '开多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>{order.direction}</Badge>
                         <Badge variant="secondary" className="px-2 py-0 text-xs">{order.marginMode}</Badge>
                         <Badge variant="secondary" className="px-2 py-0 text-xs">{order.leverage}</Badge>
+                         {isHistorical && (
+                            <Badge variant="outline" className="px-2 py-0.5 text-xs text-muted-foreground">{order.finalStatus}</Badge>
+                        )}
                     </div>
                     <span className="text-muted-foreground">{order.timestamp}</span>
                 </div>
@@ -157,35 +187,35 @@ function PendingOrderCard({ order }: { order: any }) {
                 <div className="grid grid-cols-3 gap-4 text-center border-t border-border/30 pt-3">
                     <div>
                         <p className="text-xs text-muted-foreground">委托数量 (USDT)</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{order.amount}</p>
+                        <p className={cn("text-sm font-semibold mt-1", textColor)}>{order.amount}</p>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">已成交量 (USDT)</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{order.filled}</p>
+                        <p className={cn("text-sm font-semibold mt-1", textColor)}>{order.filled}</p>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">委托价格</p>
-                        <p className="text-sm font-semibold text-foreground mt-1">{order.price}</p>
+                        <p className={cn("text-sm font-semibold mt-1", priceColor)}>{order.price}</p>
                     </div>
                 </div>
-
-                <div className="border-t border-border/30 pt-3">
-                    <div className="flex justify-between items-start">
-                         <div>
-                            <p className="text-xs text-muted-foreground">止盈/止损</p>
-                            <p className="text-sm font-semibold text-foreground mt-1">
-                                <span className="text-green-400">{order.takeProfit || '--'}</span>
-                                <span className="text-muted-foreground mx-1">/</span>
-                                <span className="text-red-400">{order.stopLoss}</span>
-                            </p>
-                         </div>
-                         <div className="text-right">
-                            <p className="text-xs text-muted-foreground">预计盈亏比</p>
-                            <p className="text-sm font-semibold text-foreground mt-1">{order.pnlRatio}</p>
-                         </div>
+                 {!isHistorical && (
+                    <div className="border-t border-border/30 pt-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-xs text-muted-foreground">止盈/止损</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">
+                                    <span className="text-green-400">{order.takeProfit || '--'}</span>
+                                    <span className="text-muted-foreground mx-1">/</span>
+                                    <span className="text-red-400">{order.stopLoss}</span>
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xs text-muted-foreground">预计盈亏比</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">{order.pnlRatio}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
+                 )}
             </CardContent>
         </Card>
     );
@@ -213,37 +243,47 @@ const mockAccountData: { [key: string]: any } = {
         winRate: 84.00,
         totalSignals: 50,
         pnlRatio: '7.8:1',
-        pendingOrders: Array.from({ length: 8 }, (_, i) => {
+        pendingOrders: Array.from({ length: 18 }, (_, i) => {
             const sourceTrader = allTraders[i % allTraders.length];
+            const isHistorical = i >= 8;
             return {
                 id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
                 sourceType: i % 3 === 0 ? 'auto' : 'manual',
+                status: isHistorical ? 'historical' : 'active',
+                finalStatus: i % 2 === 0 ? '已成交' : '已撤销',
                 sourceName: sourceTrader.name,
                 sourceAvatar: sourceTrader.avatar,
-                marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
+                marginMode: '全仓', leverage: '10x', timestamp: `08/${23 - i} 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: isHistorical ? (1000 + Math.random() * 500).toFixed(2) : 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
             }
         }),
-        currentPositions: Array.from({ length: 3 }, (_, i) => {
+        currentPositions: Array.from({ length: 10 }, (_, i) => {
             const isLong = i % 2 === 0;
             const entryPrice = 68000 - i * 500;
             const sourceTrader = allTraders[(i + 2) % allTraders.length];
+            const isHistorical = i >= 3;
+            const pnl = isLong ? (240.5 - i * 100) : (-50.2 + i * 20);
             return {
                 id: `okx-pos-${i}`,
                 pair: 'BTC/USDT 永续',
                 direction: isLong ? '多' : '空',
                 marginMode: '全仓',
                 leverage: '10x',
-                pnl: isLong ? (240.5 - i * 100) : (-50.2 + i * 20),
+                pnl,
                 pnlRate: isLong ? (5.19 - i) : (-2.3 + i),
                 positionSize: 98.54 + i * 10,
                 margin: 49.25 + i * 5,
                 maintenanceMarginRate: (22000 + Math.random() * 1000).toFixed(2),
                 entryPrice: entryPrice,
                 markPrice: entryPrice * (isLong ? 1.01 : 0.99),
+                closePrice: entryPrice * (pnl > 0 ? 1.02 : 0.98),
                 liqPrice: entryPrice * (isLong ? 0.9 : 1.1),
                 sourceName: sourceTrader.name,
                 sourceAvatar: sourceTrader.avatar,
                 sourceType: i % 2 === 0 ? 'auto' : 'manual',
+                status: isHistorical ? 'historical' : 'active',
+                closedStatus: pnl > 0 ? '止盈平仓' : '止损平仓',
+                openTime: `2024-08-${20-i} 10:30`,
+                closeTime: `2024-08-${21-i} 14:45`,
             }
         }),
     },
@@ -260,6 +300,7 @@ const mockAccountData: { [key: string]: any } = {
             return {
                 id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
                 sourceType: 'auto', 
+                status: 'active',
                 sourceName: sourceTrader.name,
                 sourceAvatar: sourceTrader.avatar,
                 marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
@@ -286,6 +327,7 @@ const mockAccountData: { [key: string]: any } = {
                 sourceName: sourceTrader.name,
                 sourceAvatar: sourceTrader.avatar,
                 sourceType: 'auto',
+                status: 'active',
             }
         }),
     },
@@ -434,7 +476,7 @@ export default function TradePage() {
                                             账户总资产 (USDT)
                                         </p>
                                         {selectedAccount && (
-                                            <Badge
+                                             <Badge
                                                 className={cn(
                                                     'text-xs px-1.5 py-0.5 border-0 flex items-center gap-1.5',
                                                     selectedAccount.type === 'live' && selectedAccount.status === 'running' && "bg-green-500/20 text-green-400",
@@ -442,12 +484,13 @@ export default function TradePage() {
                                                     selectedAccount.type === 'demo' && "bg-secondary text-secondary-foreground"
                                                 )}
                                             >
-                                                {selectedAccount.type === 'live' 
+                                                 {selectedAccount.type === 'live' 
                                                     ? <div className="flex items-center gap-1.5">
                                                         <span>实盘</span>
                                                         <div className={cn(
                                                             "w-2 h-2 rounded-full",
-                                                            selectedAccount.status === 'running' ? 'bg-green-500 pulsing-light' : 'bg-muted-foreground/50'
+                                                            selectedAccount.status === 'running' ? 'bg-green-500' : 'bg-muted-foreground/50',
+                                                            selectedAccount.status === 'running' && 'pulsing-light'
                                                         )} />
                                                         <span>{selectedAccount.status === 'running' ? '运行中' : '已停止'}</span>
                                                       </div>
@@ -486,8 +529,8 @@ export default function TradePage() {
 
                  <Tabs defaultValue="current" value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="current">当前挂单</TabsTrigger>
-                        <TabsTrigger value="positions">当前持仓</TabsTrigger>
+                        <TabsTrigger value="current">挂单列表</TabsTrigger>
+                        <TabsTrigger value="positions">持仓列表</TabsTrigger>
                     </TabsList>
                     <div {...swipeHandlers} className="overflow-hidden">
                         <div className={cn("flex transition-transform duration-300", {
@@ -528,7 +571,7 @@ export default function TradePage() {
                                     ) : accountData?.pendingOrders?.length > 0 ? (
                                         <div className="space-y-3">
                                             {accountData.pendingOrders.map((order:any) => (
-                                                <PendingOrderCard key={order.id} order={order} />
+                                                <PendingOrderCard key={order.id} order={order} isHistorical={order.status === 'historical'} />
                                             ))}
                                         </div>
                                     ) : (
@@ -573,7 +616,7 @@ export default function TradePage() {
                                     ) : accountData?.currentPositions?.length > 0 ? (
                                         <div className="space-y-3">
                                             {accountData.currentPositions.map((position:any) => (
-                                                <PositionCard key={position.id} position={position} />
+                                                <PositionCard key={position.id} position={position} isHistorical={position.status === 'historical'} />
                                             ))}
                                         </div>
                                     ) : (
@@ -601,7 +644,7 @@ export default function TradePage() {
                     </Link>
                     <div className="relative flex flex-col items-center justify-center h-full">
                          <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
-                            <ArrowRightLeft className="w-6 h-6" />
+                            <ArrowRightLeft className="w-6 w-6" />
                         </Link>
                         <span className="text-xs font-medium text-primary pt-8">交易</span>
                     </div>
