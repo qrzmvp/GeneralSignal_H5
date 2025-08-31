@@ -162,9 +162,13 @@ const mockAccountData: { [key: string]: any } = {
 function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | 'bitget', className?: string }) {
     const logos: { [key: string]: React.ReactNode } = {
         okx: (
-            <svg className={cn("w-5 h-5", className)} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="10" cy="10" r="10" fill="black"/>
-                <path d="M5 5L7.5 10L5 15H7.8L10 10.8L12.2 15H15L12.5 10L15 5H12.2L10 9.2L7.8 5H5Z" fill="white"/>
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" fill="black"/>
+                <rect x="8" y="8" width="8" height="8" fill="white"/>
+                <rect x="24" y="8" width="8" height="8" fill="white"/>
+                <rect x="16" y="16" width="8" height="8" fill="white"/>
+                <rect x="8" y="24" width="8" height="8" fill="white"/>
+                <rect x="24" y="24" width="8" height="8" fill="white"/>
             </svg>
         ),
         binance: (
