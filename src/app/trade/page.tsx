@@ -145,18 +145,6 @@ const mockAccountData: { [key: string]: any } = {
             id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', sourceType: 'auto', marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
         }))
     },
-    'demo-1': {
-        totalAssets: 10000.00,
-        pnl: 10.2,
-        availableMargin: 8000.00,
-        usedMargin: 2000.00,
-        winRate: 60.00,
-        totalSignals: 15,
-        pnlRatio: '1.5:1',
-        pendingOrders: Array.from({ length: 2 }, (_, i) => ({
-            id: `demo-${i}`, pair: 'SOL/USDT 永续', direction: '开多', sourceType: 'manual', marginMode: '全仓', leverage: '5x', timestamp: `08/23 1${i+5}:00:12`, amount: (100 + Math.random() * 50).toFixed(2), filled: 0, price: (170 + Math.random() * 5).toFixed(2), takeProfit: null, stopLoss: (160).toFixed(2), pnlRatio: '--'
-        }))
-    }
 };
 
 function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | 'bitget', className?: string }) {
@@ -172,14 +160,8 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance' | '
             </svg>
         ),
         binance: (
-             <svg className={cn("w-5 h-5", className)} viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M48 0C21.49 0 0 21.49 0 48C0 74.51 21.49 96 48 96C74.51 96 96 74.51 96 48C96 21.49 74.51 0 48 0Z" fill="#F0B90B"/>
-                <path d="M25.32 48.01L48.02 70.69L70.72 48.01L48.02 25.33L25.32 48.01Z" fill="white"/>
-                <path d="M48.02 56.84L56.86 48.01L48.02 39.18L39.18 48.01L48.02 56.84Z" fill="white"/>
-                <path d="M19.82 48.01L14.42 42.62H31.02L19.82 48.01Z" fill="white"/>
-                <path d="M76.22 48.01L81.62 53.4H65.02L76.22 48.01Z" fill="white"/>
-                <path d="M48.02 31.01L42.62 25.62V36.41L48.02 31.01Z" fill="white"/>
-                <path d="M48.02 65.01L53.42 70.4V59.61L48.02 65.01Z" fill="white"/>
+            <svg className={cn("w-5 h-5", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16.624 13.122L12 17.745l-4.624-4.623 2.122-2.122 2.502 2.502 2.502-2.502 2.122 2.122zM12 6.255l-2.502 2.502-2.122-2.122L12 1.99l4.624 4.645-2.122 2.122L12 6.255zM17.745 12l2.122-2.122L22.01 12l-2.143 2.122L17.745 12zM6.255 12l2.122 2.122L6.255 16.245 4.112 14.122 1.99 12l2.122-2.122L6.255 12zM12 17.745l-2.502-2.502L7.376 17.37l4.624 4.645 4.624-4.645-2.122-2.122L12 17.745z" fill="#F0B90B"/>
             </svg>
         ),
         bitget: (
@@ -485,3 +467,4 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     
 
     
+
