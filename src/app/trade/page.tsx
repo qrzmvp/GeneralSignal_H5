@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2, RefreshCw } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2, RefreshCw, Layers, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -41,6 +41,75 @@ function MetricItem({ label, value, subValue, valueColor }: { label: string, val
     </div>
   )
 }
+
+function PositionCard({ position }: { position: any }) {
+    return (
+        <Card className="bg-card/50 border-border/30">
+            <CardContent className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                    <h3 className="font-bold text-base flex items-center gap-2">
+                        {position.pair}
+                    </h3>
+                    <div className="flex items-center gap-1.5">
+                        <Button variant="ghost" size="icon" className="w-7 h-7">
+                            <Layers className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="w-7 h-7">
+                            <Upload className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs">
+                    <Badge className={cn('px-2 py-0.5 text-xs', position.direction === '多' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
+                        {position.direction}
+                    </Badge>
+                    <Badge variant="secondary" className="px-2 py-0.5 text-xs">{position.marginMode}</Badge>
+                    <Badge variant="secondary" className="px-2 py-0.5 text-xs">{position.leverage}</Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-left border-t border-border/30 pt-3">
+                    <div>
+                        <p className="text-xs text-muted-foreground">收益额 (USDT)</p>
+                        <p className={`text-sm font-semibold mt-1 ${position.pnl > 0 ? 'text-green-400' : 'text-red-400'}`}>{position.pnl > 0 ? '+' : ''}{position.pnl.toFixed(2)}</p>
+                    </div>
+                     <div className="text-right">
+                        <p className="text-xs text-muted-foreground">收益率</p>
+                        <p className={`text-sm font-semibold mt-1 ${position.pnlRate > 0 ? 'text-green-400' : 'text-red-400'}`}>{position.pnlRate > 0 ? '+' : ''}{position.pnlRate.toFixed(2)}%</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 text-left border-t border-border/30 pt-3">
+                    <div>
+                        <p className="text-xs text-muted-foreground">持仓量 (USDT)</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{position.positionSize.toLocaleString()}</p>
+                    </div>
+                     <div>
+                        <p className="text-xs text-muted-foreground">保证金 (USDT)</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{position.margin.toLocaleString()}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">维持保证金率</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{position.maintenanceMarginRate}%</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">开仓均价</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{position.entryPrice.toLocaleString()}</p>
+                    </div>
+                     <div>
+                        <p className="text-xs text-muted-foreground">标记价格</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{position.markPrice.toLocaleString()}</p>
+                    </div>
+                     <div>
+                        <p className="text-xs text-muted-foreground">预估强平价</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{position.liqPrice || '--'}</p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 function PendingOrderCard({ order }: { order: any }) {
     return (
@@ -145,7 +214,26 @@ const mockAccountData: { [key: string]: any } = {
                 sourceAvatar: sourceTrader.avatar,
                 marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
             }
-        })
+        }),
+        currentPositions: Array.from({ length: 3 }, (_, i) => {
+            const isLong = i % 2 === 0;
+            const entryPrice = 68000 - i * 500;
+            return {
+                id: `okx-pos-${i}`,
+                pair: 'BTC/USDT 永续',
+                direction: isLong ? '多' : '空',
+                marginMode: '全仓',
+                leverage: '10x',
+                pnl: isLong ? (240.5 - i * 100) : (-50.2 + i * 20),
+                pnlRate: isLong ? (5.19 - i) : (-2.3 + i),
+                positionSize: 98.54 + i * 10,
+                margin: 49.25 + i * 5,
+                maintenanceMarginRate: (22000 + Math.random() * 1000).toFixed(2),
+                entryPrice: entryPrice,
+                markPrice: entryPrice * (isLong ? 1.01 : 0.99),
+                liqPrice: entryPrice * (isLong ? 0.9 : 1.1),
+            }
+        }),
     },
     'binance-20002': {
         totalAssets: 150345.12,
@@ -164,7 +252,8 @@ const mockAccountData: { [key: string]: any } = {
                 sourceAvatar: sourceTrader.avatar,
                 marginMode: '逐仓', leverage: '20x', timestamp: `08/23 1${i+2}:00:12`, amount: (20 + Math.random() * 10).toFixed(2), filled: 0, price: (3900 + Math.random() * 100).toFixed(2), takeProfit: (4000).toFixed(2), stopLoss: (3800).toFixed(2), pnlRatio: '5:1'
             }
-        })
+        }),
+        currentPositions: [],
     },
 };
 
@@ -440,6 +529,12 @@ export default function TradePage() {
                                          <div className="flex justify-center items-center h-40">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                         </div>
+                                    ) : accountData?.currentPositions?.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {accountData.currentPositions.map((position:any) => (
+                                                <PositionCard key={position.id} position={position} />
+                                            ))}
+                                        </div>
                                     ) : (
                                         <div className="text-center text-muted-foreground py-10">
                                             暂无持仓
@@ -464,9 +559,11 @@ export default function TradePage() {
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
                     <div className="relative flex flex-col items-center justify-center h-full">
-                        <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
-                            <ArrowRightLeft className="w-6 h-6" />
-                        </Link>
+                        <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
+                             <Link href="/trade" passHref>
+                                <ArrowRightLeft className="w-6 h-6" />
+                            </Link>
+                        </div>
                         <span className="text-xs font-medium pt-8 text-primary">交易</span>
                     </div>
                     <Link
