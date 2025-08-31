@@ -28,6 +28,29 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
     let paymentType, icon, typeKey;
     const statusOptions = ['支付成功', '支付失败', '审核中'];
     const status = statusOptions[i % 3];
+    const HandCopyIcon = () => (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="w-5 h-5 text-blue-400"
+      >
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72" />
+        <path d="M8 2v2" />
+        <path d="M12 2v2" />
+        <path d="M16 2v2" />
+        <path d="M21 8h-2" />
+        <path d="M21 12h-2" />
+      </svg>
+    );
+
 
     switch (type) {
         case 0:
@@ -37,7 +60,7 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
             break;
         case 1:
             paymentType = '手动跟单 · 3个月';
-            icon = <Copy className="w-5 h-5 text-blue-400" />;
+            icon = <HandCopyIcon />;
             typeKey = 'manual-quarter';
             break;
         case 2:
@@ -47,7 +70,7 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
             break;
         default:
             paymentType = '手动跟单 · 1年';
-            icon = <Copy className="w-5 h-5 text-blue-400" />;
+            icon = <HandCopyIcon />;
             typeKey = 'manual-year';
             break;
     }
@@ -180,7 +203,7 @@ function NotificationBanner() {
                     }),
                 ]}
                 orientation="vertical"
-                className="w-full overflow-hidden h-full"
+                className="w-full h-full overflow-hidden"
             >
                 <CarouselContent className="h-full">
                     {notifications.map((text, index) => (
