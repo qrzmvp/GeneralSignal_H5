@@ -288,18 +288,6 @@ export default function ProfilePage() {
                  </CardContent>
             </Card>
 
-            {/* Account & Security */}
-            <Card className="bg-card/50 border-border/30">
-                <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-base">账户与安全</CardTitle>
-                </CardHeader>
-                 <CardContent className="p-0">
-                    <div className="divide-y divide-border/30">
-                        {/* <ProfileItem icon={<KeyRound className="text-primary"/>} label="修改密码" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} /> */}
-                    </div>
-                 </CardContent>
-            </Card>
-
 
              {/* Support */}
              <Card className="bg-card/50 border-border/30">
