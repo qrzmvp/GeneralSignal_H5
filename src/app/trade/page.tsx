@@ -56,7 +56,7 @@ function PendingOrderCard({ order }: { order: any }) {
                         </Badge>
                     </h3>
                     <div className="text-sm text-muted-foreground">
-                        {order.sourceName ? `来自 ${order.sourceName}` : '自动跟单信号'}
+                        {order.sourceName ? `来自 ${order.sourceName}` : '来自 系统'}
                     </div>
                 </div>
 
@@ -510,3 +510,6 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 
     
 
+
+
+    
