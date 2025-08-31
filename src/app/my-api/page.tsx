@@ -88,44 +88,50 @@ function AddApiDialog() {
                     <DialogTitle>新增交易所API</DialogTitle>
                     <DialogDescription>请填写您的交易所API信息以绑定账户。</DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                     <div className="grid gap-2">
-                        <Label htmlFor="exchange">交易所</Label>
-                        <Select>
-                            <SelectTrigger id="exchange">
-                                <SelectValue placeholder="请选择交易所" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="okx">OKX</SelectItem>
-                                <SelectItem value="binance">Binance</SelectItem>
-                            </SelectContent>
-                        </Select>
+                <form onSubmit={(e) => {
+                    // Basic form validation handled by `required` attribute
+                    // In a real app, you'd handle form submission logic here.
+                    console.log('Form submitted');
+                }}>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="exchange">交易所</Label>
+                            <Select required>
+                                <SelectTrigger id="exchange">
+                                    <SelectValue placeholder="请选择交易所" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="okx">OKX</SelectItem>
+                                    <SelectItem value="binance">Binance</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="name">账户名称</Label>
+                            <Input id="name" placeholder="为您的API起一个名称" required />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="api-key">API Key</Label>
+                            <Input id="api-key" placeholder="请输入API Key" required />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="api-secret">API Secret</Label>
+                            <Input id="api-secret" type="password" placeholder="请输入API Secret" required />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="passphrase">Passphrase</Label>
+                            <Input id="passphrase" type="password" placeholder="请输入Passphrase (如有)" required />
+                        </div>
                     </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">账户名称</Label>
-                        <Input id="name" placeholder="为您的API起一个名称" />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="api-key">API Key</Label>
-                        <Input id="api-key" placeholder="请输入API Key" />
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="api-secret">API Secret</Label>
-                        <Input id="api-secret" type="password" placeholder="请输入API Secret" />
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="passphrase">Passphrase</Label>
-                        <Input id="passphrase" type="password" placeholder="请输入Passphrase (如有)" />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="secondary">取消</Button>
-                    </DialogClose>
-                    <DialogClose asChild>
-                        <Button type="submit">确认绑定</Button>
-                    </DialogClose>
-                </DialogFooter>
+                    <DialogFooter className="flex-row justify-end gap-2">
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">取消</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button type="submit">确认绑定</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     )
