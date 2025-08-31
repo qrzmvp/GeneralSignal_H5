@@ -69,11 +69,12 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', cl
         binance: (
             <svg className={cn("w-8 h-8", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="24" height="24" rx="2" fill="#1E2026"/>
-                <path d="M12 7.3039L14.6961 10.0001L12 12.6963L9.3039 10.0001L12 7.3039Z" fill="#F0B90B"/>
-                <path d="M9.3039 10L6.60781 12.6961L9.3039 15.3922L12 12.6961L9.3039 10Z" fill="#F0B90B"/>
-                <path d="M14.6961 10L12 12.6961L14.6961 15.3922L17.3922 12.6961L14.6961 10Z" fill="#F0B90B"/>
+                <path d="M6.60781 12.6961L9.3039 15.3922L12 12.6961L9.3039 10L6.60781 12.6961Z" fill="#F0B90B"/>
+                <path d="M12 7.3039L14.6961 10.0001L17.3922 7.3039L14.6961 4.60781L12 7.3039Z" fill="#F0B90B" />
+                <path d="M12 7.3039L9.3039 10.0001L12 12.6963L14.6961 10.0001L12 7.3039Z" fill="#F0B90B"/>
+                <path d="M14.6961 10L17.3922 12.6961L14.6961 15.3922L12 12.6961L14.6961 10Z" fill="#F0B90B"/>
+                <path d="M12 18.0882L9.3039 15.3921L12 12.6959L14.6961 15.3921L12 18.0882Z" fill="#F0B90B"/>
                 <path d="M12 12.6961L10.652 14.0441L12 15.3922L13.348 14.0441L12 12.6961Z" fill="#F0B90B"/>
-                <path d="M12 18.0882L14.6961 15.3921L12 12.6959L9.3039 15.3921L12 18.0882Z" fill="#F0B90B"/>
             </svg>
         ),
     };
@@ -278,3 +279,5 @@ export default function MyApiPage() {
         </div>
     );
 }
+
+    
