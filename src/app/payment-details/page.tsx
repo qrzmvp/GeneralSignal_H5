@@ -15,14 +15,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronDown, Bot, Loader2, AlertTriangle, X, Copy } from 'lucide-react';
 import { SimpleToast } from '@/app/components/SimpleToast';
 import { Badge } from '@/components/ui/badge';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
-const allMockPayments = Array.from({ length: 30 }, (_, i) => {
-    const type = i % 4;
-    let paymentType, icon, typeKey;
-    const statusOptions = ['支付成功', '支付失败', '审核中'];
-    const status = statusOptions[i % 3];
-    const HandClickIcon = () => (
+const HandClickIcon = () => (
       <svg 
         xmlns="http://www.w3.org/2000/svg" 
         width="24" 
@@ -42,6 +38,12 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
         <path d="M6 10H4.5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2H6" />
       </svg>
     );
+
+const allMockPayments = Array.from({ length: 30 }, (_, i) => {
+    const type = i % 4;
+    let paymentType, icon, typeKey;
+    const statusOptions = ['支付成功', '支付失败', '审核中'];
+    const status = statusOptions[i % 3];
 
 
     switch (type) {
@@ -183,7 +185,7 @@ function NotificationBanner() {
         if (!isVisible) return;
         const interval = setInterval(() => {
             setCurrentIndex((prevIndex) => (prevIndex + 1) % notifications.length);
-        }, 4000);
+        }, 5000);
         return () => clearInterval(interval);
     }, [isVisible, notifications.length]);
 
@@ -195,7 +197,18 @@ function NotificationBanner() {
         <div className="h-8 bg-yellow-500/10 text-yellow-200 px-4 relative flex items-center overflow-hidden">
             <div className="flex items-center gap-3 w-full">
                 <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
-                <p className="text-sm truncate flex-grow">{notifications[currentIndex]}</p>
+                 <AnimatePresence mode="wait">
+                    <motion.p
+                        key={currentIndex}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -20, opacity: 0 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className="text-sm truncate flex-grow"
+                    >
+                        {notifications[currentIndex]}
+                    </motion.p>
+                </AnimatePresence>
             </div>
             <Button
                 variant="ghost"
