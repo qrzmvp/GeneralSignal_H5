@@ -63,11 +63,14 @@ const RANK_BADGES: {[key: number]: { color: string }} = {
 }
 
 
-function InfoPill({ label, value }: { label: string; value: string | number | null | undefined }) {
+function InfoPill({ label, value, action }: { label: string; value: string | number | null | undefined, action?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between text-sm py-2">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground">{value || '--'}</span>
+      <div className="flex items-center gap-2">
+        <span className="font-medium text-foreground">{value || '--'}</span>
+        {action}
+      </div>
     </div>
   )
 }
@@ -140,19 +143,13 @@ function HistoricalSignalCard({ signal }: { signal: any }) {
                     <InfoPill label="止损点位" value={signal.stopLoss} />
                     <InfoPill label="平仓盈亏比" value={signal.pnlRatio} />
                 </div>
-                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
-                    <InfoPill label="开仓时间" value={signal.createdAt} />
+                 <div className="mt-1 pt-3 border-t border-border/50">
+                    <InfoPill 
+                        label="开/平仓时间" 
+                        value={`${signal.createdAt.split(' ')[1]} -> ${signal.endedAt.split(' ')[1]}`} 
+                        action={<span className="text-sm font-medium text-muted-foreground">{signal.status}</span>}
+                    />
                  </div>
-                 <div className="flex justify-between items-center -mt-2">
-                    <InfoPill label="平仓时间" value={signal.endedAt} />
-                 </div>
-                 <div className="flex justify-between items-center mt-1 pt-3 border-t border-border/50">
-                    <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <Clock className="w-3 h-3" />
-                        数据更新于: {signal.endedAt}
-                    </div>
-                    <span className="text-sm font-medium text-muted-foreground">{signal.status}</span>
-                </div>
             </CardContent>
         </Card>
     );
@@ -699,7 +696,3 @@ export default function TraderDetailPage() {
     </>
   )
 }
-
-    
-
-    
