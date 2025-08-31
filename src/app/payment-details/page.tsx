@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronDown, Copy, Bot, Loader2, Edit, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Copy, Bot, Loader2, AlertTriangle, X } from 'lucide-react';
 import { SimpleToast } from '@/app/components/SimpleToast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -37,7 +37,7 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
             break;
         case 1:
             paymentType = '手动跟单 · 3个月';
-            icon = <Edit className="w-5 h-5 text-blue-400" />;
+            icon = <Copy className="w-5 h-5 text-blue-400" />;
             typeKey = 'manual-quarter';
             break;
         case 2:
@@ -47,7 +47,7 @@ const allMockPayments = Array.from({ length: 30 }, (_, i) => {
             break;
         default:
             paymentType = '手动跟单 · 1年';
-            icon = <Edit className="w-5 h-5 text-blue-400" />;
+            icon = <Copy className="w-5 h-5 text-blue-400" />;
             typeKey = 'manual-year';
             break;
     }
@@ -156,13 +156,19 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 }
 
 function NotificationBanner() {
+    const [isVisible, setIsVisible] = useState(true);
+
     const notifications = [
         "支付可能存在延迟，请耐心等待",
         "若长时间审核中请联系客服处理"
     ];
 
+    if (!isVisible) {
+        return null;
+    }
+
     return (
-        <div className="h-8 flex items-center bg-yellow-500/10 text-yellow-200 px-4">
+        <div className="h-8 flex items-center bg-yellow-500/10 text-yellow-200 px-4 relative">
             <Carousel
                 opts={{
                     align: "start",
@@ -185,6 +191,14 @@ function NotificationBanner() {
                     ))}
                 </CarouselContent>
             </Carousel>
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-yellow-200/70 hover:text-yellow-200 hover:bg-white/10"
+                onClick={() => setIsVisible(false)}
+            >
+                <X className="w-4 h-4" />
+            </Button>
         </div>
     )
 }
