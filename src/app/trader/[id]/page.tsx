@@ -612,6 +612,7 @@ export default function TraderDetailPage() {
                                         onSelect={setHistoricalFilterLabel}
                                         setLabel={setHistoricalFilterLabel}
                                     />
+
                                 </div>
                                 <div className="space-y-3">
                                     {historicalSignals.map(signal => (
@@ -669,11 +670,11 @@ export default function TraderDetailPage() {
                 <BarChart className="h-6 w-6" />
                 <span className="text-xs font-medium">将军榜</span>
             </Link>
-            <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
+            <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full text-muted-foreground">
                  <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
                     <ArrowRightLeft className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-medium text-muted-foreground pt-8">交易</span>
+                <span className="text-xs font-medium pt-8">交易</span>
             </Link>
             <Link
                 href="/profile"

@@ -136,11 +136,10 @@ const mockAccountData: { [key: string]: any } = {
         totalSignals: 50,
         pnlRatio: '7.8:1',
         pendingOrders: Array.from({ length: 8 }, (_, i) => {
-            const sourceType = i % 3 === 0 ? 'auto' : 'manual';
             const sourceTrader = allTraders[i % 3];
             return {
                 id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
-                sourceType: sourceType,
+                sourceType: i % 3 === 0 ? 'auto' : 'manual',
                 sourceName: sourceTrader.name,
                 sourceAvatar: sourceTrader.avatar,
                 marginMode: '全仓', leverage: '10x', timestamp: `08/23 1${i}:00:12`, amount: (1000 + Math.random() * 500).toFixed(2), filled: 0, price: (68000 + Math.random() * 1000).toFixed(2), takeProfit: (70000).toFixed(2), stopLoss: (67000).toFixed(2), pnlRatio: '2:1'
@@ -455,21 +454,21 @@ export default function TradePage() {
                     <Link
                         href="/"
                         passHref
-                        className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
                     >
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full">
+                    <Link href="/trade" passHref className="relative flex flex-col items-center justify-center h-full text-primary">
                          <div className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
                             <ArrowRightLeft className="w-6 h-6" />
                         </div>
-                        <span className="text-xs font-medium text-primary pt-8">交易</span>
+                        <span className="text-xs font-medium pt-8">交易</span>
                     </Link>
                     <Link
                         href="/profile"
                         passHref
-                        className={`flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground`}
+                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
