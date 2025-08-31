@@ -149,27 +149,26 @@ function PaymentCard({ payment }: { payment: typeof allMockPayments[0] }) {
   )
 }
 
-function FilterDropdown({ label, options, onSelect, setLabel }: { label: string; options: string[]; onSelect: (option: string) => void; setLabel?: (label: string) => void; }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm p-0 h-auto">
-          {label}
-          <ChevronDown className="w-4 h-4 ml-1" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {options.map((option) => (
-          <DropdownMenuItem key={option} onSelect={() => {
-            onSelect(option);
-            if (setLabel) setLabel(option);
-          }}>
-            {option}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+function FilterDropdown({ label, options, onSelect, value }: { label: string; options: string[]; onSelect: (option: string) => void; value: string; }) {
+    const displayLabel = value === `全部${label}` ? label : value;
+    
+    return (
+        <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm p-0 h-auto">
+            {displayLabel}
+            <ChevronDown className="w-4 h-4 ml-1" />
+            </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+            {options.map((option) => (
+            <DropdownMenuItem key={option} onSelect={() => onSelect(option)}>
+                {option}
+            </DropdownMenuItem>
+            ))}
+        </DropdownMenuContent>
+        </DropdownMenu>
+    );
 }
 
 function NotificationBanner() {
@@ -233,6 +232,7 @@ export default function PaymentDetailsPage() {
     const [timeFilterLabel, setTimeFilterLabel] = useState('近三个月');
     const [methodFilter, setMethodFilter] = useState('全部方式');
     const [typeFilter, setTypeFilter] = useState('全部类型');
+    const [statusFilter, setStatusFilter] = useState('全部状态');
 
     const loadMorePayments = useCallback(() => {
         if (loading || !hasMore) return;
@@ -283,23 +283,29 @@ export default function PaymentDetailsPage() {
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                          <FilterDropdown
-                            label={methodFilter}
+                            label="方式"
+                            value={methodFilter}
                             options={['全部方式', 'TRC20', 'ERC20']}
                             onSelect={setMethodFilter}
-                            setLabel={setMethodFilter}
                         />
                         <FilterDropdown
-                            label={typeFilter}
+                            label="类型"
+                            value={typeFilter}
                             options={['全部类型', '自动跟单', '手动跟单']}
                             onSelect={setTypeFilter}
-                            setLabel={setTypeFilter}
+                        />
+                        <FilterDropdown
+                            label="状态"
+                            value={statusFilter}
+                            options={['全部状态', '支付成功', '支付失败', '审核中']}
+                            onSelect={setStatusFilter}
                         />
                     </div>
                     <FilterDropdown
-                        label={timeFilterLabel}
+                        label="时间"
+                        value={timeFilterLabel}
                         options={['近三个月', '近半年', '近一年']}
                         onSelect={setTimeFilterLabel}
-                        setLabel={setTimeFilterLabel}
                     />
                 </div>
                 {payments.length === 0 && !loading ? (
