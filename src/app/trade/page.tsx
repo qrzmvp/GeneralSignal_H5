@@ -56,14 +56,14 @@ function PendingOrderCard({ order }: { order: any }) {
                             {order.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </h3>
-                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <div className="text-sm text-muted-foreground flex items-center gap-1.5">
                         {order.sourceAvatar && (
                             <Avatar className="w-5 h-5">
                                 <AvatarImage src={order.sourceAvatar} alt={order.sourceName} />
                                 <AvatarFallback>{order.sourceName?.charAt(0)}</AvatarFallback>
                             </Avatar>
                         )}
-                        <span>{`来自 ${order.sourceName}`}</span>
+                        <span className="text-xs truncate">{order.sourceName}</span>
                     </div>
                 </div>
 
@@ -136,7 +136,7 @@ const mockAccountData: { [key: string]: any } = {
         totalSignals: 50,
         pnlRatio: '7.8:1',
         pendingOrders: Array.from({ length: 8 }, (_, i) => {
-            const sourceTrader = allTraders[i % 3];
+            const sourceTrader = allTraders[i % allTraders.length];
             return {
                 id: `okx-${i}`, pair: 'BTC/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
                 sourceType: i % 3 === 0 ? 'auto' : 'manual',
@@ -155,7 +155,7 @@ const mockAccountData: { [key: string]: any } = {
         totalSignals: 120,
         pnlRatio: '12.5:1',
         pendingOrders: Array.from({ length: 4 }, (_, i) => {
-            const sourceTrader = allTraders[i % 2];
+            const sourceTrader = allTraders[i % allTraders.length];
             return {
                 id: `binance-${i}`, pair: 'ETH/USDT 永续', direction: i % 2 === 0 ? '开多' : '开空', 
                 sourceType: 'auto', 
@@ -449,34 +449,35 @@ export default function TradePage() {
             </main>
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-16 flex-shrink-0 border-t border-border/50 bg-card">
-              <div className="grid h-full w-full grid-cols-3 text-center">
-                <Link
-                  href="/"
-                  passHref
-                  className="flex flex-col items-center justify-center space-y-1 pt-1 text-muted-foreground transition-colors"
-                >
-                  <BarChart className="h-6 w-6" />
-                  <span className="text-xs font-medium">将军榜</span>
-                </Link>
-                <div className="flex items-center justify-center">
-                  <Link
-                    href="/trade"
-                    passHref
-                    className="flex h-14 w-14 -translate-y-5 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
-                  >
-                    <ArrowRightLeft className="h-6 w-6" />
-                  </Link>
+            <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
+                <div className="grid grid-cols-3 items-center h-full text-center">
+                    <Link
+                        href="/"
+                        passHref
+                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                    >
+                        <BarChart className="h-6 w-6" />
+                        <span className="text-xs font-medium">将军榜</span>
+                    </Link>
+                    <div className="flex justify-center">
+                      <Link href="/trade" passHref className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-primary">
+                          <div className="relative">
+                              <div className="absolute -top-8 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
+                                  <ArrowRightLeft className="w-6 h-6" />
+                              </div>
+                          </div>
+                          <span className="text-xs font-medium pt-8">交易</span>
+                      </Link>
+                    </div>
+                    <Link
+                        href="/profile"
+                        passHref
+                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                    >
+                        <User className="h-6 w-6" />
+                        <span className="text-xs font-medium">我的</span>
+                    </Link>
                 </div>
-                <Link
-                  href="/profile"
-                  passHref
-                  className="flex flex-col items-center justify-center space-y-1 pt-1 text-muted-foreground transition-colors"
-                >
-                  <User className="h-6 w-6" />
-                  <span className="text-xs font-medium">我的</span>
-                </Link>
-              </div>
             </nav>
         </div>
         <FollowOrderSheet 
