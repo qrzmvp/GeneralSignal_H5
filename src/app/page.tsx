@@ -277,17 +277,12 @@ export default function LeaderboardPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex items-center justify-between px-4 pb-3 text-sm">
-                <div className="flex items-center gap-4">
+            <div className="flex items-center justify-start gap-4 px-4 pb-3 text-sm">
                 <Button variant="ghost" className="text-foreground p-0 h-auto font-bold">
                     综合排序
                 </Button>
                 <FilterDropdown label="收益率" />
                 <FilterDropdown label="胜率" />
-                </div>
-            <Button variant="ghost" className="text-muted-foreground p-0 h-auto">
-                更多 <ChevronDown className="ml-1 h-4 w-4" />
-            </Button>
             </div>
         </div>
       </header>
