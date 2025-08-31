@@ -316,7 +316,7 @@ export default function TradePage() {
                                                 )}
                                             >
                                                 {selectedAccount.type === 'live' 
-                                                    ? (selectedAccount.status === 'running' ? '实盘运行中' : '实盘已停止')
+                                                    ? (selectedAccount.status === 'running' ? '实盘 · 运行中' : '实盘 · 已停止')
                                                     : '模拟'
                                                 }
                                             </Badge>
@@ -453,31 +453,28 @@ export default function TradePage() {
 
             </main>
 
-            {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
-                <div className="grid grid-cols-3 items-center h-full text-center">
+            <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-16 flex-shrink-0 border-t border-border/50 bg-card">
+                <div className="grid h-full w-full grid-cols-3 text-center">
                     <Link
                         href="/"
-                        passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
                     >
                         <BarChart className="h-6 w-6" />
                         <span className="text-xs font-medium">将军榜</span>
                     </Link>
-                    <div className="flex justify-center">
-                      <Link href="/trade" passHref className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-primary">
-                          <div className="relative">
-                              <div className="absolute -top-8 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
-                                  <ArrowRightLeft className="w-6 h-6" />
-                              </div>
-                          </div>
-                          <span className="text-xs font-medium pt-8">交易</span>
-                      </Link>
+                    <div className="flex flex-col items-center justify-center space-y-1 text-primary">
+                        <div className="relative">
+                        <div className="absolute -top-11 flex h-16 w-16 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95">
+                            <Link href="/trade">
+                            <ArrowRightLeft className="h-7 w-7" />
+                            </Link>
+                        </div>
+                        </div>
+                        <span className="pt-6 text-xs font-medium">交易</span>
                     </div>
                     <Link
                         href="/profile"
-                        passHref
-                        className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
+                        className="flex flex-col items-center justify-center space-y-1 text-muted-foreground transition-colors"
                     >
                         <User className="h-6 w-6" />
                         <span className="text-xs font-medium">我的</span>
@@ -517,5 +514,3 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
     </DropdownMenu>
   );
 }
-
-    
