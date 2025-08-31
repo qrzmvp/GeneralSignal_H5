@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useRef, ReactNode } from 'react'
+import React, { useState, useRef, ReactNode, useEffect } from 'react'
 import ReactCrop, {
   centerCrop,
   makeAspectCrop,
@@ -89,37 +89,34 @@ function getCroppedImg(
 
 
 interface AvatarEditorProps {
-  children: ReactNode;
+  imgSrc: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSave: (newAvatar: string) => void;
+  onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function AvatarEditor({ children, onSave }: AvatarEditorProps) {
-  const [imgSrc, setImgSrc] = useState('')
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+export function AvatarEditor({ imgSrc, open, onOpenChange, onSave, onFileSelect }: AvatarEditorProps) {
   const imgRef = useRef<HTMLImageElement>(null)
   const [crop, setCrop] = useState<Crop>()
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [scale, setScale] = useState(1)
-  const [rotate, setRotate] = useState(0)
-  const [aspect, setAspect] = useState<number | undefined>(1)
-  const [open, setOpen] = useState(false);
+  const aspect = 1;
 
-  function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files && e.target.files.length > 0) {
-      setCrop(undefined) // Makes crop preview update between images.
-      const reader = new FileReader()
-      reader.addEventListener('load', () =>
-        setImgSrc(reader.result?.toString() || ''),
-      )
-      reader.readAsDataURL(e.target.files[0])
+
+  useEffect(() => {
+    // Reset state when a new image is loaded or dialog is closed
+    if (!open || !imgSrc) {
+        setCrop(undefined);
+        setCompletedCrop(undefined);
+        setScale(1);
     }
-  }
+  }, [imgSrc, open]);
+
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    if (aspect) {
-      const { width, height } = e.currentTarget
-      setCrop(centerAspectCrop(width, height, aspect))
-    }
+    const { width, height } = e.currentTarget
+    setCrop(centerAspectCrop(width, height, aspect))
   }
   
   async function handleSave() {
@@ -134,26 +131,26 @@ export function AvatarEditor({ children, onSave }: AvatarEditorProps) {
         scale
       );
       onSave(croppedImageUrl);
-      setOpen(false);
-      setImgSrc('');
+      onOpenChange(false);
     }
   }
 
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>编辑头像</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-            <div className="flex justify-center">
-                 <input type="file" accept="image/*" onChange={onSelectFile} className="hidden" id="avatar-upload" />
+          {!imgSrc && (
+             <div className="flex justify-center">
+                 <input type="file" accept="image/*" onChange={onFileSelect} className="hidden" id="avatar-upload-dialog" />
                 <Button asChild>
-                   <Label htmlFor="avatar-upload">选择图片</Label>
+                   <Label htmlFor="avatar-upload-dialog">选择图片</Label>
                 </Button>
             </div>
+          )}
           {imgSrc && (
             <>
               <div className="flex justify-center bg-muted rounded-md overflow-hidden">
@@ -168,7 +165,7 @@ export function AvatarEditor({ children, onSave }: AvatarEditorProps) {
                     ref={imgRef}
                     alt="Crop me"
                     src={imgSrc}
-                    style={{ transform: `scale(${scale}) rotate(${rotate}deg)` }}
+                    style={{ transform: `scale(${scale})` }}
                     onLoad={onImageLoad}
                   />
                 </ReactCrop>
@@ -193,10 +190,11 @@ export function AvatarEditor({ children, onSave }: AvatarEditorProps) {
                          <img
                             src={imgSrc}
                             style={{
-                                width: `${100/ (completedCrop.width / 100)}%`,
+                                width: `${100/ (completedCrop.width / imgRef.current!.width)}%`,
                                 height: 'auto',
-                                transform: `translate(-${(completedCrop.x / completedCrop.width) * 100}%, -${(completedCrop.y / completedCrop.width) * 100}%) scale(${scale})`,
-                                objectFit: 'cover'
+                                transform: `translate(-${(completedCrop.x / completedCrop.width) * 100}%, -${(completedCrop.y / completedCrop.height) * 100}%) scale(${scale})`,
+                                objectFit: 'cover',
+                                imageRendering: 'pixelated'
                             }}
                             alt="Preview"
                         />
@@ -207,13 +205,10 @@ export function AvatarEditor({ children, onSave }: AvatarEditorProps) {
           )}
         </div>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="secondary">取消</Button>
-          </DialogClose>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>取消</Button>
           <Button onClick={handleSave} disabled={!completedCrop}>保存</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   )
 }
-
