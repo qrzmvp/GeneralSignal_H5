@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronLeft, Plus, Trash2, Edit } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -35,7 +36,9 @@ const mockApiKeys = [
         name: '我的主力OKX', 
         apiKey: 'abc...xyz',
         apiSecret: 'sec...ret',
-        passphrase: 'pass...ase'
+        passphrase: 'pass...ase',
+        createdAt: '2023-08-01 10:30:15',
+        updatedAt: '2023-08-20 14:05:22'
     },
     { 
         id: 'binance-1', 
@@ -43,7 +46,9 @@ const mockApiKeys = [
         name: 'Binance小号', 
         apiKey: '123...789',
         apiSecret: 'scr...t12',
-        passphrase: ''
+        passphrase: '',
+        createdAt: '2023-07-15 09:00:41',
+        updatedAt: '2023-07-15 09:00:41'
     }
 ];
 
@@ -51,13 +56,13 @@ const mockApiKeys = [
 function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', className?: string }) {
     const logos: { [key: string]: React.ReactNode } = {
         okx: (
-             <svg className={cn("w-8 h-8", className)} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className={cn("w-8 h-8", className)} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="40" height="40" fill="black"/>
-                <rect x="8" y="8" width="8" height="8" fill="white"/>
-                <rect x="24" y="8" width="8" height="8" fill="white"/>
-                <rect x="16" y="16" width="8" height="8" fill="white"/>
-                <rect x="8" y="24" width="8" height="8" fill="white"/>
-                <rect x="24" y="24" width="8" height="8" fill="white"/>
+                <path d="M12 12L16 16L12 20L8 16L12 12Z" fill="white"/>
+                <path d="M20 12L24 16L20 20L16 16L20 12Z" fill="white"/>
+                <path d="M28 12L32 16L28 20L24 16L28 12Z" fill="white"/>
+                <path d="M12 20L16 24L12 28L8 24L12 20Z" fill="white"/>
+                <path d="M28 20L32 24L28 28L24 24L28 20Z" fill="white"/>
             </svg>
         ),
         binance: (
@@ -171,6 +176,16 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
                 </div>
             )}
         </div>
+        <div className="border-t border-border/30 pt-3 text-xs text-muted-foreground space-y-1.5">
+             <div className="flex justify-between">
+                <span>创建时间:</span>
+                <span>{apiKey.createdAt}</span>
+            </div>
+             <div className="flex justify-between">
+                <span>更新时间:</span>
+                <span>{apiKey.updatedAt}</span>
+            </div>
+        </div>
       </CardContent>
     </Card>
   )
@@ -178,6 +193,10 @@ function ApiCard({ apiKey }: { apiKey: typeof mockApiKeys[0] }) {
 
 export default function MyApiPage() {
     const [apiKeys, setApiKeys] = useState(mockApiKeys);
+    const [activeTab, setActiveTab] = useState('okx');
+
+    const okxKeys = apiKeys.filter(key => key.exchange === 'okx');
+    const binanceKeys = apiKeys.filter(key => key.exchange === 'binance');
 
     return (
         <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -190,19 +209,42 @@ export default function MyApiPage() {
                 <h1 className="text-lg font-bold">我的API</h1>
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
-
-            <main className="flex-grow overflow-auto p-4 space-y-4">
-                {apiKeys.length === 0 ? (
-                    <div className="text-center text-muted-foreground pt-20">
-                        <p>您还没有绑定任何API。</p>
-                        <p>请点击下方按钮新增。</p>
-                    </div>
-                ) : (
-                    apiKeys.map(key => (
-                        <ApiCard key={key.id} apiKey={key} />
-                    ))
-                )}
-            </main>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
+                <div className="px-4 pt-4">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="okx">OKX</TabsTrigger>
+                        <TabsTrigger value="binance">Binance</TabsTrigger>
+                    </TabsList>
+                </div>
+                
+                <main className="flex-grow overflow-auto p-4 space-y-4">
+                    <TabsContent value="okx" className="mt-0 space-y-4">
+                        {okxKeys.length === 0 ? (
+                            <div className="text-center text-muted-foreground pt-20">
+                                <p>您还没有绑定任何OKX API。</p>
+                                <p>请点击下方按钮新增。</p>
+                            </div>
+                        ) : (
+                            okxKeys.map(key => (
+                                <ApiCard key={key.id} apiKey={key} />
+                            ))
+                        )}
+                    </TabsContent>
+                    <TabsContent value="binance" className="mt-0 space-y-4">
+                         {binanceKeys.length === 0 ? (
+                            <div className="text-center text-muted-foreground pt-20">
+                                <p>您还没有绑定任何Binance API。</p>
+                                <p>请点击下方按钮新增。</p>
+                            </div>
+                        ) : (
+                            binanceKeys.map(key => (
+                                <ApiCard key={key.id} apiKey={key} />
+                            ))
+                        )}
+                    </TabsContent>
+                </main>
+            </Tabs>
 
             <footer className="sticky bottom-0 z-10 p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
                 <AddApiDialog />
