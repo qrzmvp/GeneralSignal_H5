@@ -282,3 +282,39 @@
     2. **关键安全步骤**: 使用 Google Cloud KMS 或 Secret Manager 对 `apiKey`, `apiSecret`, `passphrase` 进行加密。
     3. 将加密后的数据存入 `user_exchange_keys` 表。
     4. 返回新创建的 `keyId`。
+
+### 2.3. 核心功能实现详解
+
+#### 2.3.1. 用户注册 (User Registration)
+
+- **达成效果**: 新用户通过表单（用户名、密码、可选邀请码）创建账户，并记录邀请关系，成功后自动登录并跳转至主页。
+- **云函数 (Cloud Function)**:
+    - **`registerUser(data, context)`**: 一个 HTTP Callable Function。
+    - **入参**: `{ username, password, invitationCode? }`
+    - **内部逻辑**:
+        1. **查询 `users` 表**: 验证 `username` 是否已存在，防止重复注册。
+        2. **(可选) 查询 `users` 表**: 若 `invitationCode` 存在，通过查询找到邀请人，记录其 `userId`。
+        3. **调用 Firebase Authentication**: 使用 `auth.createUser()` 方法创建认证用户，获取 `uid`。
+        4. **写入 `users` 表**: 在 `users` 集合中创建一个以 `uid` 为主键的新文档，存入 `username`、新生成的唯一 `invitationCode`、`invitedBy` (如有) 等信息。
+- **云数据库 (Firestore)**:
+    - `users` 表被用于**读取** (检查用户名、邀请码) 和**写入** (创建新用户记录)。
+
+#### 2.3.2. 用户登录 (User Login)
+
+- **达成效果**: 已注册用户通过账号密码登录，成功后进入主页。
+- **云函数 (Cloud Function)**: **不使用**。
+- **技术说明**: 登录功能由客户端直接调用 **Firebase Authentication SDK** 的 `signInWithEmailAndPassword()` 方法完成。这是最安全、最高效的方式，可以充分利用 Firebase 的安全令牌机制和会话管理，无需自定义后端接口。
+- **云数据库 (Firestore)**: 无直接交互。用户信息将在登录成功后，通过调用 `getUserProfile` 云函数获取。
+
+#### 2.3.3. 邀请好友 (Invite Friends)
+
+- **达成效果**: 已登录用户在个人中心或邀请页面，获取自己专属的邀请码和邀请链接，用于分享。
+- **云函数 (Cloud Function)**:
+    - **复用 `getUserProfile(data, context)`**: 无需新增接口。此函数从 `users` 表中获取当前登录用户的完整资料，其中就包含了 `invitationCode` 字段。
+- **前端逻辑**:
+    1. 调用 `getUserProfile` 云函数。
+    2. 从返回数据中提取 `invitationCode`。
+    3. 动态生成邀请链接 (例如: `https://[your-app-url]/register?ref=INVT8888`)。
+    4. 将邀请码和链接展示给用户。
+- **云数据库 (Firestore)**:
+    - `users` 表被 `getUserProfile` 函数**读取**，以获取用户的邀请码。
