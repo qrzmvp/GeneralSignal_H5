@@ -14,8 +14,6 @@
 
 此环境用于日常开发、功能测试和 bug 修复。
 
-#### **需要您操作：配置开发环境**
-
 *   **第一步：创建独立的 Firebase 开发项目**
     *   **访问 Firebase 控制台**: 使用您的 Google 账户登录 [Firebase 控制台](https://console.firebase.google.com/)。
     *   **创建新项目**: 点击“添加项目”或“创建项目”。
@@ -159,6 +157,8 @@
 | `invitationCode` | `string` | 用户的邀请码，唯一。 | `INVT8888` |
 | `invitedBy` | `string` | 邀请者的 `userId` (外键)。 | `fghij67890` |
 | `createdAt` | `timestamp`| 账户创建时间。 | `2023-10-27T10:00:00Z` |
+
+**安全提示**: 用户的**密码**由 **Firebase Authentication** 服务独立、安全地进行管理，**绝对不会**被存储在此 `users` 表中。这是为了最大限度地保障用户凭证安全。
 
 ---
 
