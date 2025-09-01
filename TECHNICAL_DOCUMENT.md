@@ -16,24 +16,24 @@
 
 #### **步骤 1：[需要您操作] 创建独立的 Firebase 开发项目**
 
-1.  **访问 Firebase 控制台**: 使用您的 Google 账户登录 [Firebase 控制台](https://console.firebase.google.com/)。
-2.  **创建新项目**: 点击“添加项目”或“创建项目”。
-3.  **项目命名**: 为您的**开发**项目命名，我们推荐使用 `GeneralSignal-dev` 以便清晰区分。
-4.  **Google Analytics**: 您可以选择禁用或启用 Google Analytics，这不影响核心功能。
-5.  **完成创建**: 等待项目创建完成。
+- **访问 Firebase 控制台**: 使用您的 Google 账户登录 [Firebase 控制台](https://console.firebase.google.com/)。
+- **创建新项目**: 点击“添加项目”或“创建项目”。
+- **项目命名**: 为您的**开发**项目命名，我们推荐使用 `GeneralSignal-dev` 以便清晰区分。
+- **Google Analytics**: 您可以选择禁用或启用 Google Analytics，这不影响核心功能。
+- **完成创建**: 等待项目创建完成。
 
 #### **步骤 2：[需要您操作] 激活开发环境的云服务**
 
 在新创建的 `GeneralSignal-dev` 项目控制台中，您需要激活以下云服务：
 
-1.  **激活 Cloud Firestore (云数据库)**
+- **激活 Cloud Firestore (云数据库)**
     *   在左侧菜单中，找到并点击 “**Build**” > “**Firestore Database**”。
     *   点击 “**创建数据库**”。
     *   **选择模式**: 为了便于开发，请选择“**测试模式**”开始。这会提供一个较为宽松的安全规则，方便我们调试。**注意：生产环境必须使用“生产模式”**。
     *   **选择位置**: 选择一个离您最近的云服务器位置。
     *   点击“**启用**”。
 
-2.  **激活 Cloud Storage (云存储)**
+- **激活 Cloud Storage (云存储)**
     *   在左侧菜单中，找到并点击 “**Build**” > “**Storage**”。
     *   点击“**开始使用**”。
     *   **安全规则**: 同样选择“**测试模式**”以方便开发阶段的文件上传。
@@ -44,21 +44,21 @@
 
 在您完成以上步骤后，我需要获取连接到这个开发项目的客户端配置。
 
-1.  在您的 `GeneralSignal-dev` 项目主页，点击“项目概览”旁边的**齿轮图标**，进入“**项目设置**”。
-2.  在“**您的应用**”卡片中，点击**Web应用图标** (`</>`)来注册一个新的Web应用。
-3.  **应用别名**: 输入 `GeneralSignal-dev-web`。
-4.  **注册应用**: 点击“注册应用”。
-5.  **获取配置**: 在下一步中，您会看到一个名为 `firebaseConfig` 的 JavaScript 对象。**请将这个完整的对象代码复制给我**。这是我将开发环境前端代码连接到您创建的云服务的唯一凭证。
+- 在您的 `GeneralSignal-dev` 项目主页，点击“项目概览”旁边的**齿轮图标**，进入“**项目设置**”。
+- 在“**您的应用**”卡片中，点击**Web应用图标** (`</>`)来注册一个新的Web应用。
+- **应用别名**: 输入 `GeneralSignal-dev-web`。
+- **注册应用**: 点击“注册应用”。
+- **获取配置**: 在下一步中，您会看到一个名为 `firebaseConfig` 的 JavaScript 对象。**请将这个完整的对象代码复制给我**。这是我将开发环境前端代码连接到您创建的云服务的唯一凭证。
 
 ### 1.2. 生产环境 (Production Environment)
 
 此环境面向最终用户，拥有独立的数据和最高的安全级别。**您可以在开发阶段完成后，再按照同样的步骤配置生产环境。**
 
-1.  **创建独立的 Firebase 生产项目**: 再次执行 `1.1` 中的步骤1，但这次将项目命名为 `GeneralSignal-prod`。
-2.  **激活生产环境的云服务**:
+- **创建独立的 Firebase 生产项目**: 再次执行 `1.1` 中的步骤1，但这次将项目命名为 `GeneralSignal-prod`。
+- **激活生产环境的云服务**:
     *   **激活 Cloud Firestore**: 流程同上，但**必须选择“生产模式”**，以确保数据安全。
     *   **激活 Cloud Storage**: 流程同上，但**必须配置正式的安全规则**，我们会在部署前完成这一步。
-3.  **生成生产配置**: 同样地，为 `GeneralSignal-prod` 项目创建一个Web应用，并妥善保管生成的 `firebaseConfig` 对象。在项目部署时，我们会将其作为**环境变量**配置到您的托管平台中，而不会硬编码在代码里。
+- **生成生产配置**: 同样地，为 `GeneralSignal-prod` 项目创建一个Web应用，并妥善保管生成的 `firebaseConfig` 对象。在项目部署时，我们会将其作为**环境变量**配置到您的托管平台中，而不会硬编码在代码里。
 
 ### 1.3. 应用如何连接到正确的环境
 
@@ -133,9 +133,9 @@
     }
     ```
   - **内部逻辑**:
-    1. 在 API 路由中验证请求头中的 Firebase Auth ID Token。
-    2. 从 `users` 表查询用户信息。
-    3. 组合数据并返回。
+    - 在 API 路由中验证请求头中的 Firebase Auth ID Token。
+    - 从 `users` 表查询用户信息。
+    - 组合数据并返回。
 
 - **`updateUserProfile()` - 更新用户资料**
   - **描述**: 允许用户更新自己的用户名、头像等信息。
@@ -149,13 +149,13 @@
     ```
   - **出参**: `{ "success": true, "message": "Profile updated successfully." }`
   - **内部逻辑**:
-    1. 验证用户身份。
-    2. 校验入参（如用户名是否已存在）。
-    3. **头像更新流程**:
+    - 验证用户身份。
+    - 校验入参（如用户名是否已存在）。
+    - **头像更新流程**:
         *   前端（客户端）负责将用户选择的新头像图片上传到 **Firebase Cloud Storage**。
         *   上传成功后，Cloud Storage 会返回一个永久性的公开访问URL。
         *   前端将这个新的 URL 作为 `avatarUrl` 字段的值，调用此 `updateUserProfile` 接口。
-    4. 后端接收到请求后，将 `username` 和/或新的 `avatarUrl` 更新到 `users` 表中对应用户的字段。
+    - 后端接收到请求后，将 `username` 和/或新的 `avatarUrl` 更新到 `users` 表中对应用户的字段。
 
 ### 3.3. 核心功能实现详解
 
@@ -166,11 +166,11 @@
     - **路径**: `POST /api/register`
     - **入参**: `{ username, password, invitationCode? }`
     - **内部逻辑**:
-        1. **初始化 Firebase Admin SDK**: 在 API 路由中安全地初始化 Admin SDK，用于执行特权操作。
-        2. **查询 `users` 表**: 验证 `username` 是否已存在，防止重复注册。
-        3. **(可选) 查询 `users` 表**: 若 `invitationCode` 存在，通过查询找到邀请人，记录其 `userId`。
-        4. **调用 Firebase Admin SDK**: 使用 `auth().createUser()` 方法创建认证用户，获取 `uid`。
-        5. **写入 `users` 表**: 在 `users` 集合中创建一个以 `uid` 为主键的新文档，存入 `username`、新生成的唯一 `invitationCode`、`invitedBy` (如有) 等信息。
+        - **初始化 Firebase Admin SDK**: 在 API 路由中安全地初始化 Admin SDK，用于执行特权操作。
+        - **查询 `users` 表**: 验证 `username` 是否已存在，防止重复注册。
+        - **(可选) 查询 `users` 表**: 若 `invitationCode` 存在，通过查询找到邀请人，记录其 `userId`。
+        - **调用 Firebase Admin SDK**: 使用 `auth().createUser()` 方法创建认证用户，获取 `uid`。
+        - **写入 `users` 表**: 在 `users` 集合中创建一个以 `uid` 为主键的新文档，存入 `username`、新生成的唯一 `invitationCode`、`invitedBy` (如有) 等信息。
 
 #### 3.3.2. 用户登录 (User Login)
 
@@ -185,9 +185,9 @@
 - **后端接口 (Next.js API Route)**:
     - **复用 `GET /api/user/profile`**: 无需新增接口。此接口从 `users` 表中获取当前登录用户的完整资料，其中就包含了 `invitationCode` 字段。
 - **前端逻辑**:
-    1. 调用 `getUserProfile` 接口。
-    2. 从返回数据中提取 `invitationCode`。
-    3. 动态生成邀请链接 (例如: `https://[your-app-url]/register?ref=INVT8888`)。
-    4. 将邀请码和链接展示给用户。
+    - 调用 `getUserProfile` 接口。
+    - 从返回数据中提取 `invitationCode`。
+    - 动态生成邀请链接 (例如: `https://[your-app-url]/register?ref=INVT8888`)。
+    - 将邀请码和链接展示给用户。
 - **云数据库 (Firestore)**:
     - `users` 表被 `getUserProfile` 接口**读取**，以获取用户的邀请码。
