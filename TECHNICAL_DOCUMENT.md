@@ -6,7 +6,7 @@
 
 ## 1. 环境管理与配置 (Environment Management & Setup)
 
-为确保开发流程的规范性、安全性和可维护性，项目将采用**多环境部署**策略，严格区分**本地开发环境**和**线上生产环境**。这意味着我们将为每个环境创建一套完全独立的云资源（包括用户认证、数据库、云函数等）。
+为确保开发流程的规范性、安全性和可维护性，项目将采用**多环境部署**策略，严格区分**本地开发环境**和**线上生产环境**。这意味着我们将为每个环境创建一套完全独立的云资源（包括用户认证、数据库等）。
 
 以下是您需要配合完成的前置步骤，请在启动编码工作前完成**开发环境**的配置。
 
@@ -22,9 +22,9 @@
 4.  **Google Analytics**: 您可以选择禁用或启用 Google Analytics，这不影响核心功能。
 5.  **完成创建**: 等待项目创建完成。
 
-#### **步骤 2：[需要您操作] 激活开发环境的云服务**
+#### **步骤 2：[需要您操作] 激活开发环境的云数据库**
 
-在新创建的 `GeneralSignal-dev` 项目控制台中，您需要激活两个核心服务：
+在新创建的 `GeneralSignal-dev` 项目控制台中，您需要激活云数据库服务：
 
 1.  **激活 Cloud Firestore (云数据库)**
     *   在左侧菜单中，找到并点击 “**Build**” > “**Firestore Database**”。
@@ -32,12 +32,6 @@
     *   **选择模式**: 为了便于开发，请选择“**测试模式**”开始。这会提供一个较为宽松的安全规则，方便我们调试。**注意：生产环境必须使用“生产模式”**。
     *   **选择位置**: 选择一个离您最近的云服务器位置。
     *   点击“**启用**”。
-
-2.  **激活 Cloud Functions (云函数) 的环境**
-    *   云函数依赖于 **Blaze (随用随付)** 结算方案。
-    *   在控制台左下角，找到并点击“**升级**”或“**使用量和结算**”。
-    *   按照指引，将您的项目升级到 Blaze 套餐。
-    *   **重要提示**: Blaze 套餐包含非常慷慨的**免费额度**，在应用的开发和早期阶段，几乎不可能产生任何费用。升级只是为了解锁云函数等高级功能的必要步骤。
 
 #### **步骤 3：[需要您操作] 将开发配置提供给我**
 
@@ -56,7 +50,6 @@
 1.  **创建独立的 Firebase 生产项目**: 再次执行 `1.1` 中的步骤1，但这次将项目命名为 `GeneralSignal-prod`。
 2.  **激活生产环境的云服务**:
     *   **激活 Cloud Firestore**: 流程同上，但**必须选择“生产模式”**，以确保数据安全。
-    *   **激活 Cloud Functions**: 同理，将 `GeneralSignal-prod` 项目也升级到 **Blaze 套餐**。
 3.  **生成生产配置**: 同样地，为 `GeneralSignal-prod` 项目创建一个Web应用，并妥善保管生成的 `firebaseConfig` 对象。在项目部署时，我们会将其作为**环境变量**配置到您的托管平台中，而不会硬编码在代码里。
 
 ### 1.3. 应用如何连接到正确的环境
@@ -70,7 +63,7 @@
     ```
 -   **生产部署**: 在部署到 Firebase App Hosting 或其他平台时，我们会将生产项目的 `firebaseConfig` JSON 字符串作为环境变量注入到构建流程中。
 
-这样，同一份代码在不同环境下运行时，会自动连接到对应环境的数据库和云函数，实现了完美的隔离。
+这样，同一份代码在不同环境下运行时，会自动连接到对应环境的数据库，实现了完美的隔离。
 
 ---
 
@@ -85,7 +78,7 @@
 - **完全托管与弹性伸缩**: Firestore 是一个 Serverless NoSQL 文档数据库，能根据流量自动扩缩容，无需担心运维。
 - **实时数据同步**: 内置的实时监听器 (real-time listeners) 能轻松实现需要实时更新的场景。
 - **灵活的数据模型**: 文档型结构非常适合存储用户资料等半结构化数据，便于未来快速迭代和扩展字段。
-- **与 Firebase 生态无缝集成**: 能与 Firebase Authentication, Cloud Functions 等服务紧密结合，简化开发流程。
+- **与 Firebase 生态无缝集成**: 能与 Firebase Authentication 等服务紧密结合，简化开发流程。
 
 ### 2.2. 库表结构设计 (Firestore Collections)
 
@@ -109,7 +102,7 @@
 
 ### 3.1. 技术选型
 
-推荐使用 **Google Cloud Functions for Firebase**，并采用 TypeScript 编写，以确保类型安全和代码质量。
+推荐使用 **Next.js API Routes**。此方案将后端逻辑与前端代码一同存放在 Next.js 项目中，简化了开发和部署流程，且无需开通 Firebase Blaze 套餐。我们将使用 TypeScript 编写接口，以确保类型安全和代码质量。
 
 ### 3.2. 接口功能详情
 
@@ -117,8 +110,8 @@
 
 - **`getUserProfile()` - 获取用户资料**
   - **描述**: 获取当前登录用户的完整个人信息。
-  - **触发方式**: HTTP (Callable Function)
-  - **入参**: 无 (用户身份通过 context.auth 获取)。
+  - **触发方式**: HTTP (通过客户端调用 Next.js API Route，例如 `GET /api/user/profile`)。
+  - **入参**: 无 (用户身份通过请求头中的 Authorization Token 获取)。
   - **出参**:
     ```json
     {
@@ -132,13 +125,13 @@
     }
     ```
   - **内部逻辑**:
-    1. 验证用户登录状态。
+    1. 在 API 路由中验证请求头中的 Firebase Auth ID Token。
     2. 从 `users` 表查询用户信息。
     3. 组合数据并返回。
 
 - **`updateUserProfile()` - 更新用户资料**
   - **描述**: 允许用户更新自己的用户名、头像等信息。
-  - **触发方式**: HTTP (Callable Function)
+  - **触发方式**: HTTP (例如 `POST /api/user/profile`)
   - **入参**:
     ```json
     {
@@ -148,7 +141,7 @@
     ```
   - **出参**: `{ "success": true, "message": "Profile updated successfully." }`
   - **内部逻辑**:
-    1. 验证用户登录状态。
+    1. 验证用户身份。
     2. 校验入参（如用户名是否已存在）。
     3. 更新 `users` 表中对应用户的字段。
 
@@ -157,33 +150,34 @@
 #### 3.3.1. 用户注册 (User Registration)
 
 - **达成效果**: 新用户通过表单（用户名、密码、可选邀请码）创建账户，并记录邀请关系，成功后自动登录并跳转至主页。
-- **云函数 (Cloud Function)**:
-    - **`registerUser(data, context)`**: 一个 HTTP Callable Function。
+- **后端接口 (Next.js API Route)**:
+    - **路径**: `POST /api/register`
     - **入参**: `{ username, password, invitationCode? }`
     - **内部逻辑**:
-        1. **查询 `users` 表**: 验证 `username` 是否已存在，防止重复注册。
-        2. **(可选) 查询 `users` 表**: 若 `invitationCode` 存在，通过查询找到邀请人，记录其 `userId`。
-        3. **调用 Firebase Authentication**: 使用 `auth.createUser()` 方法创建认证用户，获取 `uid`。
-        4. **写入 `users` 表**: 在 `users` 集合中创建一个以 `uid` 为主键的新文档，存入 `username`、新生成的唯一 `invitationCode`、`invitedBy` (如有) 等信息。
+        1. **初始化 Firebase Admin SDK**: 在 API 路由中安全地初始化 Admin SDK，用于执行特权操作。
+        2. **查询 `users` 表**: 验证 `username` 是否已存在，防止重复注册。
+        3. **(可选) 查询 `users` 表**: 若 `invitationCode` 存在，通过查询找到邀请人，记录其 `userId`。
+        4. **调用 Firebase Admin SDK**: 使用 `auth().createUser()` 方法创建认证用户，获取 `uid`。
+        5. **写入 `users` 表**: 在 `users` 集合中创建一个以 `uid` 为主键的新文档，存入 `username`、新生成的唯一 `invitationCode`、`invitedBy` (如有) 等信息。
 - **云数据库 (Firestore)**:
-    - `users` 表被用于**读取** (检查用户名、邀请码) 和**写入** (创建新用户记录)。
+    - `users` 表被 API 路由**读取** (检查用户名、邀请码) 和**写入** (创建新用户记录)。
 
 #### 3.3.2. 用户登录 (User Login)
 
 - **达成效果**: 已注册用户通过账号密码登录，成功后进入主页。
-- **云函数 (Cloud Function)**: **不使用**。
+- **后端接口 (Next.js API Route)**: **不使用**。
 - **技术说明**: 登录功能由客户端直接调用 **Firebase Authentication SDK** 的 `signInWithEmailAndPassword()` 方法完成。这是最安全、最高效的方式，可以充分利用 Firebase 的安全令牌机制和会话管理，无需自定义后端接口。
-- **云数据库 (Firestore)**: 无直接交互。用户信息将在登录成功后，通过调用 `getUserProfile` 云函数获取。
+- **云数据库 (Firestore)**: 无直接交互。用户信息将在登录成功后，通过调用 `getUserProfile` 接口获取。
 
 #### 3.3.3. 邀请好友 (Invite Friends)
 
 - **达成效果**: 已登录用户在个人中心或邀请页面，获取自己专属的邀请码和邀请链接，用于分享。
-- **云函数 (Cloud Function)**:
-    - **复用 `getUserProfile(data, context)`**: 无需新增接口。此函数从 `users` 表中获取当前登录用户的完整资料，其中就包含了 `invitationCode` 字段。
+- **后端接口 (Next.js API Route)**:
+    - **复用 `GET /api/user/profile`**: 无需新增接口。此接口从 `users` 表中获取当前登录用户的完整资料，其中就包含了 `invitationCode` 字段。
 - **前端逻辑**:
-    1. 调用 `getUserProfile` 云函数。
+    1. 调用 `getUserProfile` 接口。
     2. 从返回数据中提取 `invitationCode`。
     3. 动态生成邀请链接 (例如: `https://[your-app-url]/register?ref=INVT8888`)。
     4. 将邀请码和链接展示给用户。
 - **云数据库 (Firestore)**:
-    - `users` 表被 `getUserProfile` 函数**读取**，以获取用户的邀请码。
+    - `users` 表被 `getUserProfile` 接口**读取**，以获取用户的邀请码。
