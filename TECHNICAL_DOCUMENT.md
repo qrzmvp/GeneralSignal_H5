@@ -46,7 +46,76 @@
     *   **注册应用**: 点击“注册应用”。
     *   **获取配置**: 在下一步中，您会看到一个名为 `firebaseConfig` 的 JavaScript 对象。**请将这个完整的对象代码复制给我**。这是我将开发环境前端代码连接到您创建的云服务的唯一凭证。
 
-### 1.2. 应用如何连接到正确的环境
+### 1.2. 生产环境部署 (Production Deployment)
+
+当您完成开发和测试，准备将应用发布给真实用户时，请遵循以下步骤配置生产环境并进行部署。
+
+*   **第一步：创建独立的 Firebase 生产项目**
+    *   **目标**: 为生产环境创建一套完全独立的云资源，确保与开发数据隔离。
+    *   **操作**:
+        *   返回 [Firebase 控制台](https://console.firebase.google.com/)。
+        *   再次点击“添加项目”，创建一个新项目。
+        *   **项目命名**: 为您的**生产**项目命名，我们强烈推荐使用 `GeneralSignal-prod` 以便清晰区分。
+        *   **完成创建**。
+
+*   **第二步：激活生产环境的云服务**
+    *   **目标**: 启用生产环境所需的用户认证和数据库服务。
+    *   **操作**:
+        *   在新建的 `GeneralSignal-prod` 项目中，重复**开发环境**的步骤，激活以下服务：
+            *   **Firebase Authentication** (用户认证)
+            *   **Cloud Firestore** (云数据库)
+        *   **重要区别**：在激活 Cloud Firestore 时，当系统询问安全规则模式时，**必须选择“生产模式”**。这将默认拒绝所有数据库读写，以最大限度地保护您的线上数据安全。我们稍后会一起配置具体的安全规则。
+
+*   **第三步：获取生产环境配置**
+    *   **目标**: 获取用于连接生产环境 Firebase 服务的密钥。
+    *   **操作**:
+        *   在您的 `GeneralSignal-prod` 项目主页，点击“项目概览”旁边的**齿轮图标**，进入“**项目设置**”。
+        *   在“**您的应用**”卡片中，点击**Web应用图标** (`</>`)来注册一个新的Web应用。
+        *   **应用别名**: 输入 `GeneralSignal-prod-web`。
+        *   **注册应用**: 点击“注册应用”。
+        *   **获取配置**: 在下一步中，您会看到一个名为 `firebaseConfig` 的 JavaScript 对象。
+        *   **请妥善保管这个配置对象，不要泄露。** 我们在下一步部署时会用到它。
+
+*   **第四步：通过 Firebase App Hosting 部署**
+    *   **目标**: 将您的 Next.js 应用部署到 Firebase 官方推荐的、经过优化的托管平台。
+    *   **操作**:
+        *   **安装 Firebase CLI**: 如果您的本地机器尚未安装 Firebase 命令行工具，请打开终端并运行：`npm install -g firebase-tools`。
+        *   **登录 Firebase**: 运行 `firebase login` 并按照提示在浏览器中登录您的 Google 账户。
+        *   **初始化 Firebase**:
+            *   在您的项目代码根目录下，打开终端，运行 `firebase init`。
+            *   选择 “**App Hosting**” (使用方向键选择，按空格键确认)。
+            *   选择 “**Use an existing project**”，然后从列表中选择您刚刚创建的 `GeneralSignal-prod` 生产项目。
+            *   系统会询问您的应用根目录，直接按回车键接受默认值即可。
+        *   **配置环境变量 (关键步骤)**:
+            *   打开项目根目录下的 `apphosting.yaml` 文件。
+            *   将您在 **第三步** 中获取的生产环境 `firebaseConfig` 对象，作为一个单行的 JSON 字符串，添加到环境变量中。修改后的文件应如下所示：
+                ```yaml
+                # Settings to manage and configure a Firebase App Hosting backend.
+                # https://firebase.google.com/docs/app-hosting/configure
+                
+                runConfig:
+                  # Increase this value if you'd like to automatically spin up
+                  # more instances in response to increased traffic.
+                  maxInstances: 1
+                  environmentVariables:
+                    - variable: NEXT_PUBLIC_FIREBASE_CONFIG
+                      value: '{"apiKey":"...", "authDomain":"...", ...}' # <--- 将您生产项目的配置粘贴在这里
+                
+                ```
+        *   **执行部署**:
+            *   在终端中运行命令：`firebase deploy`。
+            *   Firebase CLI 将会开始构建您的 Next.js 应用，并将其部署到 App Hosting。
+            *   部署成功后，终端会显示您的线上应用访问 URL。
+
+*   **第五步：配置安全规则**
+    *   **目标**: 保护您的生产数据库，只允许授权用户进行合法的读写操作。
+    *   **操作**:
+        *   部署完成后，访问您的 `GeneralSignal-prod` 项目的 Firebase 控制台。
+        *   进入 “**Build**” > “**Firestore Database**” > “**规则**” 标签页。
+        *   在这里，我们将一起编写正式的安全规则。例如，一条基本的规则可能是“只允许登录用户读取和写入自己的用户数据”。
+        *   这是一个持续性的工作，随着应用功能的增加，我们会不断完善这些规则。
+
+### 1.3. 应用如何连接到正确的环境
 
 我将通过**环境变量**机制来管理不同环境的配置，您无需担心代码中的环境判断问题。
 
@@ -173,79 +242,3 @@
     *   将邀请码和链接展示给用户。
 *   **云数据库 (Firestore)**:
     *   `users` 表被 `getUserProfile` 接口**读取**，以获取用户的邀请码。
-
----
-
-## 4. 生产环境部署 (Production Deployment)
-
-当您完成开发和测试，准备将应用发布给真实用户时，请遵循以下步骤配置生产环境并进行部署。
-
-### 4.1. 创建独立的 Firebase 生产项目
-
-*   **目标**: 为生产环境创建一套完全独立的云资源，确保与开发数据隔离。
-*   **操作**:
-    *   返回 [Firebase 控制台](https://console.firebase.google.com/)。
-    *   再次点击“添加项目”，创建一个新项目。
-    *   **项目命名**: 为您的**生产**项目命名，我们强烈推荐使用 `GeneralSignal-prod` 以便清晰区分。
-    *   **完成创建**。
-
-### 4.2. 激活生产环境的云服务
-
-*   **目标**: 启用生产环境所需的用户认证和数据库服务。
-*   **操作**:
-    *   在新建的 `GeneralSignal-prod` 项目中，重复**开发环境**的步骤，激活以下服务：
-        *   **Firebase Authentication** (用户认证)
-        *   **Cloud Firestore** (云数据库)
-    *   **重要区别**：在激活 Cloud Firestore 时，当系统询问安全规则模式时，**必须选择“生产模式”**。这将默认拒绝所有数据库读写，以最大限度地保护您的线上数据安全。我们稍后会一起配置具体的安全规则。
-
-### 4.3. 获取生产环境配置
-
-*   **目标**: 获取用于连接生产环境 Firebase 服务的密钥。
-*   **操作**:
-    *   在您的 `GeneralSignal-prod` 项目主页，点击“项目概览”旁边的**齿轮图标**，进入“**项目设置**”。
-    *   在“**您的应用**”卡片中，点击**Web应用图标** (`</>`)来注册一个新的Web应用。
-    *   **应用别名**: 输入 `GeneralSignal-prod-web`。
-    *   **注册应用**: 点击“注册应用”。
-    *   **获取配置**: 在下一步中，您会看到一个名为 `firebaseConfig` 的 JavaScript 对象。
-    *   **请妥善保管这个配置对象，不要泄露。** 我们在下一步部署时会用到它。
-
-### 4.4. 通过 Firebase App Hosting 部署
-
-*   **目标**: 将您的 Next.js 应用部署到 Firebase 官方推荐的、经过优化的托管平台。
-*   **操作**:
-    *   **安装 Firebase CLI**: 如果您的本地机器尚未安装 Firebase 命令行工具，请打开终端并运行：`npm install -g firebase-tools`。
-    *   **登录 Firebase**: 运行 `firebase login` 并按照提示在浏览器中登录您的 Google 账户。
-    *   **初始化 Firebase**:
-        *   在您的项目代码根目录下，打开终端，运行 `firebase init`。
-        *   选择 “**App Hosting**” (使用方向键选择，按空格键确认)。
-        *   选择 “**Use an existing project**”，然后从列表中选择您刚刚创建的 `GeneralSignal-prod` 生产项目。
-        *   系统会询问您的应用根目录，直接按回车键接受默认值即可。
-    *   **配置环境变量 (关键步骤)**:
-        *   打开项目根目录下的 `apphosting.yaml` 文件。
-        *   将您在 **4.3** 步获取的生产环境 `firebaseConfig` 对象，作为一个单行的 JSON 字符串，添加到环境变量中。修改后的文件应如下所示：
-            ```yaml
-            # Settings to manage and configure a Firebase App Hosting backend.
-            # https://firebase.google.com/docs/app-hosting/configure
-            
-            runConfig:
-              # Increase this value if you'd like to automatically spin up
-              # more instances in response to increased traffic.
-              maxInstances: 1
-              environmentVariables:
-                - variable: NEXT_PUBLIC_FIREBASE_CONFIG
-                  value: '{"apiKey":"...", "authDomain":"...", ...}' # <--- 将您生产项目的配置粘贴在这里
-            
-            ```
-    *   **执行部署**:
-        *   在终端中运行命令：`firebase deploy`。
-        *   Firebase CLI 将会开始构建您的 Next.js 应用，并将其部署到 App Hosting。
-        *   部署成功后，终端会显示您的线上应用访问 URL。
-
-### 4.5. 配置安全规则
-
-*   **目标**: 保护您的生产数据库，只允许授权用户进行合法的读写操作。
-*   **操作**:
-    *   部署完成后，访问您的 `GeneralSignal-prod` 项目的 Firebase 控制台。
-    *   进入 “**Build**” > “**Firestore Database**” > “**规则**” 标签页。
-    *   在这里，我们将一起编写正式的安全规则。例如，一条基本的规则可能是“只允许登录用户读取和写入自己的用户数据”。
-    *   这是一个持续性的工作，随着应用功能的增加，我们会不断完善这些规则。
