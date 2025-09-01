@@ -64,7 +64,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AvatarEditor } from '../components/AvatarEditor';
 
 
 function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
@@ -219,27 +218,6 @@ export default function ProfilePage() {
         membership: '年度会员'
     });
 
-    const [editorOpen, setEditorOpen] = useState(false);
-    const [imgSrc, setImgSrc] = useState('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const reader = new FileReader();
-            reader.addEventListener('load', () => {
-                setImgSrc(reader.result?.toString() || '');
-                setEditorOpen(true);
-            });
-            reader.readAsDataURL(e.target.files[0]);
-        }
-        // Reset file input to allow selecting the same file again
-        e.target.value = '';
-    };
-
-    const handleEditClick = () => {
-        fileInputRef.current?.click();
-    };
-
     const handleCopy = (text: string) => {
         if (navigator.clipboard) {
             navigator.clipboard.writeText(text);
@@ -250,10 +228,6 @@ export default function ProfilePage() {
     const handleLogout = () => {
         router.push('/login');
     }
-
-    const handleAvatarSave = (newAvatar: string) => {
-        setUser(prevUser => ({...prevUser, avatar: newAvatar}));
-    };
 
   return (
     <>
@@ -272,20 +246,6 @@ export default function ProfilePage() {
                             <AvatarImage src={user.avatar} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                         <input
-                            type="file"
-                            accept="image/*"
-                            onChange={onSelectFile}
-                            className="hidden"
-                            ref={fileInputRef}
-                        />
-                        <button 
-                          onClick={handleEditClick}
-                          className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground rounded-full p-1 hover:bg-accent/80 transition-colors border-2 border-card"
-                        >
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">编辑头像</span>
-                        </button>
                     </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold flex items-center gap-2">
@@ -424,14 +384,6 @@ export default function ProfilePage() {
         </div>
       </nav>
     </div>
-
-    <AvatarEditor 
-        imgSrc={imgSrc}
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        onSave={handleAvatarSave}
-        onFileSelect={onSelectFile}
-    />
     </>
   );
 }
