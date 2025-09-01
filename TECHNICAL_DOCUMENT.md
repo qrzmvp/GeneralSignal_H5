@@ -4,9 +4,48 @@
 
 ---
 
-## 1. 数据库设计
+## 1. 环境管理 (Environment Management)
 
-### 1.1. 数据库选型
+为确保开发流程的规范性、安全性和可维护性，项目将采用多环境部署策略，严格区分本地开发环境和线上生产环境。
+
+-   **开发环境 (Development)**: 用于日常开发、功能测试和 bug 修复。
+-   **生产环境 (Production)**: 面向最终用户的线上稳定环境。
+
+### 1.1. Firebase 项目隔离
+
+我们将为每个环境创建一个独立的 Firebase 项目：
+
+-   开发项目: `signal-auth-dev` (示例)
+-   生产项目: `signal-auth-prod` (示例)
+
+这种隔离策略可以确保开发测试数据（如模拟用户、测试订单）与真实的生产用户数据完全分离，防止任何交叉污染或误操作。
+
+### 1.2. 客户端配置
+
+客户端 Next.js 应用将通过**环境变量**来加载对应环境的 Firebase 配置对象 (`firebaseConfig`)。
+
+-   **本地开发**: 在项目根目录下的 `.env.local` 文件中，开发者可以配置开发项目的 `firebaseConfig` JSON 字符串。此文件不应提交到版本控制系统。
+    ```.env.local
+    NEXT_PUBLIC_FIREBASE_CONFIG='{"apiKey": "...", "authDomain": "signal-auth-dev.firebaseapp.com", ...}'
+    ```
+-   **生产部署**: 在 Firebase App Hosting 或其他托管平台的环境变量设置中，配置生产项目的 `firebaseConfig` JSON 字符串。构建流程会自动将此变量注入到生产代码中。
+
+应用在初始化 Firebase SDK 时，会读取相应的环境变量，确保连接到正确的后端。
+
+### 1.3. 云服务 (云函数、云数据库、云存储)
+
+-   **云函数 (Cloud Functions)**:
+    -   使用 Firebase CLI 的 `use` 命令 (`firebase use dev` / `firebase use prod`) 来切换当前工作的 Firebase 项目。
+    -   部署命令 (`firebase deploy --only functions`) 会将云函数部署到当前选定的项目中。
+    -   客户端调用云函数时，由于 SDK 已使用特定环境的配置初始化，因此请求会自动路由到正确的后端环境。
+-   **云数据库 (Firestore) & 云存储 (Cloud Storage)**:
+    -   与云函数同理，SDK 会根据初始化时加载的 `firebaseConfig`，自动连接到对应环境的数据库和存储桶，开发者无需在代码中进行任何额外的环境判断。
+
+---
+
+## 2. 数据库设计
+
+### 2.1. 数据库选型
 
 考虑到应用的业务场景（高频读写、用户关系复杂、需要实时数据同步）以及未来对 AI 功能的深度集成需求，我推荐使用 **Google Cloud Firestore**。
 
@@ -18,11 +57,11 @@
 - **强大的查询能力**: 支持复杂的复合查询和数据聚合，能满足排行榜、历史记录筛选等各类需求。
 - **与 Firebase 生态无缝集成**: 能与 Firebase Authentication, Cloud Functions 等服务紧密结合，简化开发流程。
 
-### 1.2. 库表结构设计 (Firestore Collections)
+### 2.2. 库表结构设计 (Firestore Collections)
 
 我将 Firestore 的 `Collection` 视为关系型数据库中的 `Table` 来进行设计。
 
-#### 1.2.1. `users` - 用户表
+#### 2.2.1. `users` - 用户表
 
 存储应用用户的核心信息。
 
@@ -37,7 +76,7 @@
 | `membershipId` | `string` | 当前生效的会员订阅ID (外键)。 | `sub_xyz789` |
 | `createdAt` | `timestamp` | 账户创建时间。 | `2023-10-27T10:00:00Z` |
 
-#### 1.2.2. `traders` - 交易员表
+#### 2.2.2. `traders` - 交易员表
 
 存储交易信号提供者的详细信息和统计数据。
 
@@ -51,7 +90,7 @@
 | `stats` | `map` | 统计数据 (为便于查询和更新，聚合存放)。 | `{ "yield": 288.0, "winRate": 95.0, ... }` |
 | `followersCount`| `number` | 跟单人数 (冗余字段，用于快速读取)。 | `1288` |
 
-#### 1.2.3. `subscriptions` - 用户订阅表
+#### 2.2.3. `subscriptions` - 用户订阅表
 
 记录用户的会员购买与有效期限。
 
@@ -65,7 +104,7 @@
 | `endDate` | `timestamp` | 订阅结束时间。 | `2024-10-27T...` |
 | `paymentId` | `string` | 关联的支付记录ID (外键)。 | `pay_123abc` |
 
-#### 1.2.4. `payments` - 支付记录表
+#### 2.2.4. `payments` - 支付记录表
 
 存储所有支付行为的详细信息。
 
@@ -80,7 +119,7 @@
 | `status` | `string`| 支付状态 (`pending`, `completed`, `failed`)。 | `completed` |
 | `createdAt` | `timestamp`| 记录创建时间。 | `2023-10-27T...` |
 
-#### 1.2.5. `user_exchange_keys` - 用户API密钥表
+#### 2.2.5. `user_exchange_keys` - 用户API密钥表
 
 安全地存储用户绑定的交易所 API 密钥。
 
@@ -94,7 +133,7 @@
 | `passphrase`| `string` | Passphrase (如有, **必须加密存储**)。 | `encrypted:...` |
 | `status` | `string` | 密钥状态 (`running`, `stopped`)。 | `running` |
 
-#### 1.2.6. `user_follows` - 用户关注关系表
+#### 2.2.6. `user_follows` - 用户关注关系表
 
 记录用户与交易员的关注关系及跟单设置。
 
@@ -106,7 +145,7 @@
 | `settings` | `map` | 用户的个性化跟单设置。 | `{ "fundStrategy": "ratio", "amount": 100, ... }` |
 | `createdAt`| `timestamp`| 关注开始时间。 | `2023-10-28T...` |
 
-#### 1.2.7. `trading_orders` - 交易订单表
+#### 2.2.7. `trading_orders` - 交易订单表
 
 记录所有挂单和持仓信息，是应用的核心数据表。
 
@@ -129,15 +168,15 @@
 
 ---
 
-## 2. API 接口设计
+## 3. API 接口设计
 
-### 2.1. 技术选型
+### 3.1. 技术选型
 
 推荐使用 **Google Cloud Functions for Firebase**，并采用 TypeScript 编写，以确保类型安全和代码质量。
 
-### 2.2. 接口功能详情
+### 3.2. 接口功能详情
 
-#### 2.2.1. 用户模块 (`user`)
+#### 3.2.1. 用户模块 (`user`)
 
 - **`getUserProfile()` - 获取用户资料**
   - **描述**: 获取当前登录用户的完整个人信息，包括会员状态。
@@ -181,7 +220,7 @@
     2. 校验入参（如用户名是否已存在）。
     3. 更新 `users` 表中对应用户的字段。
 
-#### 2.2.2. 交易员与榜单模块 (`trader`)
+#### 3.2.2. 交易员与榜单模块 (`trader`)
 
 - **`getTraderLeaderboard()` - 获取交易员榜单**
   - **描述**: 获取交易员列表，支持分页和多种排序方式。
@@ -212,7 +251,7 @@
     2. 使用 `limit()` 和 `startAfter()` 实现分页。
     3. 查询 `traders` 表并返回列表。
 
-#### 2.2.3. 跟单与交易模块 (`trade`)
+#### 3.2.3. 跟单与交易模块 (`trade`)
 
 - **`getAccountDetails()` - 获取指定账户的资产和订单**
   - **描述**: 获取用户单个交易所账户的总览数据、挂单列表和持仓列表。
@@ -262,7 +301,7 @@
     1. 验证用户登录状态和会员资格。
     2. 使用 `upsert` (更新或插入) 逻辑，在 `user_follows` 表中创建或更新记录。
 
-#### 2.2.4. API 密钥管理模块 (`apiKey`)
+#### 3.2.4. API 密钥管理模块 (`apiKey`)
 
 - **`addExchangeApiKey()` - 新增/修改API密钥**
   - **描述**: 用户绑定或修改自己的交易所API密钥。
@@ -283,9 +322,9 @@
     3. 将加密后的数据存入 `user_exchange_keys` 表。
     4. 返回新创建的 `keyId`。
 
-### 2.3. 核心功能实现详解
+### 3.3. 核心功能实现详解
 
-#### 2.3.1. 用户注册 (User Registration)
+#### 3.3.1. 用户注册 (User Registration)
 
 - **达成效果**: 新用户通过表单（用户名、密码、可选邀请码）创建账户，并记录邀请关系，成功后自动登录并跳转至主页。
 - **云函数 (Cloud Function)**:
@@ -299,14 +338,14 @@
 - **云数据库 (Firestore)**:
     - `users` 表被用于**读取** (检查用户名、邀请码) 和**写入** (创建新用户记录)。
 
-#### 2.3.2. 用户登录 (User Login)
+#### 3.3.2. 用户登录 (User Login)
 
 - **达成效果**: 已注册用户通过账号密码登录，成功后进入主页。
 - **云函数 (Cloud Function)**: **不使用**。
 - **技术说明**: 登录功能由客户端直接调用 **Firebase Authentication SDK** 的 `signInWithEmailAndPassword()` 方法完成。这是最安全、最高效的方式，可以充分利用 Firebase 的安全令牌机制和会话管理，无需自定义后端接口。
 - **云数据库 (Firestore)**: 无直接交互。用户信息将在登录成功后，通过调用 `getUserProfile` 云函数获取。
 
-#### 2.3.3. 邀请好友 (Invite Friends)
+#### 3.3.3. 邀请好友 (Invite Friends)
 
 - **达成效果**: 已登录用户在个人中心或邀请页面，获取自己专属的邀请码和邀请链接，用于分享。
 - **云函数 (Cloud Function)**:
@@ -318,3 +357,6 @@
     4. 将邀请码和链接展示给用户。
 - **云数据库 (Firestore)**:
     - `users` 表被 `getUserProfile` 函数**读取**，以获取用户的邀请码。
+
+
+    
