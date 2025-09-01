@@ -15,8 +15,8 @@
 
 我们将为每个环境创建一个独立的 Firebase 项目：
 
--   开发项目: `signal-auth-dev` (示例)
--   生产项目: `signal-auth-prod` (示例)
+-   开发项目: `GeneralSignal-dev` (示例)
+-   生产项目: `GeneralSignal-prod` (示例)
 
 这种隔离策略可以确保开发测试数据（如模拟用户、测试订单）与真实的生产用户数据完全分离，防止任何交叉污染或误操作。
 
@@ -26,7 +26,7 @@
 
 -   **本地开发**: 在项目根目录下的 `.env.local` 文件中，开发者可以配置开发项目的 `firebaseConfig` JSON 字符串。此文件不应提交到版本控制系统。
     ```.env.local
-    NEXT_PUBLIC_FIREBASE_CONFIG='{"apiKey": "...", "authDomain": "signal-auth-dev.firebaseapp.com", ...}'
+    NEXT_PUBLIC_FIREBASE_CONFIG='{"apiKey": "...", "authDomain": "GeneralSignal-dev.firebaseapp.com", ...}'
     ```
 -   **生产部署**: 在 Firebase App Hosting 或其他托管平台的环境变量设置中，配置生产项目的 `firebaseConfig` JSON 字符串。构建流程会自动将此变量注入到生产代码中。
 
@@ -357,3 +357,5 @@
     4. 将邀请码和链接展示给用户。
 - **云数据库 (Firestore)**:
     - `users` 表被 `getUserProfile` 函数**读取**，以获取用户的邀请码。
+
+```
