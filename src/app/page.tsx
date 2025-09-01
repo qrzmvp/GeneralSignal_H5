@@ -133,22 +133,25 @@ function TraderCard({ trader, rank, is综合排序, onFollowClick }: { trader: T
     )
 }
 
-function FilterDropdown({ label }: { label: string }) {
+type SortDirection = 'asc' | 'desc';
+
+function FilterDropdown({ onSelect }: { onSelect: (direction: SortDirection) => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="text-muted-foreground hover:text-foreground p-0 h-auto">
-          {label}
-          <ChevronDown className="ml-1 h-4 w-4" />
+          <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="bg-card">
-        <DropdownMenuItem>由高到低</DropdownMenuItem>
-        <DropdownMenuItem>由低到高</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onSelect('desc')}>由高到低</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onSelect('asc')}>由低到高</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
+
+type SortKey = 'yield' | 'winRate' | 'default';
 
 export default function LeaderboardPage() {
     const [page, setPage] = useState(1);
@@ -162,25 +165,44 @@ export default function LeaderboardPage() {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedTraderId, setSelectedTraderId] = useState<number | null>(null);
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+    const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+        key: 'default',
+        direction: 'desc',
+    });
+
 
     useEffect(() => {
-        // Start with loading true
         setLoading(true);
-        const sorted = [...allTraders].sort((a, b) => b.yield - a.yield);
-        setSortedTraders(sorted);
-        // Directly load the first page of traders
-        const initialTraders = sorted.slice(0, PAGE_SIZE);
-        setTraders(initialTraders);
-        setPage(2); // Next page to load will be page 2
-        if (initialTraders.length >= sorted.length) {
-            setHasMore(false);
-        }
+        const newSorted = [...allTraders].sort((a, b) => {
+            if (sortConfig.key === 'default') {
+                return b.yield - a.yield;
+            }
+            if (sortConfig.direction === 'asc') {
+                return a[sortConfig.key as keyof Trader] as number - (b[sortConfig.key as keyof Trader] as number);
+            }
+            return (b[sortConfig.key as keyof Trader] as number) - (a[sortConfig.key as keyof Trader] as number);
+        });
+        setSortedTraders(newSorted);
+        setTraders(newSorted.slice(0, PAGE_SIZE));
+        setPage(2);
+        setHasMore(PAGE_SIZE < newSorted.length);
         setLoading(false);
-    }, []);
+    }, [sortConfig]);
 
     const handleFollowClick = (traderId: number) => {
         setSelectedTraderId(traderId);
         setIsSheetOpen(true);
+    };
+    
+    const handleSort = (key: SortKey) => {
+        setSortConfig(prev => ({
+            key,
+            direction: prev.key === key ? (prev.direction === 'asc' ? 'desc' : 'asc') : 'desc',
+        }));
+    };
+
+    const handleSortDirection = (key: SortKey, direction: SortDirection) => {
+        setSortConfig({ key, direction });
     };
 
     const loadMoreTraders = () => {
@@ -194,7 +216,6 @@ export default function LeaderboardPage() {
                 setPage(prev => prev + 1);
             }
             
-            // This check should use the most up-to-date state
             setTraders(currentTraders => {
                  if (currentTraders.length >= sortedTraders.length) {
                     setHasMore(false);
@@ -277,11 +298,21 @@ export default function LeaderboardPage() {
 
             {/* Filters */}
             <div className="flex items-center justify-start gap-4 px-4 pb-3 text-sm">
-                <Button variant="ghost" className="text-foreground p-0 h-auto font-bold">
+                <Button variant="ghost" className={cn("p-0 h-auto", sortConfig.key === 'default' ? "text-foreground font-bold" : "text-muted-foreground")} onClick={() => handleSort('default')}>
                     综合排序
                 </Button>
-                <FilterDropdown label="收益率" />
-                <FilterDropdown label="胜率" />
+                <div className="flex items-center">
+                    <Button variant="ghost" className={cn("p-0 h-auto", sortConfig.key === 'yield' ? "text-foreground font-bold" : "text-muted-foreground")} onClick={() => handleSort('yield')}>
+                        收益率
+                    </Button>
+                    <FilterDropdown onSelect={(direction) => handleSortDirection('yield', direction)} />
+                </div>
+                 <div className="flex items-center">
+                    <Button variant="ghost" className={cn("p-0 h-auto", sortConfig.key === 'winRate' ? "text-foreground font-bold" : "text-muted-foreground")} onClick={() => handleSort('winRate')}>
+                        胜率
+                    </Button>
+                    <FilterDropdown onSelect={(direction) => handleSortDirection('winRate', direction)} />
+                </div>
             </div>
         </div>
       </header>
@@ -297,7 +328,7 @@ export default function LeaderboardPage() {
                     key={trader.id}
                     trader={trader} 
                     rank={rank}
-                    is综合排序={!searchQuery} // Only show ranks if not searching
+                    is综合排序={sortConfig.key === 'default' && !searchQuery}
                     onFollowClick={() => handleFollowClick(trader.id)}
                 />
               )
