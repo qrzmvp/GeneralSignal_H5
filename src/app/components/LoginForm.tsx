@@ -4,6 +4,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Mail, User, Loader2, Bitcoin, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,15 +28,42 @@ interface LoginFormProps {
 export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { signIn } = useAuth();
+  const { toast } = useToast();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast({
+          title: "登录失败",
+          description: error.message === "Invalid login credentials" 
+            ? "邮箱或密码错误" 
+            : error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "登录成功",
+          description: "欢迎回来！",
+        });
+        onLoginSuccess();
+      }
+    } catch (error) {
+      toast({
+        title: "登录失败",
+        description: "登录时发生错误，请重试",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-      onLoginSuccess();
-    }, 2000);
+    }
   };
 
   return (
@@ -56,15 +85,17 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
         <CardContent className="space-y-4">
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="username">
-                  账号
+                <Label htmlFor="email">
+                  邮箱
                 </Label>
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="请输入您的账号"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="请输入您的邮箱"
                   required
-                  autoComplete="username"
+                  autoComplete="email"
                   className="bg-background/50"
                 />
               </div>
@@ -74,6 +105,8 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
                   <Input 
                     id="password-login" 
                     type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="请输入您的密码"
                     required 
                     autoComplete="current-password"

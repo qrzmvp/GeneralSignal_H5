@@ -12,6 +12,7 @@ import {
   Crown,
   ArrowRightLeft,
   X,
+  LogOut,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -40,6 +41,8 @@ import { Badge } from '@/components/ui/badge'
 import { FollowOrderSheet } from './components/FollowOrderSheet'
 import { allTraders, Trader } from '@/lib/data'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 const PAGE_SIZE = 10;
 const RANK_BADGES: {[key: number]: { color: string }} = {
@@ -154,6 +157,7 @@ function FilterDropdown({ onSelect }: { onSelect: (direction: SortDirection) => 
 type SortKey = 'yield' | 'winRate' | 'default';
 
 export default function LeaderboardPage() {
+    const { user, signOut } = useAuth();
     const [page, setPage] = useState(1);
     const [traders, setTraders] = useState<Trader[]>([]);
     const [loading, setLoading] = useState(true);
@@ -256,12 +260,12 @@ export default function LeaderboardPage() {
     }, [searchQuery, traders, sortedTraders]);
 
   return (
-    <>
+    <ProtectedRoute>
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
       
       <header className="flex-shrink-0">
         <div 
-          className="flex items-center justify-center p-4 transition-all duration-300 ease-in-out overflow-hidden"
+          className="flex items-center justify-between p-4 transition-all duration-300 ease-in-out overflow-hidden"
           style={{ 
             height: isHeaderVisible ? '3.5rem' : '0rem',
             opacity: isHeaderVisible ? 1 : 0,
@@ -269,6 +273,28 @@ export default function LeaderboardPage() {
           }}
         >
           <h1 className="font-bold text-lg">将军榜单</h1>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">
+              {user?.user_metadata?.username || user?.email}
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full">
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className="text-xs">
+                      {(user?.user_metadata?.username || user?.email || 'U').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm">
@@ -383,6 +409,6 @@ export default function LeaderboardPage() {
         traders={allTraders}
         defaultTraderId={selectedTraderId}
     />
-    </>
+    </ProtectedRoute>
   )
 }
