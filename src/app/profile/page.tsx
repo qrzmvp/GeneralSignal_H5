@@ -44,7 +44,6 @@ import {
     ChevronRight, 
     Copy, 
     Crown, 
-    Edit, 
     FileQuestion, 
     Headset, 
     ImagePlus, 
@@ -60,7 +59,6 @@ import {
     Ticket
 } from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
-import AvatarEditor from '../components/AvatarEditor';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -236,7 +234,6 @@ function FeedbackDialog() {
 export default function ProfilePage() {
         const [activeTab, setActiveTab] = useState('profile');
         const [showToast, setShowToast] = useState(false);
-    const [avatarOpen, setAvatarOpen] = useState(false);
         const router = useRouter();
         const { user: authUser, signOut, loading } = useAuth();
 
@@ -254,7 +251,7 @@ export default function ProfilePage() {
             membership: null,
         });
 
-        useEffect(() => {
+    useEffect(() => {
             if (!authUser) return;
 
             // 1) 先用 auth user 填充用户名/ID/头像（元数据）
@@ -287,6 +284,37 @@ export default function ProfilePage() {
                 });
         }, [authUser]);
 
+        // 如果邀请码依然缺失，客户端兜底生成 8 位数字码并保存（重试避免冲突）
+        useEffect(() => {
+            const ensureInviteCode = async () => {
+                if (!authUser) return;
+                if (profile.invitationCode) return;
+                try {
+                    // 最多重试 5 次，避免唯一冲突
+                    for (let i = 0; i < 5; i++) {
+                        const code = String(Math.floor(Math.random() * 100000000)).padStart(8, '0');
+                        const { data, error } = await supabase
+                            .from('profiles')
+                            .update({ invitation_code: code })
+                            .eq('id', authUser.id)
+                            .select('invitation_code')
+                            .maybeSingle();
+                        if (!error && data?.invitation_code) {
+                            setProfile(prev => ({ ...prev, invitationCode: data.invitation_code }));
+                            return;
+                        }
+                        // 若唯一约束冲突则继续重试，否则终止
+                        if (error && !/duplicate key value|unique constraint/i.test(error.message)) {
+                            break;
+                        }
+                    }
+                } catch {
+                    /* ignore */
+                }
+            };
+            void ensureInviteCode();
+        }, [authUser, profile.invitationCode]);
+
     const handleCopy = (text: string) => {
         if (navigator.clipboard) {
             navigator.clipboard.writeText(text);
@@ -312,18 +340,11 @@ export default function ProfilePage() {
             <Card className="bg-card/50 border-0 shadow-none">
                 <CardContent className="p-4 flex items-center gap-4">
                                         <div className="relative">
-                        <Avatar className="h-16 w-16 border-2 border-primary/50">
-                            <AvatarImage src={profile.avatar || '/avatar-default.svg'} alt={profile.name || '用户'} />
-                            <AvatarFallback>{(profile.name || '用').charAt(0)}</AvatarFallback>
-                        </Avatar>
-                                                <button
-                                                    aria-label="编辑头像"
-                                                    className="absolute -bottom-1 -right-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow hover:opacity-90"
-                                                    onClick={() => setAvatarOpen(true)}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                    </div>
+                                            <Avatar className="h-16 w-16 border-2 border-primary/50">
+                                                <AvatarImage src={'/avatar-default.svg'} alt={profile.name || '用户'} />
+                                                <AvatarFallback>{(profile.name || '用').charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                        </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold flex items-center gap-2">
                 {profile.name}
@@ -334,8 +355,8 @@ export default function ProfilePage() {
                                 </span>
                             )}
                         </h2>
-                                                <div className="flex items-center text-xs text-muted-foreground">
-                                                        <span>邮箱: {authUser?.email || '——'}</span>
+                                                <div className="flex items-center text-xs text-muted-foreground no-underline">
+                                                    <span>邮箱: {authUser?.email || '——'}</span>
                                                         {authUser?.email && (
                                                             <Button
                                                                 variant="ghost"
@@ -441,13 +462,7 @@ export default function ProfilePage() {
         </div>
       </main>
 
-            <AvatarEditor
-                open={avatarOpen}
-                onOpenChange={setAvatarOpen}
-                userId={authUser?.id || ''}
-                currentUrl={profile.avatar}
-                onUploaded={(url) => setProfile((prev) => ({ ...prev, avatar: url }))}
-            />
+            {/* 头像编辑功能暂时下线 */}
 
 
       {/* Bottom Navigation */}
