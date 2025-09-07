@@ -313,7 +313,7 @@ export default function ProfilePage() {
                 <CardContent className="p-4 flex items-center gap-4">
                                         <div className="relative">
                         <Avatar className="h-16 w-16 border-2 border-primary/50">
-                            <AvatarImage src={profile.avatar || 'https://i.pravatar.cc/150'} alt={profile.name || '用户'} />
+                            <AvatarImage src={profile.avatar || '/avatar-default.svg'} alt={profile.name || '用户'} />
                             <AvatarFallback>{(profile.name || '用').charAt(0)}</AvatarFallback>
                         </Avatar>
                                                 <button

@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import ReactCrop, { PercentCrop } from "react-image-crop"
 import "react-image-crop/dist/ReactCrop.css"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { supabase } from "@/lib/supabase"
 
 type Props = {
@@ -21,6 +21,9 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
     const [crop, setCrop] = useState<PercentCrop>({ unit: "%", width: 70, height: 70, x: 15, y: 15 })
     const [scale, setScale] = useState(1)
     const [saving, setSaving] = useState(false)
+    const cameraInputRef = useRef<HTMLInputElement | null>(null)
+    const galleryInputRef = useRef<HTMLInputElement | null>(null)
+    const previewRef = useRef<HTMLCanvasElement | null>(null)
 
     useEffect(() => {
         if (!open) {
@@ -36,9 +39,16 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
     const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0]
         if (!f) return
+        if (f.size > 5 * 1024 * 1024) {
+            alert("图片大小需小于 5MB")
+            return
+        }
         const url = URL.createObjectURL(f)
         setFileUrl(url)
     }
+
+    const openCamera = () => cameraInputRef.current?.click()
+    const openGallery = () => galleryInputRef.current?.click()
 
     // Draw the cropped image to a canvas and return a blob
     const getCroppedBlob = async (): Promise<Blob | null> => {
@@ -72,10 +82,46 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
         const ctx = canvas.getContext("2d")!
         ctx.imageSmoothingQuality = "high"
 
-    ctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height)
+        ctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height)
 
         return await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9))
     }
+
+    // live round preview (small)
+    useEffect(() => {
+        if (!imgEl || !fileUrl || !previewRef.current || !crop.width || !crop.height) return
+        const canvas = previewRef.current
+        const image = imgEl
+        const naturalW = image.naturalWidth
+        const naturalH = image.naturalHeight
+        const xPx = (crop.x || 0) * naturalW / 100
+        const yPx = (crop.y || 0) * naturalH / 100
+        const wPx = (crop.width || 0) * naturalW / 100
+        const hPx = (crop.height || 0) * naturalH / 100
+        const centerX = xPx + wPx / 2
+        const centerY = yPx + hPx / 2
+        const srcW = Math.max(1, wPx / Math.max(1, scale))
+        const srcH = Math.max(1, hPx / Math.max(1, scale))
+        let srcX = centerX - srcW / 2
+        let srcY = centerY - srcH / 2
+        srcX = Math.max(0, Math.min(srcX, naturalW - srcW))
+        srcY = Math.max(0, Math.min(srcY, naturalH - srcH))
+
+        const size = 160
+        canvas.width = size
+        canvas.height = size
+        const ctx = canvas.getContext("2d")!
+        ctx.clearRect(0, 0, size, size)
+        ctx.save()
+        // round mask
+        ctx.beginPath()
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+        ctx.closePath()
+        ctx.clip()
+        ctx.imageSmoothingQuality = "high"
+        ctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, size, size)
+        ctx.restore()
+    }, [fileUrl, imgEl, crop, scale])
 
     const handleSave = async () => {
         setSaving(true)
@@ -111,34 +157,42 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-[92vw] sm:max-w-xl">
-                <DialogHeader>
-                    <DialogTitle>编辑头像</DialogTitle>
-                    <DialogDescription>支持缩放与裁剪（正方形）</DialogDescription>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent side="bottom" className="p-0 pb-safe overflow-hidden">
+                <SheetHeader className="p-4 pb-2">
+                    <SheetTitle>编辑头像</SheetTitle>
+                    <SheetDescription>支持缩放与裁剪（圆形预览，保存为正方形）</SheetDescription>
+                </SheetHeader>
 
-                <div className="grid gap-4">
+                <div className="px-4 pb-24">
                     {!fileUrl ? (
-                        <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="grid gap-3">
                             {currentUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={currentUrl} alt="current avatar" className="w-24 h-24 rounded-full object-cover" />
+                                <img src={currentUrl} alt="current avatar" className="mx-auto w-20 h-20 rounded-full object-cover" />
                             ) : null}
-                            <input type="file" accept="image/*" onChange={onFileChange} />
-                            <p className="text-xs text-muted-foreground">建议 400x400 以上清晰图片，小于 5MB</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button variant="secondary" onClick={openCamera}>拍摄</Button>
+                                <Button onClick={openGallery}>从相册选择</Button>
+                                <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={onFileChange} />
+                                <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+                            </div>
+                            <p className="text-xs text-muted-foreground text-center">建议 400x400 以上清晰图片，小于 5MB</p>
                         </div>
                     ) : (
-                        <div className="grid gap-3">
-                <ReactCrop crop={crop} onChange={(_c, percent) => setCrop(percent)} aspect={1}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={fileUrl}
-                                    alt="to-crop"
-                                    ref={(el) => setImgEl(el)}
-                    style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
-                                />
-                            </ReactCrop>
+                        <div className="grid gap-4">
+                            <div className="avatar-crop">
+                                <ReactCrop crop={crop} onChange={(_c, percent) => setCrop(percent)} aspect={1}>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={fileUrl}
+                                        alt="to-crop"
+                                        ref={(el) => setImgEl(el)}
+                                        className="max-h-[48vh] w-full object-contain"
+                                        style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
+                                    />
+                                </ReactCrop>
+                            </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-xs text-muted-foreground w-14">缩放</span>
                                 <input
@@ -152,18 +206,25 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
                                 />
                                 <span className="text-xs w-10 text-right">{scale.toFixed(1)}x</span>
                             </div>
+                            <div className="flex items-center gap-4">
+                                <span className="text-xs text-muted-foreground">圆形预览</span>
+                                <canvas ref={previewRef} className="rounded-full border size-16" />
+                            </div>
                         </div>
                     )}
                 </div>
 
-                <DialogFooter>
-                    <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>取消</Button>
-                    <Button onClick={handleSave} disabled={!fileUrl || saving}>
-                        {saving ? "保存中..." : "保存"}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 flex gap-3">
+                    <Button variant="secondary" className="flex-1" onClick={() => onOpenChange(false)} disabled={saving}>取消</Button>
+                    <Button className="flex-1" onClick={handleSave} disabled={!fileUrl || saving}>{saving ? "保存中..." : "保存"}</Button>
+                </div>
+
+                {/* circular crop selection style */}
+                <style jsx global>{`
+                  .avatar-crop .ReactCrop__crop-selection { border-radius: 9999px; }
+                `}</style>
+            </SheetContent>
+        </Sheet>
     )
 }
  
