@@ -66,6 +66,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { submitFeedback, type FeedbackCategory } from '@/lib/feedback';
+import { useToast } from '@/hooks/use-toast';
 
 
 function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
@@ -118,21 +120,43 @@ const feedbackTypes = [
 ];
 
 function FeedbackDialog() {
+    const [open, setOpen] = useState(false);
     const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [description, setDescription] = useState('');
-    const [images, setImages] = useState<string[]>([]);
-    const [showSuccessToast, setShowSuccessToast] = useState(false);
+    const [previews, setPreviews] = useState<string[]>([]);
+    const [files, setFiles] = useState<File[]>([]);
+    const [submitting, setSubmitting] = useState(false);
+    const { toast } = useToast();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const files = Array.from(e.target.files);
-            const newImages = files.map(file => URL.createObjectURL(file));
-            setImages(prev => [...prev, ...newImages].slice(0, 3));
+        if (!e.target.files) return;
+        const picked = Array.from(e.target.files);
+        const next: File[] = [];
+        const nextPreviews: string[] = [];
+        const current = files.length;
+        for (let i = 0; i < picked.length && current + next.length < 3; i++) {
+            const f = picked[i];
+            const okType = /image\/(png|jpe?g|webp)/i.test(f.type);
+            const okSize = f.size <= 5 * 1024 * 1024; // 5MB
+            if (!okType || !okSize) {
+                toast({ description: '仅支持 png/jpg/webp 且单张 ≤ 5MB' });
+                continue;
+            }
+            next.push(f);
+            nextPreviews.push(URL.createObjectURL(f));
         }
+        setFiles(prev => [...prev, ...next].slice(0, 3));
+        setPreviews(prev => [...prev, ...nextPreviews].slice(0, 3));
+        e.currentTarget.value = '';
     };
 
     const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
+        setPreviews(prev => {
+            const url = prev[index];
+            try { URL.revokeObjectURL(url); } catch {}
+            return prev.filter((_, i) => i !== index);
+        });
+        setFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleTypeChange = (typeId: string) => {
@@ -143,25 +167,52 @@ function FeedbackDialog() {
         );
     };
     
-    const handleSubmit = () => {
-        console.log({
-            types: selectedTypes,
-            description,
-            images,
-        });
-        
+    const categoryMap: Record<string, FeedbackCategory> = {
+        'feature-suggestion': 'feature',
+        'ui-issue': 'ui',
+        'account-issue': 'account',
+        'other': 'other',
+    };
+
+    const resetForm = () => {
         setSelectedTypes([]);
         setDescription('');
-        setImages([]);
+        setFiles([]);
+        setPreviews(prev => { prev.forEach(u => { try { URL.revokeObjectURL(u); } catch {} }); return []; });
+    };
 
-        setShowSuccessToast(true);
+    const handleSubmit = async () => {
+        if (!selectedTypes.length) {
+            toast({ description: '请选择问题类型' });
+            return;
+        }
+        if (!description || description.trim().length < 10) {
+            toast({ description: '问题描述至少 10 个字' });
+            return;
+        }
+        setSubmitting(true);
+        try {
+            const categories = selectedTypes.map(id => categoryMap[id]).filter(Boolean) as FeedbackCategory[];
+            await submitFeedback({
+                categories,
+                description: description.trim(),
+                images: files,
+                env: { ua: navigator.userAgent, viewport: { w: window.innerWidth, h: window.innerHeight } }
+            });
+            toast({ description: '提交成功' });
+            resetForm();
+            setOpen(false);
+        } catch (err: any) {
+            toast({ description: String(err?.message || '提交失败，请稍后重试') });
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
-        <Dialog onOpenChange={(open) => !open && setShowSuccessToast(false)}>
-             {showSuccessToast && <SimpleToast message="提交成功" onDismiss={() => setShowSuccessToast(false)} />}
+        <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); setOpen(v); }}>
             <DialogTrigger asChild>
-                <div className="divide-y divide-border/30">
+                <div className="divide-y divide-border/30" onClick={() => setOpen(true)}>
                     <ProfileItem icon={<FileQuestion className="text-primary"/>} label="问题反馈" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
                 </div>
             </DialogTrigger>
@@ -199,9 +250,9 @@ function FeedbackDialog() {
                         <p className="text-xs text-muted-foreground text-right">{description.length} / 500</p>
                     </div>
                     <div className="grid gap-2">
-                         <Label>上传图片 (可选, 最多3张)</Label>
-                         <div className="flex items-center gap-2">
-                            {images.map((img, index) => (
+                        <Label>上传图片 (可选, 最多3张)</Label>
+                        <div className="flex items-center gap-2">
+                            {previews.map((img, index) => (
                                 <div key={index} className="relative w-20 h-20">
                                     <Image src={img} alt={`upload-preview-${index}`} layout="fill" objectFit="cover" className="rounded-md" />
                                     <button onClick={() => removeImage(index)} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5">
@@ -209,22 +260,22 @@ function FeedbackDialog() {
                                     </button>
                                 </div>
                             ))}
-                            {images.length < 3 && (
+                            {previews.length < 3 && (
                                 <Label htmlFor="file-upload" className="w-20 h-20 bg-muted rounded-md flex items-center justify-center cursor-pointer hover:bg-muted/80">
                                     <ImagePlus className="w-8 h-8 text-muted-foreground" />
                                 </Label>
                             )}
-                         </div>
-                         <Input id="file-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/jpg" multiple onChange={handleFileChange} />
+                        </div>
+                        <Input id="file-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/jpg, image/webp" multiple onChange={handleFileChange} />
                     </div>
                 </div>
                 <DialogFooter className="flex-row justify-end gap-2">
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">取消</Button>
                     </DialogClose>
-                     <DialogClose asChild>
-                        <Button type="submit" onClick={handleSubmit}>提交</Button>
-                    </DialogClose>
+                    <Button type="submit" onClick={handleSubmit} disabled={submitting} className="min-w-20">
+                        {submitting ? '提交中…' : '提交'}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
