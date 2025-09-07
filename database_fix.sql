@@ -267,6 +267,15 @@ $$;
 GRANT EXECUTE ON FUNCTION public.validate_invitation_code(text) TO anon, authenticated;
 
 -- 16. 邀请记录查询 RPC（仅返回当前登录用户作为邀请人的记录；安全定义者）
+-- 16.0 移除可能残留的无参重载，避免 PostgREST 选择到旧版本（幂等）
+DO $$ BEGIN
+  -- 若存在旧版本：public.get_invitees()（无参），则删除
+  EXECUTE 'DROP FUNCTION IF EXISTS public.get_invitees()';
+EXCEPTION WHEN OTHERS THEN
+  -- 忽略由于权限或不存在导致的异常
+  NULL;
+END $$;
+
 CREATE OR REPLACE FUNCTION public.get_invitees(offset_arg int DEFAULT 0, limit_arg int DEFAULT 50)
 RETURNS TABLE(email text, username text, invited_at timestamptz)
 LANGUAGE plpgsql
@@ -285,6 +294,14 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_invitees(int, int) TO authenticated;
+
+-- 16.1 提示 PostgREST 重新加载 Schema 缓存（Supabase API）
+DO $$ BEGIN
+  PERFORM pg_notify('pgrst', 'reload schema');
+EXCEPTION WHEN OTHERS THEN
+  -- 如果当前角色无权限或未启用 pgrst 通知通道，则忽略
+  NULL;
+END $$;
 
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
 DO $$
