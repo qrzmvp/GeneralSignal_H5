@@ -16,6 +16,17 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -263,15 +274,29 @@ function ApiCard({ apiKey, onEdit, onDelete, onToggle }: { apiKey: ApiKeyPublic,
                     {apiKey.status === 'running' ? '运行中' : '已停止'}
                 </Badge>
             </div>
-            <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                 <ApiDialog apiKey={apiKey} onSaved={() => onEdit(apiKey)}>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
                         <Edit className="h-4 w-4" />
                     </Button>
                 </ApiDialog>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => onDelete(apiKey)}>
-                    <Trash2 className="h-4 w-4" />
-                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>确定要删除该API吗?</AlertDialogTitle>
+                                            <AlertDialogDescription>您确认删除吗，删除后将无法跟单。</AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel variant="secondary">取消</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => onDelete(apiKey)} className="bg-primary hover:bg-primary/90">确认删除</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
             </div>
         </div>
                 <div className="border-t border-border/30 pt-3 text-sm space-y-2 font-mono">
