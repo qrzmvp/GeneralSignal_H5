@@ -414,16 +414,16 @@ export default function ProfilePage() {
                                 <div className="grid gap-4 py-4">
                                     <div className="flex flex-col items-center justify-center gap-4">
                                         <Image
-                                            src="https://picsum.photos/200/200"
+                                            src="/support-qr.png"
                                             alt="Telegram QR Code"
                                             width={160}
                                             height={160}
                                             data-ai-hint="qr code"
-                                            className="rounded-md"
+                                            className="rounded-md object-cover"
                                         />
                                         <div className="text-center">
                                             <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
-                                            <p className="font-mono text-lg text-primary mt-2">@SignalAuthSupport</p>
+                                            <p className="font-mono text-lg text-primary mt-2">@Michael_Qin</p>
                                         </div>
                                     </div>
                                 </div>

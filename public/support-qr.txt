@@ -1,0 +1,2 @@
+Place your Telegram QR image as public/support-qr.png.
+This placeholder file documents the expected image path.
