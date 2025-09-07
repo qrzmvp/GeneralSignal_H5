@@ -8,7 +8,7 @@ interface SimpleToastProps {
   onDismiss: () => void;
 }
 
-export function SimpleToast({ message, duration = 2000, onDismiss }: SimpleToastProps) {
+export function SimpleToast({ message, duration = 1000, onDismiss }: SimpleToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onDismiss();

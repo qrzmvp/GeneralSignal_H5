@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter }from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -64,24 +64,51 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 
 function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
-    const isClickable = !!onClick || !!href;
-    const Component = href ? Link : (isClickable ? 'button' : 'div');
-    
-    const props = href ? { href } : { onClick };
+        const isClickable = !!onClick || !!href;
+        const className = `flex items-center p-4 w-full text-left ${isClickable ? 'hover:bg-accent/50 transition-colors' : ''}`;
 
-    return (
-        <Component {...props} className={`flex items-center p-4 w-full text-left ${isClickable ? 'hover:bg-accent/50 transition-colors' : ''}`}>
-            {icon}
-            <span className="ml-4 text-sm font-medium">{label}</span>
-            <div className="ml-auto flex items-center gap-2">
-                {value && <span className="text-sm text-muted-foreground">{value}</span>}
-                {action}
+        if (href) {
+            return (
+                <Link href={href} className={className}>
+                    {icon}
+                    <span className="ml-4 text-sm font-medium">{label}</span>
+                    <div className="ml-auto flex items-center gap-2">
+                        {value && <span className="text-sm text-muted-foreground">{value}</span>}
+                        {action}
+                    </div>
+                </Link>
+            )
+        }
+
+        if (onClick) {
+            return (
+                <button onClick={onClick} className={className}>
+                    {icon}
+                    <span className="ml-4 text-sm font-medium">{label}</span>
+                    <div className="ml-auto flex items-center gap-2">
+                        {value && <span className="text-sm text-muted-foreground">{value}</span>}
+                        {action}
+                    </div>
+                </button>
+            )
+        }
+
+        return (
+            <div className={className}>
+                {icon}
+                <span className="ml-4 text-sm font-medium">{label}</span>
+                <div className="ml-auto flex items-center gap-2">
+                    {value && <span className="text-sm text-muted-foreground">{value}</span>}
+                    {action}
+                </div>
             </div>
-        </Component>
-    )
+        )
 }
 
 const feedbackTypes = [
@@ -206,17 +233,57 @@ function FeedbackDialog() {
 }
 
 export default function ProfilePage() {
-    const [activeTab, setActiveTab] = useState('profile');
-    const [showToast, setShowToast] = useState(false);
-    const router = useRouter();
+        const [activeTab, setActiveTab] = useState('profile');
+        const [showToast, setShowToast] = useState(false);
+        const router = useRouter();
+        const { user: authUser, signOut, loading } = useAuth();
 
-    const [user, setUser] = useState({
-        name: 'CryptoKing',
-        id: '88888888',
-        invitationCode: 'INVT8888',
-        avatar: 'https://i.pravatar.cc/150?u=cryptoking',
-        membership: '年度会员'
-    });
+        const [profile, setProfile] = useState<{ 
+            name: string;
+            id: string;
+            invitationCode?: string | null;
+            avatar?: string | null;
+            membership?: string | null;
+        }>({
+            name: '',
+            id: '',
+            invitationCode: null,
+            avatar: null,
+            membership: null,
+        });
+
+        useEffect(() => {
+            if (!authUser) return;
+
+            // 1) 先用 auth user 填充用户名/ID/头像（元数据）
+            const meta = (authUser as any)?.user_metadata || {};
+            setProfile(prev => ({
+                ...prev,
+                name: meta.username || authUser.email?.split('@')[0] || '用户',
+                id: authUser.id,
+                avatar: meta.avatar_url || null,
+                invitationCode: meta.invitation_code || null,
+            }));
+
+            // 2) 再从 profiles 表补全更权威的信息
+            supabase
+                .from('profiles')
+                .select('username, avatar_url, invitation_code, membership_level')
+                .eq('id', authUser.id)
+                .maybeSingle()
+                .then(({ data, error }) => {
+                    if (error) return;
+                    if (data) {
+                        setProfile(prev => ({
+                            ...prev,
+                            name: data.username || prev.name,
+                            avatar: data.avatar_url || prev.avatar,
+                            invitationCode: data.invitation_code ?? prev.invitationCode,
+                            membership: data.membership_level || prev.membership,
+                        }));
+                    }
+                });
+        }, [authUser]);
 
     const handleCopy = (text: string) => {
         if (navigator.clipboard) {
@@ -225,12 +292,13 @@ export default function ProfilePage() {
         }
     }
 
-    const handleLogout = () => {
-        router.push('/login');
+    const handleLogout = async () => {
+        await signOut();
     }
 
   return (
     <>
+    <ProtectedRoute>
     <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
       {showToast && <SimpleToast message="复制成功" onDismiss={() => setShowToast(false)} />}
       <header className="flex-shrink-0 flex items-center justify-center p-4 h-14">
@@ -243,32 +311,34 @@ export default function ProfilePage() {
                 <CardContent className="p-4 flex items-center gap-4">
                     <div className="relative">
                         <Avatar className="h-16 w-16 border-2 border-primary/50">
-                            <AvatarImage src={user.avatar} alt={user.name} />
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={profile.avatar || 'https://i.pravatar.cc/150'} alt={profile.name || '用户'} />
+                            <AvatarFallback>{(profile.name || '用').charAt(0)}</AvatarFallback>
                         </Avatar>
                     </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold flex items-center gap-2">
-                            {user.name}
-                            {user.membership && (
+                {profile.name}
+                {profile.membership && (
                                 <span className="bg-yellow-400 text-yellow-900 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Crown className="w-3 h-3" />
-                                    {user.membership}
+                    {profile.membership}
                                 </span>
                             )}
                         </h2>
                         <div className="flex items-center text-xs text-muted-foreground">
-                            <span>ID: {user.id}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => handleCopy(user.id)}>
+                            <span>ID: {profile.id}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => handleCopy(profile.id)}>
                                 <Copy className="h-3 w-3" />
                             </Button>
                         </div>
                          <div className="flex items-center text-xs text-muted-foreground gap-1">
                             <Ticket className="w-3 h-3" />
-                            <span>邀请码: {user.invitationCode}</span>
-                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(user.invitationCode)}>
+                            <span>邀请码: {profile.invitationCode || '——'} </span>
+                             {profile.invitationCode && (
+                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(profile.invitationCode!)}>
                                 <Copy className="h-3 w-3" />
                             </Button>
+                             )}
                         </div>
                     </div>
                 </CardContent>
@@ -384,6 +454,7 @@ export default function ProfilePage() {
         </div>
       </nav>
     </div>
+    </ProtectedRoute>
     </>
   );
 }
