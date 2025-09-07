@@ -809,6 +809,200 @@ END $$;
 
 DO $$ BEGIN PERFORM pg_notify('pgrst', 'reload schema'); EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+-- ============================
+-- 19. 将军榜单：交易员表、RLS、索引、头像存储与统一分页 RPC
+-- 目标：
+--  - 表 public.traders：名称/描述/收益率/胜率/盈亏比/累计信号/头像key/标签；
+--  - 公开读取（anon/authenticated 可 SELECT），写入仅后台（service_role）；
+--  - 存储桶 trader-avatars（公开只读），保存 avatar_key；
+--  - 统一分页 RPC：get_traders_paged(page,page_size,q,sort_by,order_by)。
+-- ============================
+
+-- 19.1 扩展（可选）：pg_trgm，加速 ILIKE 模糊
+DO $$ BEGIN
+  PERFORM 1 FROM pg_extension WHERE extname='pg_trgm';
+  IF NOT FOUND THEN
+    CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+  END IF;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+-- 19.2 表
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='traders'
+  ) THEN
+    CREATE TABLE public.traders (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      name text NOT NULL,
+      description text NULL,
+      yield_rate numeric(7,2) NOT NULL DEFAULT 0 CHECK (yield_rate BETWEEN -10000 AND 10000),
+      win_rate numeric(5,2) NOT NULL DEFAULT 0 CHECK (win_rate BETWEEN 0 AND 100),
+      profit_loss_ratio numeric(7,2) NULL,
+      total_signals integer NOT NULL DEFAULT 0,
+      avatar_key text NULL,
+      tags text[] NOT NULL DEFAULT '{}'::text[],
+      created_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now()),
+      updated_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now())
+    );
+  END IF;
+END $$;
+
+-- 19.3 触发器：更新时间
+CREATE OR REPLACE FUNCTION public.handle_trader_update()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at := timezone('utc'::text, now());
+  RETURN NEW;
+END;$$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname='on_trader_update') THEN
+    CREATE TRIGGER on_trader_update BEFORE UPDATE ON public.traders
+    FOR EACH ROW EXECUTE FUNCTION public.handle_trader_update();
+  END IF;
+END $$;
+
+-- 19.4 RLS 策略：公开可读，写入仅后端服务
+ALTER TABLE public.traders ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='traders' AND policyname='traders_public_read')
+  THEN EXECUTE 'DROP POLICY traders_public_read ON public.traders'; END IF;
+END $$;
+
+CREATE POLICY traders_public_read ON public.traders
+  FOR SELECT TO anon, authenticated USING (true);
+
+-- 不创建 INSERT/UPDATE/DELETE 对前端的策略；由 service_role 直连或 Edge Function 维护
+GRANT SELECT ON public.traders TO anon, authenticated;
+
+-- 19.5 索引
+CREATE INDEX IF NOT EXISTS idx_traders_name ON public.traders(name);
+CREATE INDEX IF NOT EXISTS idx_traders_updated ON public.traders(updated_at DESC);
+-- 默认综合排序常用的回退组合
+CREATE INDEX IF NOT EXISTS idx_traders_yield_win_id ON public.traders(yield_rate DESC, win_rate DESC, id DESC);
+-- 模糊搜索（pg_trgm）
+DO $$ BEGIN
+  -- 若 pg_trgm 可用则建 GIN 索引，加速 ILIKE
+  PERFORM 1 FROM pg_extension WHERE extname='pg_trgm';
+  IF FOUND THEN
+    CREATE INDEX IF NOT EXISTS idx_traders_name_trgm ON public.traders USING gin (name gin_trgm_ops);
+    CREATE INDEX IF NOT EXISTS idx_traders_desc_trgm ON public.traders USING gin (description gin_trgm_ops);
+  END IF;
+END $$;
+
+-- 19.6 存储桶：trader-avatars（公开只读）
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id='trader-avatars') THEN
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema='storage' AND table_name='buckets' AND column_name='name'
+    ) THEN
+      INSERT INTO storage.buckets (id, name, public)
+      VALUES ('trader-avatars', 'trader-avatars', true);
+    ELSE
+      INSERT INTO storage.buckets (id, public)
+      VALUES ('trader-avatars', true);
+    END IF;
+  END IF;
+  UPDATE storage.buckets SET public=true WHERE id='trader-avatars';
+END $$;
+
+-- storage.objects 策略：公开读取 trader-avatars
+DO $$
+DECLARE obj_owner text; BEGIN
+  SELECT pg_get_userbyid(c.relowner) INTO obj_owner
+  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='storage' AND c.relname='objects';
+  IF obj_owner = current_user OR current_user='supabase_admin' THEN
+    EXECUTE 'DROP POLICY IF EXISTS "Public read for trader-avatars" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Public read for trader-avatars" ON storage.objects FOR SELECT USING (bucket_id = ''trader-avatars'')';
+  END IF;
+END $$;
+
+-- 19.7 统一分页 RPC：get_traders_paged
+CREATE OR REPLACE FUNCTION public.get_traders_paged(
+  page int DEFAULT 1,
+  page_size int DEFAULT 10,
+  q text DEFAULT NULL,
+  sort_by text DEFAULT 'score',   -- 'score' | 'yield' | 'win'
+  order_by text DEFAULT 'desc'    -- 'asc' | 'desc'
+)
+RETURNS TABLE (
+  id uuid,
+  name text,
+  description text,
+  yield_rate numeric,
+  win_rate numeric,
+  profit_loss_ratio numeric,
+  total_signals int,
+  avatar_key text,
+  tags text[],
+  score numeric,
+  updated_at timestamptz,
+  total_count bigint
+)
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+  v_offset int;
+  v_limit int;
+  v_sort text := lower(coalesce(sort_by,'score'));
+  v_order text := lower(coalesce(order_by,'desc'));
+BEGIN
+  v_limit := LEAST(GREATEST(COALESCE(page_size, 10), 1), 50);
+  v_offset := GREATEST(COALESCE(page, 1) - 1, 0) * v_limit;
+
+  IF v_sort NOT IN ('score','yield','win') THEN v_sort := 'score'; END IF;
+  IF v_order NOT IN ('asc','desc') THEN v_order := 'desc'; END IF;
+
+  RETURN QUERY
+  WITH base AS (
+    SELECT t.*,
+           (t.yield_rate * (t.win_rate/100.0))::numeric AS score
+    FROM public.traders t
+    WHERE (
+      q IS NULL OR q = '' OR
+      t.name ILIKE '%'||q||'%' OR coalesce(t.description,'') ILIKE '%'||q||'%'
+    )
+  ),
+  ranked AS (
+    SELECT b.id, b.name, b.description,
+           b.yield_rate, b.win_rate, b.profit_loss_ratio, b.total_signals,
+           b.avatar_key, b.tags, b.score, b.updated_at,
+           COUNT(*) OVER() AS total_count
+    FROM base b
+    ORDER BY
+      CASE WHEN v_sort='score' THEN b.score END    -- 主排序字段（NULLs last 由次序保证）
+      , CASE WHEN v_sort='yield' THEN b.yield_rate END
+      , CASE WHEN v_sort='win'   THEN b.win_rate END
+      , b.id
+    -- 上面的顺序方向需要在外层处理；为了简单，在下一层做方向翻转
+  )
+  SELECT r.id, r.name, r.description,
+         r.yield_rate, r.win_rate, r.profit_loss_ratio, r.total_signals,
+         r.avatar_key, r.tags, r.score, r.updated_at, r.total_count
+  FROM ranked r
+  ORDER BY
+    CASE WHEN v_sort='score' AND v_order='asc' THEN r.score END ASC NULLS LAST,
+    CASE WHEN v_sort='score' AND v_order='desc' THEN r.score END DESC NULLS LAST,
+    CASE WHEN v_sort='yield' AND v_order='asc' THEN r.yield_rate END ASC NULLS LAST,
+    CASE WHEN v_sort='yield' AND v_order='desc' THEN r.yield_rate END DESC NULLS LAST,
+    CASE WHEN v_sort='win' AND v_order='asc' THEN r.win_rate END ASC NULLS LAST,
+    CASE WHEN v_sort='win' AND v_order='desc' THEN r.win_rate END DESC NULLS LAST,
+    r.id DESC
+  OFFSET v_offset
+  LIMIT v_limit;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_traders_paged(int,int,text,text,text) TO anon, authenticated;
+
+DO $$ BEGIN PERFORM pg_notify('pgrst', 'reload schema'); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
 -- 18.6 RPC：安全地创建反馈（服务端绑定 user_id），可接收可选自定义 id 用于与前端上传路径关联
 CREATE OR REPLACE FUNCTION public.create_feedback(
   p_id uuid DEFAULT NULL,
