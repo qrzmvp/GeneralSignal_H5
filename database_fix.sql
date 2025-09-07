@@ -692,7 +692,11 @@ BEGIN
   ) INTO recent_exists;
 
   IF recent_exists THEN
-    RAISE EXCEPTION 'Too Many Requests: please wait before submitting again' USING ERRCODE = 'TooManyRequests';
+    -- 使用有效的 SQLSTATE 码（自定义/通用：P0001），并通过 DETAIL/HINT 传递可机读信息
+    RAISE EXCEPTION 'Too Many Requests: please wait before submitting again'
+      USING ERRCODE = 'P0001',         -- generic raise_exception
+            DETAIL = 'TooManyRequests',
+            HINT = 'cooldown_seconds=60';
   END IF;
 
   RETURN NEW;

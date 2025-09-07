@@ -57,6 +57,20 @@ async function uploadImages(userId: string, feedbackId: string, files: File[]) {
   return paths
 }
 
+function isTooManyRequests(err: any) {
+  if (!err) return false
+  const code = String(err.code || '')
+  const msg = String(err.message || '')
+  const details = String((err as any).details || '')
+  // 服务端触发器使用 P0001 + DETAIL='TooManyRequests'
+  if (details.includes('TooManyRequests')) return true
+  // 某些环境可能把消息带回来
+  if (/Too\s*Many\s*Requests/i.test(msg)) return true
+  // PostgREST 常见 429
+  if (code === '429') return true
+  return false
+}
+
 export async function submitFeedback(params: SubmitFeedbackParams): Promise<SubmitFeedbackResult> {
   dbg('submit begin', { categories: params.categories, hasImages: Boolean(params.images?.length) })
   const { data: auth } = await supabase.auth.getUser()
@@ -89,6 +103,9 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
   })
   if (error) {
     dbg('rpc insert error', error)
+    if (isTooManyRequests(error)) {
+      throw new Error('提交太频繁，请 60 秒后再试')
+    }
     const msg = String(error?.message || '')
     const code = String((error as any)?.code || '')
     const looksMissing = /Could not find the function|PGRST116|function .* does not exist/i.test(msg) || code === 'PGRST116'
@@ -107,6 +124,9 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
     } as any)
     if (insErr) {
       dbg('direct insert error', insErr)
+      if (isTooManyRequests(insErr)) {
+        throw new Error('提交太频繁，请 60 秒后再试')
+      }
       throw insErr
     }
     dbg('direct insert ok', feedbackId)
