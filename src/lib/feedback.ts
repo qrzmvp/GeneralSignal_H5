@@ -78,9 +78,30 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
   })
   if (error) {
     dbg('rpc insert error', error)
-    throw error
+    const msg = String(error?.message || '')
+    const code = String((error as any)?.code || '')
+    const looksMissing = /Could not find the function|PGRST116|function .* does not exist/i.test(msg) || code === 'PGRST116'
+    if (!looksMissing) {
+      throw error
+    }
+    // Fallback: direct insert (requires DB to have relaxed RLS policy)
+    dbg('fallback to direct insert')
+    const { error: insErr } = await supabase.from('feedbacks').insert({
+      id: feedbackId,
+      categories: params.categories,
+      description: params.description.trim(),
+      images: imagePaths,
+      contact: params.contact ?? null,
+      env: params.env ?? null,
+    } as any)
+    if (insErr) {
+      dbg('direct insert error', insErr)
+      throw insErr
+    }
+    dbg('direct insert ok', feedbackId)
+  } else {
+    dbg('rpc insert ok', data)
   }
-  dbg('rpc insert ok', data)
 
   return { id: feedbackId }
 }
