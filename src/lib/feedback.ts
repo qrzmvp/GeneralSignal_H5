@@ -42,7 +42,11 @@ async function uploadImages(userId: string, feedbackId: string, files: File[]) {
     const ext = (f.name.split('.').pop() || 'png').toLowerCase()
     const key = `${userId}/${feedbackId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
     dbg('upload start', { bucket, key, size: f.size, type: f.type })
-    const { error } = await supabase.storage.from(bucket).upload(key, f, { upsert: false, cacheControl: '3600' })
+    const { error } = await supabase.storage.from(bucket).upload(key, f, {
+      upsert: true,
+      cacheControl: '3600',
+      contentType: (f as any).type || 'image/png',
+    })
     if (error) {
       dbg('upload error', error)
       throw error
@@ -64,7 +68,14 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
 
   const feedbackId = genId()
   dbg('user', userId, 'feedbackId', feedbackId)
-  const imagePaths = params.images?.length ? await uploadImages(userId, feedbackId, params.images) : []
+  let imagePaths: string[] = []
+  let uploadErr: any = null
+  try {
+    imagePaths = params.images?.length ? await uploadImages(userId, feedbackId, params.images) : []
+  } catch (e) {
+    uploadErr = e
+    dbg('images failed, continue without images', e)
+  }
   dbg('images done', imagePaths)
 
   dbg('rpc insert start')
@@ -74,7 +85,7 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
     p_description: params.description.trim(),
     p_images: imagePaths as unknown as any,
     p_contact: params.contact ?? null,
-    p_env: params.env ?? null,
+    p_env: { ...(params.env || {}), upload_error: uploadErr ? String((uploadErr as any)?.message || uploadErr) : null } as any,
   })
   if (error) {
     dbg('rpc insert error', error)
@@ -92,7 +103,7 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
       description: params.description.trim(),
       images: imagePaths,
       contact: params.contact ?? null,
-      env: params.env ?? null,
+      env: { ...(params.env || {}), upload_error: uploadErr ? String((uploadErr as any)?.message || uploadErr) : null },
     } as any)
     if (insErr) {
       dbg('direct insert error', insErr)
