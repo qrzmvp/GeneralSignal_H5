@@ -77,7 +77,26 @@ drop policy if exists "Users can update own profile" on public.profiles;
 create policy "Users can update own profile" on public.profiles
   for update using (auth.uid() = id);
 
--- 5) 触发器函数：注册时自动创建资料（用户名缺省用邮箱前缀）
+-- 5) 邀请码生成函数：生成唯一的 8 位数字码（幂等）
+create or replace function public.generate_invitation_code()
+returns text
+language plpgsql
+as $$
+declare
+  code text;
+begin
+  loop
+    -- 0..99999999，并左侧补零到 8 位
+    code := lpad(floor(random() * 100000000)::int::text, 8, '0');
+    exit when not exists (
+      select 1 from public.profiles where invitation_code = code
+    );
+  end loop;
+  return code;
+end;
+$$;
+
+-- 5.1) 触发器函数：注册时自动创建资料（用户名缺省用邮箱前缀；邀请码默认 8 位数字）
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -89,7 +108,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'invitation_code'
+    coalesce(nullif(new.raw_user_meta_data->>'invitation_code', ''), public.generate_invitation_code())
   );
   return new;
 end;
@@ -116,3 +135,20 @@ drop trigger if exists handle_profiles_updated_at on public.profiles;
 create trigger handle_profiles_updated_at
   before update on public.profiles
   for each row execute procedure public.handle_updated_at();
+
+-- 8) 邀请码唯一约束（仅当无重复时添加，幂等）
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.profiles'::regclass and conname = 'profiles_invitation_code_unique'
+  ) then
+    if not exists (
+      select invitation_code from public.profiles
+      where invitation_code is not null and invitation_code <> ''
+      group by invitation_code having count(*) > 1
+    ) then
+      alter table public.profiles add constraint profiles_invitation_code_unique unique (invitation_code);
+    end if;
+  end if;
+end $$;

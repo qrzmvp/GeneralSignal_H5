@@ -72,7 +72,23 @@ CREATE POLICY "Users can view own profile" ON profiles
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
 
--- 5. 创建触发器函数来自动创建用户资料
+-- 5. 邀请码生成函数（幂等）：生成唯一 8 位数字码
+CREATE OR REPLACE FUNCTION public.generate_invitation_code()
+RETURNS TEXT AS $$
+DECLARE
+  code TEXT;
+BEGIN
+  LOOP
+    code := lpad(floor(random() * 100000000)::int::text, 8, '0');
+    EXIT WHEN NOT EXISTS (
+      SELECT 1 FROM public.profiles WHERE invitation_code = code
+    );
+  END LOOP;
+  RETURN code;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5.1 创建触发器函数来自动创建用户资料
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -81,7 +97,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
-    NEW.raw_user_meta_data->>'invitation_code'
+    COALESCE(NULLIF(NEW.raw_user_meta_data->>'invitation_code', ''), public.generate_invitation_code())
   );
   RETURN NEW;
 END;
@@ -169,6 +185,31 @@ BEGIN
   END IF;
   -- 确保存储桶为公开
   UPDATE storage.buckets SET public = true WHERE id = 'avatars';
+END $$;
+
+-- 12. 为已有用户回填缺失的邀请码（一次性，幂等）
+DO $$
+BEGIN
+  UPDATE public.profiles
+  SET invitation_code = public.generate_invitation_code()
+  WHERE (invitation_code IS NULL OR invitation_code = '');
+END $$;
+
+-- 13. 邀请码唯一约束（仅当无重复时添加，幂等）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.profiles'::regclass AND conname = 'profiles_invitation_code_unique'
+  ) THEN
+    IF NOT EXISTS (
+      SELECT invitation_code FROM public.profiles
+      WHERE invitation_code IS NOT NULL AND invitation_code <> ''
+      GROUP BY invitation_code HAVING COUNT(*) > 1
+    ) THEN
+      ALTER TABLE public.profiles ADD CONSTRAINT profiles_invitation_code_unique UNIQUE (invitation_code);
+    END IF;
+  END IF;
 END $$;
 
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
