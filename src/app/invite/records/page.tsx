@@ -8,12 +8,13 @@ import { ChevronLeft, Loader2, Copy, RefreshCcw } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
-import { useInView } from 'react-intersection-observer'
+// 移除 IntersectionObserver，改用稳定的 onScroll 触底检测
 
 interface Invitee {
   email: string | null
   username: string | null
   invited_at: string
+  invitee_id?: string
 }
 
 function InfoRow({ label, value, copyValue }: { label: string; value: string; copyValue?: string }) {
@@ -61,7 +62,6 @@ export default function InviteRecordsPage() {
   const [items, setItems] = useState<Invitee[]>([])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(0)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const PAGE_SIZE = 10
   const inFlightRef = useRef(false)
@@ -70,70 +70,44 @@ export default function InviteRecordsPage() {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const touchStartYRef = useRef(0)
   const pullingRef = useRef(false)
-  const seenKeysRef = useRef<Set<string>>(new Set())
-  const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1, root: scrollRef.current as Element | null })
+  const lastCursorRef = useRef<{ invited_at: string | null; invitee_id: string | null }>({ invited_at: null, invitee_id: null })
+  const lastScrollTriggerAtRef = useRef<number>(0)
 
   const loadPage = useCallback(async () => {
     if (!user || loading || !hasMore || inFlightRef.current) return
     inFlightRef.current = true
     setLoading(true)
-    const offset = page * PAGE_SIZE
-  let data: Invitee[] | null = null
-    let error: any = null
-    // Prefer named params (requires RPC installed), fallback to default call
-    let res = await supabase.rpc('get_invitees', { offset_arg: offset, limit_arg: PAGE_SIZE })
+    const cursor_created_at = lastCursorRef.current.invited_at
+    const cursor_invitee_id = lastCursorRef.current.invitee_id
+    const res = await supabase.rpc('get_invitees_v2', {
+      cursor_created_at,
+      cursor_invitee_id,
+      limit_arg: PAGE_SIZE,
+    })
     if (res.error) {
-      // fallback try without params (first page only)
-      if (page === 0) {
-        const res2 = await supabase.rpc('get_invitees')
-        error = res2.error
-        data = (res2.data as Invitee[]) || []
-      } else {
-        error = res.error
-        // 分页参数不可用，立即停止进一步分页以避免死循环
-        setHasMore(false)
-      }
-    } else {
-      data = (res.data as Invitee[]) || []
-    }
-
-    if (error) {
-      console.error('get_invitees RPC error:', error)
+      console.error('get_invitees_v2 RPC error:', res.error)
       setErrorMsg('加载失败：后台接口未就绪或无权限。请稍后重试。')
-      if (!data || data.length === 0) {
-        setHasMore(false)
+      setHasMore(false)
+    } else {
+      const data = (res.data as Invitee[]) || []
+      setItems(prev => [...prev, ...data])
+      if (data.length > 0) {
+        const last = data[data.length - 1]
+        lastCursorRef.current = { invited_at: last.invited_at, invitee_id: (last as any).invitee_id ?? null }
       }
-    }
-    if (data) {
-      // 去重与“无进展”检测：当后端忽略 offset/limit 时，同一页数据会重复返回
-      const filtered = data.filter((it) => {
-        const key = `${it.email ?? ''}|${it.username ?? ''}|${it.invited_at}`
-        if (seenKeysRef.current.has(key)) return false
-        seenKeysRef.current.add(key)
-        return true
-      })
-
-      if (filtered.length === 0) {
-        // 没有新数据，视为“到底了”，防止无限请求
-        setHasMore(false)
-      } else {
-        setItems(prev => [...prev, ...filtered])
-        setPage(prev => prev + 1)
-        if (filtered.length < PAGE_SIZE) setHasMore(false)
-      }
+      if (data.length < PAGE_SIZE) setHasMore(false)
     }
     setLoading(false)
     inFlightRef.current = false
-  }, [PAGE_SIZE, hasMore, loading, page, user])
+  }, [PAGE_SIZE, hasMore, loading, user])
 
   const resetAndLoadFirstPage = useCallback(async () => {
     if (!user) return
     setItems([])
-    setPage(0)
     setHasMore(true)
     setErrorMsg(null)
     inFlightRef.current = false
-  seenKeysRef.current.clear()
+  lastCursorRef.current = { invited_at: null, invitee_id: null }
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         Promise.resolve(loadPage()).finally(() => resolve())
@@ -155,11 +129,22 @@ export default function InviteRecordsPage() {
     }
   }, [user, resetAndLoadFirstPage])
 
+  // 容器滚动触底检测（稳定、可控）
   useEffect(() => {
-    if (inView && !loading) {
-      void loadPage()
+    const el = scrollRef.current
+    if (!el) return
+    const onScroll = () => {
+      if (!hasMore || loading) return
+      const now = Date.now()
+      if (now - lastScrollTriggerAtRef.current < 300) return
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 80) {
+        lastScrollTriggerAtRef.current = now
+        void loadPage()
+      }
     }
-  }, [inView, loading, loadPage])
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [hasMore, loading, loadPage])
 
   return (
     <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -236,14 +221,14 @@ export default function InviteRecordsPage() {
             </div>
           )}
         </div>
-        {items.length === 0 && !loading ? (
+  {items.length === 0 && !loading ? (
           <div className="text-center text-muted-foreground pt-20">
             {errorMsg ? errorMsg : '暂无邀请记录'}
           </div>
         ) : (
           items.map((it, idx) => <InviteeCard key={idx} item={it} />)
         )}
-        <div ref={loadMoreRef} className="flex justify-center items-center h-14 text-muted-foreground">
+  <div className="flex justify-center items-center h-14 text-muted-foreground">
           {loading && (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

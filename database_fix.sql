@@ -303,6 +303,42 @@ EXCEPTION WHEN OTHERS THEN
   NULL;
 END $$;
 
+-- 16.2 新版游标分页 RPC：使用 keyset pagination，彻底避免 offset/limit 依赖
+CREATE OR REPLACE FUNCTION public.get_invitees_v2(
+  cursor_created_at timestamptz DEFAULT NULL,
+  cursor_invitee_id uuid DEFAULT NULL,
+  limit_arg int DEFAULT 10
+)
+RETURNS TABLE(email text, username text, invited_at timestamptz, invitee_id uuid)
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT p.email,
+         p.username,
+         r.created_at AS invited_at,
+         r.invitee_id
+  FROM public.referrals r
+  JOIN public.profiles p ON p.id = r.invitee_id
+  WHERE r.inviter_id = auth.uid()
+    AND (
+      cursor_created_at IS NULL
+      OR (r.created_at, r.invitee_id) < (cursor_created_at, cursor_invitee_id)
+    )
+  ORDER BY r.created_at DESC, r.invitee_id DESC
+  LIMIT LEAST(GREATEST(COALESCE(limit_arg, 10), 1), 200);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_invitees_v2(timestamptz, uuid, int) TO authenticated;
+
+DO $$ BEGIN
+  PERFORM pg_notify('pgrst', 'reload schema');
+EXCEPTION WHEN OTHERS THEN
+  NULL;
+END $$;
+
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
 DO $$
 DECLARE
