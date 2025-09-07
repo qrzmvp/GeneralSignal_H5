@@ -55,15 +55,13 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
   const feedbackId = genId()
   const imagePaths = params.images?.length ? await uploadImages(userId, feedbackId, params.images) : []
 
-  const { error } = await supabase.from('feedbacks').insert({
+    const { error } = await supabase.from('feedbacks').insert({
     id: feedbackId,
-    user_id: userId,
     categories: params.categories,
     description: params.description.trim(),
     images: imagePaths,
     contact: params.contact ?? null,
-    env: params.env ?? null,
-    status: 'pending'
+      env: params.env ?? null
   } as any)
   if (error) throw error
 
