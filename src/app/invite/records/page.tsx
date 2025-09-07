@@ -39,7 +39,10 @@ export default function InviteRecordsPage() {
     const load = async () => {
       if (!user) return
       setLoading(true)
-      const { data, error } = await supabase.rpc('get_invitees', { offset_arg: 0, limit_arg: 200 })
+      const { data, error } = await supabase.rpc('get_invitees')
+      if (error) {
+        console.error('get_invitees RPC error:', error)
+      }
       if (!error && data) setItems(data as Invitee[])
       setLoading(false)
     }
