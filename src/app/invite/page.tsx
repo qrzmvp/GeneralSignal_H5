@@ -11,15 +11,13 @@ import { ChevronLeft, Copy, Clock, Download } from 'lucide-react'
 import { SimpleToast } from '../components/SimpleToast'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { QRCodeCanvas } from 'qrcode.react'
 
 export default function InvitePage() {
     const [showToast, setShowToast] = useState(false)
     const { user } = useAuth()
     const [code, setCode] = useState('')
     const [link, setLink] = useState('')
-    const [showQrPreview, setShowQrPreview] = useState(false)
     const qrCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
     useEffect(() => {
@@ -84,16 +82,15 @@ export default function InvitePage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex flex-col items-center justify-center gap-4">
-                            <button
-                                aria-label="预览二维码"
+                            <div
+                                aria-label="二维码"
                                 className="rounded-lg border-4 border-primary/50 p-2 bg-white"
-                                onClick={() => setShowQrPreview(true)}
                             >
-                                <QRCodeSVG value={link || 'https://signal-auth.com'} size={176} includeMargin />
-                            </button>
+                                <QRCodeCanvas value={link || 'https://signal-auth.com'} size={176} includeMargin ref={qrCanvasRef as any} />
+                            </div>
                             <div className="flex items-center gap-3">
-                                <p className="text-sm text-muted-foreground">扫描二维码分享</p>
-                                <Button variant="secondary" size="sm" onClick={() => setShowQrPreview(true)} disabled={!link}>
+                                <p className="text-sm text-muted-foreground">扫描或下载二维码分享</p>
+                                <Button variant="secondary" size="sm" onClick={handleDownload} disabled={!link}>
                                     <Download className="w-4 h-4 mr-1" /> 下载
                                 </Button>
                             </div>
@@ -134,24 +131,6 @@ export default function InvitePage() {
                     </CardContent>
                 </Card>
             </main>
-
-                    <Dialog open={showQrPreview} onOpenChange={setShowQrPreview}>
-                        <DialogContent className="sm:max-w-[520px] p-6">
-                    <DialogHeader>
-                                <DialogTitle>二维码邀请</DialogTitle>
-                                <DialogDescription>长按保存或点击下载</DialogDescription>
-                    </DialogHeader>
-                            <div className="flex flex-col items-center gap-5">
-                                <div className="bg-white p-4 rounded-lg border">
-                                    <QRCodeCanvas value={link || ''} size={210} includeMargin ref={qrCanvasRef as any} />
-                        </div>
-                                <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
-                                    <Button className="w-full" variant="secondary" onClick={() => handleCopy(link)} disabled={!link}>复制链接</Button>
-                                    <Button className="w-full" onClick={handleDownload}>下载图片</Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     )
 }
