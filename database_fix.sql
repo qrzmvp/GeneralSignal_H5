@@ -266,6 +266,26 @@ $$;
 -- 允许前端角色调用该 RPC
 GRANT EXECUTE ON FUNCTION public.validate_invitation_code(text) TO anon, authenticated;
 
+-- 16. 邀请记录查询 RPC（仅返回当前登录用户作为邀请人的记录；安全定义者）
+CREATE OR REPLACE FUNCTION public.get_invitees(offset_arg int DEFAULT 0, limit_arg int DEFAULT 50)
+RETURNS TABLE(email text, username text, invited_at timestamptz)
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT p.email, p.username, r.created_at AS invited_at
+  FROM public.referrals r
+  JOIN public.profiles p ON p.id = r.invitee_id
+  WHERE r.inviter_id = auth.uid()
+  ORDER BY r.created_at DESC
+  OFFSET GREATEST(coalesce(offset_arg, 0), 0)
+  LIMIT LEAST(GREATEST(coalesce(limit_arg, 50), 1), 200);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_invitees(int, int) TO authenticated;
+
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
 DO $$
 DECLARE
