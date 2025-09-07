@@ -278,7 +278,7 @@ function ApiCard({ apiKey, onEdit, onDelete, onToggle }: { apiKey: ApiKeyPublic,
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">API Key:</span>
                         <div className="flex items-center gap-2">
-                              <span className="text-foreground select-all">{showKey ? apiKey.api_key : maskMiddle(apiKey.api_key)}</span>
+                              <span className="text-foreground select-all">{showKey ? apiKey.api_key : '••••••••'}</span>
                             <button aria-label={showKey ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowKey(v => !v)}>
                                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
