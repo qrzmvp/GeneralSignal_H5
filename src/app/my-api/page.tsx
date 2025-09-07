@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronLeft, Plus, Trash2, Edit } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, Edit, Eye, EyeOff } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -94,6 +94,9 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
     const [secret, setSecret] = useState(apiKey?.apiSecret || '');
     const [passphrase, setPassphrase] = useState(apiKey?.passphrase || '');
     const [open, setOpen] = useState(false);
+    const [showKey, setShowKey] = useState(false);
+    const [showSecret, setShowSecret] = useState(false);
+    const [showPass, setShowPass] = useState(false);
 
     // Effect to update form when dialog opens for editing
     useEffect(() => {
@@ -111,6 +114,9 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
             setKey('');
             setSecret('');
             setPassphrase('');
+            setShowKey(false);
+            setShowSecret(false);
+            setShowPass(false);
         }
     }, [open, apiKey, isEditMode]);
 
@@ -152,15 +158,30 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="api-key">API Key</Label>
-                            <Input id="api-key" placeholder="请输入API Key" required value={key} onChange={e => setKey(e.target.value)} />
+                            <div className="relative">
+                                <Input id="api-key" type={showKey ? 'text' : 'password'} placeholder="请输入API Key" required value={key} onChange={e => setKey(e.target.value)} />
+                                <button type="button" aria-label={showKey ? '隐藏' : '显示'} onClick={() => setShowKey(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                    {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="api-secret">API Secret</Label>
-                            <Input id="api-secret" type="password" placeholder="请输入API Secret" required value={secret} onChange={e => setSecret(e.target.value)} />
+                            <div className="relative">
+                                <Input id="api-secret" type={showSecret ? 'text' : 'password'} placeholder="请输入API Secret" required value={secret} onChange={e => setSecret(e.target.value)} />
+                                <button type="button" aria-label={showSecret ? '隐藏' : '显示'} onClick={() => setShowSecret(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                    {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="passphrase">Passphrase</Label>
-                            <Input id="passphrase" type="password" placeholder="请输入Passphrase (如有)" value={passphrase} onChange={e => setPassphrase(e.target.value)} />
+                            <div className="relative">
+                                <Input id="passphrase" type={showPass ? 'text' : 'password'} placeholder="请输入Passphrase (如有)" value={passphrase} onChange={e => setPassphrase(e.target.value)} />
+                                <button type="button" aria-label={showPass ? '隐藏' : '显示'} onClick={() => setShowPass(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <DialogFooter className="flex-row justify-end gap-2">
@@ -173,8 +194,17 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
     );
 }
 
+function maskMiddle(txt: string, left = 3, right = 3) {
+    if (!txt) return ''
+    if (txt.length <= left + right) return txt
+    return `${txt.slice(0, left)}...${txt.slice(-right)}`
+}
+
 function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
-  return (
+    const [showKey, setShowKey] = useState(false)
+    const [showSecret, setShowSecret] = useState(false)
+    const [showPass, setShowPass] = useState(false)
+    return (
     <Card className="bg-card/50 border-border/30">
       <CardContent className="p-4 space-y-3">
         <div className="flex justify-between items-center">
@@ -204,22 +234,37 @@ function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
                 </Button>
             </div>
         </div>
-        <div className="border-t border-border/30 pt-3 text-sm space-y-2 font-mono">
-            <div className="flex justify-between">
-                <span className="text-muted-foreground">API Key:</span>
-                <span className="text-foreground">{apiKey.apiKey}</span>
-            </div>
-            <div className="flex justify-between">
-                <span className="text-muted-foreground">API Secret:</span>
-                <span className="text-foreground">{apiKey.apiSecret}</span>
-            </div>
-             {apiKey.passphrase && (
-                 <div className="flex justify-between">
-                    <span className="text-muted-foreground">Passphrase:</span>
-                    <span className="text-foreground">{apiKey.passphrase}</span>
+                <div className="border-t border-border/30 pt-3 text-sm space-y-2 font-mono">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">API Key:</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-foreground select-all">{showKey ? apiKey.apiKey : maskMiddle(apiKey.apiKey)}</span>
+                            <button aria-label={showKey ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowKey(v => !v)}>
+                                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">API Secret:</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-foreground select-all">{showSecret ? apiKey.apiSecret : '••••••••'}</span>
+                            <button aria-label={showSecret ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowSecret(v => !v)}>
+                                {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
+                    </div>
+                    {apiKey.passphrase !== undefined && apiKey.passphrase !== null && apiKey.passphrase !== '' && (
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">Passphrase:</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-foreground select-all">{showPass ? apiKey.passphrase : '••••••••'}</span>
+                                <button aria-label={showPass ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowPass(v => !v)}>
+                                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            )}
-        </div>
         <div className="border-t border-border/30 pt-3 text-xs text-muted-foreground space-y-1.5">
              <div className="flex justify-between">
                 <span>创建时间:</span>
