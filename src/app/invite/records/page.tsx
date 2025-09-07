@@ -64,26 +64,6 @@ function InviteeCard({ item }: { item: Invitee }) {
   )
 }
 
-function FilterDropdown({ label, options, onSelect }: { label: string; options: string[]; onSelect: (option: string) => void; }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="text-muted-foreground hover:text-foreground p-0 h-auto">
-          {label}
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-card">
-        {options.map((option) => (
-          <DropdownMenuItem key={option} onSelect={() => onSelect(option)}>
-            {option}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
 export default function InviteRecordsPage() {
   const { user } = useAuth()
   const [items, setItems] = useState<Invitee[]>([])
@@ -100,32 +80,17 @@ export default function InviteRecordsPage() {
   const pullingRef = useRef(false)
   const totalRef = useRef<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [timeFilter, setTimeFilter] = useState('近三个月')
 
   const loadPage = useCallback(async (targetPage: number) => {
     if (!user || inFlightRef.current) return
     inFlightRef.current = true
     setLoading(true)
-
-    // Calculate start_at based on timeFilter
-    let start_at: string | null = null;
-    const now = new Date();
-    if (timeFilter === '近三个月') {
-      now.setMonth(now.getMonth() - 3);
-      start_at = now.toISOString();
-    } else if (timeFilter === '近半年') {
-      now.setMonth(now.getMonth() - 6);
-      start_at = now.toISOString();
-    } else if (timeFilter === '近一年') {
-      now.setFullYear(now.getFullYear() - 1);
-      start_at = now.toISOString();
-    }
     
     const res = await supabase.rpc('get_invitees_paged', {
       page: targetPage,
       page_size: PAGE_SIZE,
       q: searchQuery || null,
-      start_at: start_at,
+      start_at: null,
       end_at: null,
     })
 
@@ -150,7 +115,7 @@ export default function InviteRecordsPage() {
     }
     setLoading(false)
     inFlightRef.current = false
-  }, [PAGE_SIZE, user, searchQuery, timeFilter])
+  }, [PAGE_SIZE, user, searchQuery])
 
   const resetAndLoadFirstPage = useCallback(async () => {
     if (!user) return
@@ -187,7 +152,7 @@ export default function InviteRecordsPage() {
     if (initialLoadDoneRef.current) {
         void resetAndLoadFirstPage();
     }
-  }, [searchQuery, timeFilter, resetAndLoadFirstPage]);
+  }, [searchQuery, resetAndLoadFirstPage]);
 
 
   return (
@@ -236,13 +201,6 @@ export default function InviteRecordsPage() {
               <X className="h-4 w-4" />
             </Button>
           )}
-        </div>
-        <div className="flex justify-end">
-             <FilterDropdown
-                label={timeFilter}
-                options={['近三个月', '近半年', '近一年']}
-                onSelect={setTimeFilter}
-            />
         </div>
       </div>
 
@@ -318,5 +276,3 @@ export default function InviteRecordsPage() {
     </div>
   )
 }
-
-    
