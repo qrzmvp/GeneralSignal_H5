@@ -4,6 +4,61 @@
 
 ---
 
+## 环境配置步骤（精简版）
+
+以下步骤按“需要人工/自动完成”标注。
+
+### 本地开发（local）
+### 本地开发（Local）
+ 人工：在项目根创建 `.env.local`，设置：
+   `NEXT_PUBLIC_SUPABASE_URL=<你的预览或开发 Supabase 项目 URL>`
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY=<对应 anon key>`
+ 人工：如需，提高到达率可配置 SMTP（可选）。
+ 人工：运行开发服务并冒烟测试（注册/验证/登录/登出）。
+
+### 开发环境（Dev / 长期开发服）
+ - 目的：提供一个长期存在、可共享访问的“开发服”，与临时 Preview（按分支/PR）区分。
+ - 建议：固定分支（如 `dev`/`develop`）+ 独立 Supabase Dev 项目 + 独立域名（如 `https://dev.yourdomain.com`）。
+ - 人工（Vercel 分支级变量或 Preview 变量组）：
+   - `NEXT_PUBLIC_SUPABASE_URL=<Dev Supabase 项目 URL>`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=<Dev anon key>`
+ - 人工（Supabase Dev 项目）：执行 `supabase_setup.sql`、`database_fix.sql`；启用 Email；URL Configuration 添加 `https://dev.yourdomain.com/login?verified=true`（或固定 Preview 域名）。
+ - 可选人工：配置 SMTP；必要时定期清理测试账号。
+ - 自动：推送到 `dev` 分支即自动部署；若已绑定域名可直接访问 Dev 域名。
+ - 人工：在 Dev 域名完成冒烟测试，作为团队日常联调与验收环境。
+- 人工：Authentication 中启用 Email，URL Configuration 添加 `http://localhost:9002/login?verified=true`（端口按本地实际）。
+- 人工：如需，提高到达率可配置 SMTP（可选）。
+- 人工：运行开发服务并冒烟测试（注册/验证/登录/登出）。
+
+### 预览环境（Preview / 分支或 PR）
+- 开发环境（Dev / 长期开发服）
+  - 使用固定分支（如 `dev`/`develop`）形成稳定的共享测试环境；绑定独立域名与独立 Supabase Dev 项目。
+- 人工（Vercel Preview 环境变量）：
+  - `NEXT_PUBLIC_SUPABASE_URL=<预览 Supabase 项目 URL>`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY=<预览 anon key>`
+- 人工（Supabase 预览项目）：执行 `supabase_setup.sql` 与 `database_fix.sql`；启用 Email，URL Configuration 添加预览域名回跳；可选配置 SMTP。
+- 自动：推送到分支/提交 PR 即触发 Vercel 预览构建并生成预览链接。
+- 人工：在预览链接完成冒烟测试；调试页仅用于预览/本地，务必在生产保持占位模式。
+
+### 生产环境（Production / main）
+- 人工（Vercel Production 环境变量）：
+  - `NEXT_PUBLIC_SUPABASE_URL=<生产 Supabase 项目 URL>`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY=<生产 anon key>`
+- 人工（Supabase 生产项目）：执行 `supabase_setup.sql` 与 `database_fix.sql`；启用 Email，URL Configuration 添加正式域名回跳；强烈建议配置 SMTP。
+- 自动：合并到 `main` 或在 Vercel 上 Promote to Production 即触发生产构建与部署；绑定主域。
+- 人工：生产冒烟测试；如有异常，可在 Vercel 一键回滚到上一个成功版本。
+
+### 协作流程（建议）
+- 人工：feature/* 分支开发 → 提交 PR。
+- 自动：Vercel 为 PR 生成 Preview 部署链接。
+- 人工：代码评审 + 预览环境验证通过后合并 `main`。
+- 自动：生产环境自动构建与发布。
+- 人工：生产冒烟测试与观测；必要时回滚；随后将修复回合至开发分支。
+
+提示：本项目提供的 `email_exists` RPC 用于注册前精准查重，需在每个 Supabase 项目创建并授权给 `anon` 与 `authenticated`。
+
+---
+
 ### 环境类型与推荐策略
 
 - 本地开发（Development）
