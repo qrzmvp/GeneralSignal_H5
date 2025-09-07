@@ -63,7 +63,6 @@ export default function InviteRecordsPage() {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 })
   const PAGE_SIZE = 10
   const inFlightRef = useRef(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -71,13 +70,15 @@ export default function InviteRecordsPage() {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const touchStartYRef = useRef(0)
   const pullingRef = useRef(false)
+  const seenKeysRef = useRef<Set<string>>(new Set())
+  const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1, root: scrollRef.current as Element | null })
 
   const loadPage = useCallback(async () => {
     if (!user || loading || !hasMore || inFlightRef.current) return
     inFlightRef.current = true
     setLoading(true)
     const offset = page * PAGE_SIZE
-    let data: Invitee[] | null = null
+  let data: Invitee[] | null = null
     let error: any = null
     // Prefer named params (requires RPC installed), fallback to default call
     let res = await supabase.rpc('get_invitees', { offset_arg: offset, limit_arg: PAGE_SIZE })
@@ -104,9 +105,22 @@ export default function InviteRecordsPage() {
       }
     }
     if (data) {
-      setItems(prev => [...prev, ...data!])
-      setPage(prev => prev + 1)
-      if (data.length < PAGE_SIZE) setHasMore(false)
+      // 去重与“无进展”检测：当后端忽略 offset/limit 时，同一页数据会重复返回
+      const filtered = data.filter((it) => {
+        const key = `${it.email ?? ''}|${it.username ?? ''}|${it.invited_at}`
+        if (seenKeysRef.current.has(key)) return false
+        seenKeysRef.current.add(key)
+        return true
+      })
+
+      if (filtered.length === 0) {
+        // 没有新数据，视为“到底了”，防止无限请求
+        setHasMore(false)
+      } else {
+        setItems(prev => [...prev, ...filtered])
+        setPage(prev => prev + 1)
+        if (filtered.length < PAGE_SIZE) setHasMore(false)
+      }
     }
     setLoading(false)
     inFlightRef.current = false
@@ -119,6 +133,7 @@ export default function InviteRecordsPage() {
     setHasMore(true)
     setErrorMsg(null)
     inFlightRef.current = false
+  seenKeysRef.current.clear()
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         Promise.resolve(loadPage()).finally(() => resolve())
