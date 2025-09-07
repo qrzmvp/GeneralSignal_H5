@@ -149,8 +149,9 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
             onUploaded(publicUrl)
             onOpenChange(false)
         } catch (e) {
+            const msg = (e as any)?.message || (e as any)?.error || String(e)
             console.error("保存头像失败:", e)
-            alert("保存头像失败：请稍后重试，或确认已在 Supabase Storage 创建公开的 avatars 存储桶")
+            alert(`保存头像失败：${msg}\n\n请稍后重试，或确认已在 Supabase Storage\n1) 创建公开的 avatars 存储桶\n2) 为 storage.objects 配置插入/更新/删除策略`)
         } finally {
             setSaving(false)
         }
@@ -166,18 +167,18 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
 
                 <div className="px-4 pb-24">
                     {!fileUrl ? (
-                        <div className="grid gap-3">
-                            {currentUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={currentUrl} alt="current avatar" className="mx-auto w-20 h-20 rounded-full object-cover" />
-                            ) : null}
-                            <div className="grid grid-cols-2 gap-3">
-                                <Button variant="secondary" onClick={openCamera}>拍摄</Button>
-                                <Button onClick={openGallery}>从相册选择</Button>
-                                <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={onFileChange} />
-                                <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+                        <div className="mx-auto w-full max-w-sm">
+                            <div className="rounded-xl overflow-hidden bg-white text-foreground dark:bg-neutral-900 border border-border/50 text-center">
+                                <button className="w-full py-3 text-base active:bg-black/5 dark:active:bg-white/10" onClick={openCamera}>拍摄</button>
+                                <div className="h-px bg-border/70" />
+                                <button className="w-full py-3 text-base active:bg-black/5 dark:active:bg-white/10" onClick={openGallery}>从手机相册选择</button>
                             </div>
-                            <p className="text-xs text-muted-foreground text-center">建议 400x400 以上清晰图片，小于 5MB</p>
+                            <div className="h-2" />
+                            <div className="rounded-xl overflow-hidden bg-white text-foreground dark:bg-neutral-900 border border-border/50 text-center">
+                                <button className="w-full py-3 text-base active:bg-black/5 dark:active:bg-white/10" onClick={() => onOpenChange(false)}>取消</button>
+                            </div>
+                            <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={onFileChange} />
+                            <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
                         </div>
                     ) : (
                         <div className="grid gap-4">
@@ -214,7 +215,7 @@ export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, o
                     )}
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 flex gap-3">
+                <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75 border-t p-3 flex gap-3">
                     <Button variant="secondary" className="flex-1" onClick={() => onOpenChange(false)} disabled={saving}>取消</Button>
                     <Button className="flex-1" onClick={handleSave} disabled={!fileUrl || saving}>{saving ? "保存中..." : "保存"}</Button>
                 </div>

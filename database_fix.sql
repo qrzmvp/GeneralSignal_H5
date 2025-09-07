@@ -252,6 +252,9 @@ AS $$
 DECLARE
   v_inviter uuid;
 BEGIN
+  -- 清洗入参，去除两端空白和非字母数字/下划线/短横线字符（例如 <> 等）
+  code := regexp_replace(coalesce(code, ''), '[^0-9A-Za-z_-]', '', 'g');
+  code := btrim(code);
   IF code IS NULL OR length(code) = 0 THEN
     RETURN NULL;
   END IF;
@@ -259,6 +262,9 @@ BEGIN
   RETURN v_inviter;
 END;
 $$;
+
+-- 允许前端角色调用该 RPC
+GRANT EXECUTE ON FUNCTION public.validate_invitation_code(text) TO anon, authenticated;
 
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
 DO $$

@@ -103,13 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('注册参数:', { email, username, invitationCode })
       // 直接执行注册，由后端判定是否重复
       console.log('步骤1: 执行新用户注册')
-      const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             username,
-            invitation_code: invitationCode,
+            // 将第四个参数作为“推荐人邀请码”存入 referrer_code，避免覆盖用户自身的邀请码
+            referrer_code: invitationCode,
           },
           emailRedirectTo: `${window.location.origin}/login?verified=true`
         }
