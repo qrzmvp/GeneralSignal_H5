@@ -48,7 +48,7 @@ async function uploadImages(userId: string, feedbackId: string, files: File[]) {
       contentType: (f as any).type || 'image/png',
     })
     if (error) {
-      dbg('upload error', error)
+      dbg('upload error', { key, code: (error as any)?.statusCode || (error as any)?.code, message: error.message })
       throw error
     }
     dbg('upload ok', key)
@@ -99,7 +99,11 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
     p_description: params.description.trim(),
     p_images: imagePaths as unknown as any,
     p_contact: params.contact ?? null,
-    p_env: { ...(params.env || {}), upload_error: uploadErr ? String((uploadErr as any)?.message || uploadErr) : null } as any,
+    p_env: ({
+      ...(params.env || {}),
+      upload_error: uploadErr ? String((uploadErr as any)?.message || uploadErr) : null,
+      uploaded: imagePaths,
+    } as any),
   })
   if (error) {
     dbg('rpc insert error', error)
@@ -114,13 +118,17 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
     }
     // Fallback: direct insert (requires DB to have relaxed RLS policy)
     dbg('fallback to direct insert')
-    const { error: insErr } = await supabase.from('feedbacks').insert({
+  const { error: insErr } = await supabase.from('feedbacks').insert({
       id: feedbackId,
       categories: params.categories,
       description: params.description.trim(),
       images: imagePaths,
       contact: params.contact ?? null,
-      env: { ...(params.env || {}), upload_error: uploadErr ? String((uploadErr as any)?.message || uploadErr) : null },
+      env: ({
+        ...(params.env || {}),
+        upload_error: uploadErr ? String((uploadErr as any)?.message || uploadErr) : null,
+        uploaded: imagePaths,
+      } as any),
     } as any)
     if (insErr) {
       dbg('direct insert error', insErr)

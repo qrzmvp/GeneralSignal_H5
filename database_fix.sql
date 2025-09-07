@@ -754,23 +754,39 @@ DECLARE obj_owner text; BEGIN
     EXECUTE 'DROP POLICY IF EXISTS "Feedback read own attachments" ON storage.objects';
     EXECUTE 'CREATE POLICY "Feedback read own attachments" ON storage.objects
              FOR SELECT TO authenticated
-             USING (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+             USING (
+               bucket_id = ''feedback-attachments''
+               AND (
+                 owner = auth.uid() OR name LIKE auth.uid()::text || ''/%''
+               )
+             )';
 
     EXECUTE 'DROP POLICY IF EXISTS "Feedback insert own attachments" ON storage.objects';
     EXECUTE 'CREATE POLICY "Feedback insert own attachments" ON storage.objects
              FOR INSERT TO authenticated
-             WITH CHECK (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+             WITH CHECK (
+               bucket_id = ''feedback-attachments''
+               AND (
+                 owner = auth.uid() OR name LIKE auth.uid()::text || ''/%''
+               )
+             )';
 
     EXECUTE 'DROP POLICY IF EXISTS "Feedback update own attachments" ON storage.objects';
     EXECUTE 'CREATE POLICY "Feedback update own attachments" ON storage.objects
              FOR UPDATE TO authenticated
-             USING (bucket_id = ''feedback-attachments'' AND owner = auth.uid())
-             WITH CHECK (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+             USING (
+               bucket_id = ''feedback-attachments'' AND (owner = auth.uid() OR name LIKE auth.uid()::text || ''/%'')
+             )
+             WITH CHECK (
+               bucket_id = ''feedback-attachments'' AND (owner = auth.uid() OR name LIKE auth.uid()::text || ''/%'')
+             )';
 
     EXECUTE 'DROP POLICY IF EXISTS "Feedback delete own attachments" ON storage.objects';
     EXECUTE 'CREATE POLICY "Feedback delete own attachments" ON storage.objects
              FOR DELETE TO authenticated
-             USING (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+             USING (
+               bucket_id = ''feedback-attachments'' AND (owner = auth.uid() OR name LIKE auth.uid()::text || ''/%'')
+             )';
   END IF;
 END $$;
 
