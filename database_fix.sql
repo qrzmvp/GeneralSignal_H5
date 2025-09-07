@@ -589,3 +589,202 @@ DO $$ BEGIN
   PERFORM pg_notify('pgrst', 'reload schema');
 EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+-- ============================
+-- 18. 我的页面「问题反馈」后端与数据库
+-- 目标：
+--  - 反馈表 public.feedbacks（仅本人可见/增/改）；
+--  - 私有附件桶 storage.bucket 'feedback-attachments'（仅本人可读写）；
+--  - 触发器限频：同一用户 60 秒内仅允许 1 次提交；
+--  - 必要索引与 Realtime（可选）。
+-- ============================
+
+-- 18.1 反馈表（幂等创建）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema='public' AND table_name='feedbacks'
+  ) THEN
+    CREATE TABLE public.feedbacks (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id uuid NOT NULL DEFAULT auth.uid(),
+      categories text[] NOT NULL,
+      description text NOT NULL,
+      images jsonb NOT NULL DEFAULT '[]'::jsonb,
+      contact text NULL,
+      env jsonb NULL,
+      status text NOT NULL DEFAULT 'pending',
+      created_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now()),
+      updated_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now()),
+      CONSTRAINT feedbacks_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+      CONSTRAINT feedbacks_description_len CHECK (char_length(description) >= 10 AND char_length(description) <= 500),
+      CONSTRAINT feedbacks_categories_len CHECK (array_length(categories, 1) BETWEEN 1 AND 4)
+    );
+  END IF;
+END $$;
+
+-- 若缺少列/约束则补齐（幂等安全）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='feedbacks' AND column_name='status'
+  ) THEN
+    ALTER TABLE public.feedbacks ADD COLUMN status text NOT NULL DEFAULT 'pending';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='feedbacks' AND column_name='images'
+  ) THEN
+    ALTER TABLE public.feedbacks ADD COLUMN images jsonb NOT NULL DEFAULT '[]'::jsonb;
+  END IF;
+END $$;
+
+-- 18.2 RLS 策略
+ALTER TABLE public.feedbacks ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='feedbacks' AND policyname='feedbacks_select_own')
+  THEN EXECUTE 'DROP POLICY feedbacks_select_own ON public.feedbacks'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='feedbacks' AND policyname='feedbacks_insert_own')
+  THEN EXECUTE 'DROP POLICY feedbacks_insert_own ON public.feedbacks'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='feedbacks' AND policyname='feedbacks_update_own')
+  THEN EXECUTE 'DROP POLICY feedbacks_update_own ON public.feedbacks'; END IF;
+END $$;
+
+CREATE POLICY feedbacks_select_own ON public.feedbacks
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY feedbacks_insert_own ON public.feedbacks
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY feedbacks_update_own ON public.feedbacks
+  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+GRANT SELECT, INSERT, UPDATE ON public.feedbacks TO authenticated;
+REVOKE ALL ON public.feedbacks FROM anon;
+
+-- 18.3 触发器：更新时间与 60s 限频
+CREATE OR REPLACE FUNCTION public.handle_feedback_update()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at := timezone('utc'::text, now());
+  RETURN NEW;
+END;$$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname='on_feedback_update') THEN
+    CREATE TRIGGER on_feedback_update BEFORE UPDATE ON public.feedbacks
+    FOR EACH ROW EXECUTE FUNCTION public.handle_feedback_update();
+  END IF;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.prevent_feedback_spam()
+RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE
+  recent_exists boolean;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM public.feedbacks
+    WHERE user_id = NEW.user_id
+      AND created_at >= timezone('utc'::text, now()) - interval '60 seconds'
+  ) INTO recent_exists;
+
+  IF recent_exists THEN
+    RAISE EXCEPTION 'Too Many Requests: please wait before submitting again' USING ERRCODE = 'TooManyRequests';
+  END IF;
+
+  RETURN NEW;
+END;$$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname='on_feedback_insert_limit') THEN
+    CREATE TRIGGER on_feedback_insert_limit BEFORE INSERT ON public.feedbacks
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_feedback_spam();
+  END IF;
+END $$;
+
+-- 18.4 索引
+CREATE INDEX IF NOT EXISTS idx_feedbacks_user_created ON public.feedbacks(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_feedbacks_status ON public.feedbacks(status);
+
+-- 18.5 Storage：feedback-attachments 桶（私有）与 RLS 策略
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id='feedback-attachments') THEN
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema='storage' AND table_name='buckets' AND column_name='name'
+    ) THEN
+      INSERT INTO storage.buckets (id, name, public)
+      VALUES ('feedback-attachments', 'feedback-attachments', false);
+    ELSE
+      INSERT INTO storage.buckets (id, public)
+      VALUES ('feedback-attachments', false);
+    END IF;
+  END IF;
+  -- 强制为私有
+  UPDATE storage.buckets SET public=false WHERE id='feedback-attachments';
+END $$;
+
+-- 确保 storage.objects 开启 RLS（若前文已启用会跳过）
+DO $$
+DECLARE obj_owner text; BEGIN
+  SELECT pg_get_userbyid(c.relowner) INTO obj_owner
+  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='storage' AND c.relname='objects';
+  IF obj_owner = current_user OR current_user='supabase_admin' THEN
+    EXECUTE 'ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
+
+-- 私有读写策略（仅对象 owner=auth.uid() 且在 feedback-attachments 桶）
+DO $$
+DECLARE obj_owner text; BEGIN
+  SELECT pg_get_userbyid(c.relowner) INTO obj_owner
+  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='storage' AND c.relname='objects';
+
+  IF obj_owner = current_user OR current_user='supabase_admin' THEN
+    EXECUTE 'DROP POLICY IF EXISTS "Feedback read own attachments" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Feedback read own attachments" ON storage.objects
+             FOR SELECT TO authenticated
+             USING (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+
+    EXECUTE 'DROP POLICY IF EXISTS "Feedback insert own attachments" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Feedback insert own attachments" ON storage.objects
+             FOR INSERT TO authenticated
+             WITH CHECK (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+
+    EXECUTE 'DROP POLICY IF EXISTS "Feedback update own attachments" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Feedback update own attachments" ON storage.objects
+             FOR UPDATE TO authenticated
+             USING (bucket_id = ''feedback-attachments'' AND owner = auth.uid())
+             WITH CHECK (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+
+    EXECUTE 'DROP POLICY IF EXISTS "Feedback delete own attachments" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Feedback delete own attachments" ON storage.objects
+             FOR DELETE TO authenticated
+             USING (bucket_id = ''feedback-attachments'' AND owner = auth.uid())';
+  END IF;
+END $$;
+
+-- Realtime（可选）：加入 publication
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname='supabase_realtime') THEN
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_publication p
+      JOIN pg_publication_rel pr ON pr.prpubid = p.oid
+      JOIN pg_class c ON c.oid = pr.prrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE p.pubname='supabase_realtime' AND n.nspname='public' AND c.relname='feedbacks'
+    ) THEN
+      EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.feedbacks';
+    END IF;
+  END IF;
+END $$;
+
+DO $$ BEGIN PERFORM pg_notify('pgrst', 'reload schema'); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
