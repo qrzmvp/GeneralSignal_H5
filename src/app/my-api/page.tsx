@@ -381,8 +381,6 @@ export default function MyApiPage() {
     const binanceKeys = apiKeys.filter(key => key.exchange === 'binance');
 
     const handleDelete = async (k: ApiKeyPublic) => {
-        const ok = window.confirm('您确认删除吗，删除后将无法跟单')
-        if (!ok) return
         try {
             const { error } = await supabase.from('api_keys').delete().eq('id', k.id)
             if (error) throw error
