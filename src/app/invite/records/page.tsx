@@ -64,42 +64,48 @@ export default function InviteRecordsPage() {
   const [hasMore, setHasMore] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const PAGE_SIZE = 10
+  const [page, setPage] = useState(1)
   const inFlightRef = useRef(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [pullDistance, setPullDistance] = useState(0)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const touchStartYRef = useRef(0)
   const pullingRef = useRef(false)
-  const lastCursorRef = useRef<{ invited_at: string | null; invitee_id: string | null }>({ invited_at: null, invitee_id: null })
-  const lastScrollTriggerAtRef = useRef<number>(0)
+  const totalRef = useRef<number | null>(null)
 
-  const loadPage = useCallback(async () => {
-    if (!user || loading || !hasMore || inFlightRef.current) return
+  const loadPage = useCallback(async (targetPage: number) => {
+    if (!user || inFlightRef.current) return
     inFlightRef.current = true
     setLoading(true)
-    const cursor_created_at = lastCursorRef.current.invited_at
-    const cursor_invitee_id = lastCursorRef.current.invitee_id
-    const res = await supabase.rpc('get_invitees_v2', {
-      cursor_created_at,
-      cursor_invitee_id,
-      limit_arg: PAGE_SIZE,
+    const res = await supabase.rpc('get_invitees_paged', {
+      page: targetPage,
+      page_size: PAGE_SIZE,
+      q: null,
+      start_at: null,
+      end_at: null,
     })
     if (res.error) {
-      console.error('get_invitees_v2 RPC error:', res.error)
+      console.error('get_invitees_paged RPC error:', res.error)
       setErrorMsg('加载失败：后台接口未就绪或无权限。请稍后重试。')
       setHasMore(false)
     } else {
-      const data = (res.data as Invitee[]) || []
-      setItems(prev => [...prev, ...data])
-      if (data.length > 0) {
-        const last = data[data.length - 1]
-        lastCursorRef.current = { invited_at: last.invited_at, invitee_id: (last as any).invitee_id ?? null }
-      }
-      if (data.length < PAGE_SIZE) setHasMore(false)
+      const rows = (res.data as any[]) || []
+      const data: Invitee[] = rows.map(r => ({
+        email: r.email ?? null,
+        username: r.username ?? null,
+        invited_at: r.invited_at,
+        invitee_id: r.invitee_id,
+      }))
+      setItems(prev => (targetPage === 1 ? data : [...prev, ...data]))
+      const total = rows.length > 0 ? Number(rows[0].total_count) : (totalRef.current ?? 0)
+      totalRef.current = total
+      const loaded = (targetPage - 1) * PAGE_SIZE + data.length
+      setHasMore(total > 0 ? loaded < total : data.length === PAGE_SIZE)
+      setPage(targetPage)
     }
     setLoading(false)
     inFlightRef.current = false
-  }, [PAGE_SIZE, hasMore, loading, user])
+  }, [PAGE_SIZE, user])
 
   const resetAndLoadFirstPage = useCallback(async () => {
     if (!user) return
@@ -107,10 +113,11 @@ export default function InviteRecordsPage() {
     setHasMore(true)
     setErrorMsg(null)
     inFlightRef.current = false
-  lastCursorRef.current = { invited_at: null, invitee_id: null }
+    totalRef.current = null
+    setPage(1)
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
-        Promise.resolve(loadPage()).finally(() => resolve())
+        Promise.resolve(loadPage(1)).finally(() => resolve())
       })
     })
   }, [user, loadPage])
@@ -122,29 +129,15 @@ export default function InviteRecordsPage() {
     setIsRefreshing(false)
   }, [loading, isRefreshing, resetAndLoadFirstPage])
 
+  const initialLoadDoneRef = useRef(false)
   useEffect(() => {
-    // initial load
-    if (user) {
-      void resetAndLoadFirstPage()
-    }
+    // initial load (guard against StrictMode double-invoke)
+    if (!user || initialLoadDoneRef.current) return
+    initialLoadDoneRef.current = true
+    void resetAndLoadFirstPage()
   }, [user, resetAndLoadFirstPage])
 
-  // 容器滚动触底检测（稳定、可控）
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    const onScroll = () => {
-      if (!hasMore || loading) return
-      const now = Date.now()
-      if (now - lastScrollTriggerAtRef.current < 300) return
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 80) {
-        lastScrollTriggerAtRef.current = now
-        void loadPage()
-      }
-    }
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
-  }, [hasMore, loading, loadPage])
+  // 去掉自动无限滚动，改为“加载更多”按钮，交互更可控
 
   return (
     <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -228,12 +221,17 @@ export default function InviteRecordsPage() {
         ) : (
           items.map((it, idx) => <InviteeCard key={idx} item={it} />)
         )}
-  <div className="flex justify-center items-center h-14 text-muted-foreground">
+        <div className="flex flex-col items-center gap-3 py-4 text-muted-foreground">
           {loading && (
-            <>
+            <div className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               <span>加载中...</span>
-            </>
+            </div>
+          )}
+          {!loading && hasMore && (
+            <Button variant="secondary" onClick={() => void loadPage(page + 1)}>
+              加载更多
+            </Button>
           )}
           {!loading && !hasMore && items.length > 0 && (
             <span>已经到底了</span>

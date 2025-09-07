@@ -339,6 +339,64 @@ EXCEPTION WHEN OTHERS THEN
   NULL;
 END $$;
 
+-- 16.3 极简分页版：后端统一分页，前端仅传 page/page_size（可选过滤）
+CREATE OR REPLACE FUNCTION public.get_invitees_paged(
+  page int DEFAULT 1,
+  page_size int DEFAULT 10,
+  q text DEFAULT NULL,                 -- 关键词（按邮箱/用户名模糊）
+  start_at timestamptz DEFAULT NULL,   -- 起始时间过滤
+  end_at timestamptz DEFAULT NULL      -- 结束时间过滤
+)
+RETURNS TABLE(
+  email text,
+  username text,
+  invited_at timestamptz,
+  invitee_id uuid,
+  total_count bigint
+)
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+  v_offset int;
+  v_limit int;
+BEGIN
+  v_limit := LEAST(GREATEST(COALESCE(page_size, 10), 1), 200);
+  v_offset := GREATEST(COALESCE(page, 1) - 1, 0) * v_limit;
+
+  RETURN QUERY
+  WITH filtered AS (
+    SELECT r.invitee_id,
+           r.created_at,
+           p.email,
+           p.username
+    FROM public.referrals r
+    JOIN public.profiles p ON p.id = r.invitee_id
+    WHERE r.inviter_id = auth.uid()
+      AND (q IS NULL OR q = '' OR p.email ILIKE '%'||q||'%' OR p.username ILIKE '%'||q||'%')
+      AND (start_at IS NULL OR r.created_at >= start_at)
+      AND (end_at IS NULL OR r.created_at <= end_at)
+  )
+  SELECT f.email,
+         f.username,
+         f.created_at AS invited_at,
+         f.invitee_id,
+         COUNT(*) OVER() AS total_count
+  FROM filtered f
+  ORDER BY f.created_at DESC, f.invitee_id DESC
+  OFFSET v_offset
+  LIMIT v_limit;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_invitees_paged(int, int, text, timestamptz, timestamptz) TO authenticated;
+
+DO $$ BEGIN
+  PERFORM pg_notify('pgrst', 'reload schema');
+EXCEPTION WHEN OTHERS THEN
+  NULL;
+END $$;
+
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
 DO $$
 DECLARE
