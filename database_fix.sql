@@ -147,3 +147,89 @@ BEGIN
   END IF;
 END
 $$;
+
+-- 11. Storage：确保公开的 avatars 存储桶与 RLS 策略（幂等）
+-- 11.1 创建（或确保存在）公开的 avatars 存储桶
+DO $$
+BEGIN
+  -- 若不存在则创建公开的 avatars 存储桶（兼容不同存储版本：有无 name 列）
+  IF NOT EXISTS (
+    SELECT 1 FROM storage.buckets WHERE id = 'avatars'
+  ) THEN
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'storage' AND table_name = 'buckets' AND column_name = 'name'
+    ) THEN
+      INSERT INTO storage.buckets (id, name, public)
+      VALUES ('avatars', 'avatars', true);
+    ELSE
+      INSERT INTO storage.buckets (id, public)
+      VALUES ('avatars', true);
+    END IF;
+  END IF;
+  -- 确保存储桶为公开
+  UPDATE storage.buckets SET public = true WHERE id = 'avatars';
+END $$;
+
+-- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
+DO $$
+DECLARE
+  obj_owner text;
+BEGIN
+  SELECT pg_get_userbyid(c.relowner)
+    INTO obj_owner
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'storage' AND c.relname = 'objects';
+
+  IF obj_owner = current_user OR current_user = 'supabase_admin' THEN
+    EXECUTE 'ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY';
+  ELSE
+    RAISE NOTICE 'Skip: current_user=% is not owner(%) of storage.objects; RLS enable unchanged', current_user, obj_owner;
+  END IF;
+END $$;
+
+-- 11.3 公开只读策略：任何人可读取 avatars 桶中的对象
+DO $$
+DECLARE
+  obj_owner text;
+BEGIN
+  SELECT pg_get_userbyid(c.relowner)
+    INTO obj_owner
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'storage' AND c.relname = 'objects';
+
+  IF obj_owner = current_user OR current_user = 'supabase_admin' THEN
+    EXECUTE 'DROP POLICY IF EXISTS "Public read for avatars" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Public read for avatars" ON storage.objects FOR SELECT USING (bucket_id = ''avatars'')';
+  ELSE
+    RAISE NOTICE 'Skip: insufficient privileges to manage storage.objects policies (owner=%, current_user=%)', obj_owner, current_user;
+  END IF;
+END $$;
+
+-- 11.4 认证用户可管理自己上传到 avatars 的对象（写、改、删）
+DO $$
+DECLARE
+  obj_owner text;
+BEGIN
+  SELECT pg_get_userbyid(c.relowner)
+    INTO obj_owner
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'storage' AND c.relname = 'objects';
+
+  IF obj_owner = current_user OR current_user = 'supabase_admin' THEN
+    EXECUTE 'DROP POLICY IF EXISTS "Authenticated insert own avatars" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Authenticated insert own avatars" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = ''avatars'' AND owner = auth.uid())';
+
+    EXECUTE 'DROP POLICY IF EXISTS "Authenticated update own avatars" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Authenticated update own avatars" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = ''avatars'' AND owner = auth.uid()) WITH CHECK (bucket_id = ''avatars'' AND owner = auth.uid())';
+
+    EXECUTE 'DROP POLICY IF EXISTS "Authenticated delete own avatars" ON storage.objects';
+    EXECUTE 'CREATE POLICY "Authenticated delete own avatars" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = ''avatars'' AND owner = auth.uid())';
+  ELSE
+    RAISE NOTICE 'Skip: insufficient privileges to manage storage.objects policies (owner=%, current_user=%)', obj_owner, current_user;
+  END IF;
+END $$;
+

@@ -60,6 +60,7 @@ import {
     Ticket
 } from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
+import AvatarEditor from '../components/AvatarEditor';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -235,6 +236,7 @@ function FeedbackDialog() {
 export default function ProfilePage() {
         const [activeTab, setActiveTab] = useState('profile');
         const [showToast, setShowToast] = useState(false);
+    const [avatarOpen, setAvatarOpen] = useState(false);
         const router = useRouter();
         const { user: authUser, signOut, loading } = useAuth();
 
@@ -309,11 +311,18 @@ export default function ProfilePage() {
         <div className="space-y-6">
             <Card className="bg-card/50 border-0 shadow-none">
                 <CardContent className="p-4 flex items-center gap-4">
-                    <div className="relative">
+                                        <div className="relative">
                         <Avatar className="h-16 w-16 border-2 border-primary/50">
                             <AvatarImage src={profile.avatar || 'https://i.pravatar.cc/150'} alt={profile.name || '用户'} />
                             <AvatarFallback>{(profile.name || '用').charAt(0)}</AvatarFallback>
                         </Avatar>
+                                                <button
+                                                    aria-label="编辑头像"
+                                                    className="absolute -bottom-1 -right-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow hover:opacity-90"
+                                                    onClick={() => setAvatarOpen(true)}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
                     </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold flex items-center gap-2">
@@ -325,12 +334,19 @@ export default function ProfilePage() {
                                 </span>
                             )}
                         </h2>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                            <span>ID: {profile.id}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => handleCopy(profile.id)}>
-                                <Copy className="h-3 w-3" />
-                            </Button>
-                        </div>
+                                                <div className="flex items-center text-xs text-muted-foreground">
+                                                        <span>邮箱: {authUser?.email || '——'}</span>
+                                                        {authUser?.email && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6 ml-1"
+                                                                onClick={() => handleCopy(authUser.email!)}
+                                                            >
+                                                                <Copy className="h-3 w-3" />
+                                                            </Button>
+                                                        )}
+                                                </div>
                          <div className="flex items-center text-xs text-muted-foreground gap-1">
                             <Ticket className="w-3 h-3" />
                             <span>邀请码: {profile.invitationCode || '——'} </span>
@@ -424,6 +440,14 @@ export default function ProfilePage() {
             </Card>
         </div>
       </main>
+
+            <AvatarEditor
+                open={avatarOpen}
+                onOpenChange={setAvatarOpen}
+                userId={authUser?.id || ''}
+                currentUrl={profile.avatar}
+                onUploaded={(url) => setProfile((prev) => ({ ...prev, avatar: url }))}
+            />
 
 
       {/* Bottom Navigation */}
