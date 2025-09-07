@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ChevronLeft, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { format } from 'date-fns'
 
 interface Invitee {
   email: string | null
@@ -14,16 +15,24 @@ interface Invitee {
   invited_at: string
 }
 
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm py-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-foreground truncate max-w-[70%] text-right">{value}</span>
+    </div>
+  )
+}
+
 function InviteeCard({ item }: { item: Invitee }) {
+  const dt = format(new Date(item.invited_at), 'yyyy/MM/dd HH:mm:ss')
   return (
     <Card className="bg-card/50 border-border/30 overflow-hidden">
       <CardContent className="p-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="font-semibold">{item.username || '—'}</div>
-            <div className="text-sm text-muted-foreground">{item.email || '—'}</div>
-          </div>
-          <div className="text-xs text-muted-foreground">{new Date(item.invited_at).toLocaleString()}</div>
+        <div className="border-t border-border/30 pt-1">
+          <InfoRow label="用户名" value={item.username || '—'} />
+          <InfoRow label="邮箱" value={item.email || '—'} />
+          <InfoRow label="邀请时间" value={dt} />
         </div>
       </CardContent>
     </Card>
