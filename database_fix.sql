@@ -459,3 +459,116 @@ BEGIN
   END IF;
 END $$;
 
+-- ============================
+-- 17. 我的API（api_keys）- Pragmatic 安全方案
+-- 目标：仅本人可见/改/删；前端通过只读视图 api_keys_public 获取列表，永不返回明文 api_secret
+-- ============================
+
+-- 17.1 若表不存在则跳过创建（你的环境已存在该表）
+-- 可选：在全新环境中创建
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='api_keys'
+  ) THEN
+    CREATE TABLE public.api_keys (
+      id uuid not null default gen_random_uuid() primary key,
+      user_id uuid not null default auth.uid(),
+      name text not null,
+      exchange text not null,
+      api_key text not null,
+      api_secret text not null,
+      passphrase text null,
+      status text not null default 'running'::text,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now(),
+      constraint unique_user_exchange_apikey unique (user_id, exchange, api_key),
+      constraint api_keys_user_id_fkey foreign key (user_id) references auth.users(id) on delete cascade
+    );
+  END IF;
+END $$;
+
+-- 17.2 RLS + 策略（幂等）
+ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='api_keys' AND policyname='api_keys_select_own')
+  THEN EXECUTE 'DROP POLICY api_keys_select_own ON public.api_keys'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='api_keys' AND policyname='api_keys_insert_own')
+  THEN EXECUTE 'DROP POLICY api_keys_insert_own ON public.api_keys'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='api_keys' AND policyname='api_keys_update_own')
+  THEN EXECUTE 'DROP POLICY api_keys_update_own ON public.api_keys'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='api_keys' AND policyname='api_keys_delete_own')
+  THEN EXECUTE 'DROP POLICY api_keys_delete_own ON public.api_keys'; END IF;
+END $$;
+
+CREATE POLICY api_keys_select_own ON public.api_keys
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY api_keys_insert_own ON public.api_keys
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY api_keys_update_own ON public.api_keys
+  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY api_keys_delete_own ON public.api_keys
+  FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.api_keys TO authenticated;
+REVOKE ALL ON public.api_keys FROM anon;
+
+-- 17.3 掩码函数 + 只读视图（供前端查询）
+CREATE OR REPLACE FUNCTION public.mask_middle(txt text, left_keep int default 3, right_keep int default 3)
+RETURNS text LANGUAGE sql IMMUTABLE AS $$
+  select case
+           when txt is null then null
+           when length(txt) <= left_keep + right_keep then txt
+           else substring(txt from 1 for left_keep) || '...' || substring(txt from length(txt) - right_keep + 1)
+         end;
+$$;
+
+CREATE OR REPLACE VIEW public.api_keys_public AS
+SELECT
+  id,
+  user_id,
+  name,
+  exchange,
+  api_key,
+  public.mask_middle(api_key) AS api_key_masked,
+  '••••••••'::text AS api_secret_masked,
+  (passphrase is not null and length(passphrase) > 0) as has_passphrase,
+  status,
+  created_at,
+  updated_at
+FROM public.api_keys;
+
+GRANT SELECT ON public.api_keys_public TO authenticated;
+
+-- 17.4 触发器：更新时间 & 留空即保留旧密钥
+CREATE OR REPLACE FUNCTION public.handle_api_key_update()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at := now();
+  IF NEW.api_secret IS NULL THEN NEW.api_secret := OLD.api_secret; END IF;
+  IF NEW.passphrase IS NULL THEN NEW.passphrase := OLD.passphrase; END IF;
+  RETURN NEW;
+END;
+$$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger WHERE tgname = 'on_api_key_update'
+  ) THEN
+    CREATE TRIGGER on_api_key_update BEFORE UPDATE ON public.api_keys
+    FOR EACH ROW EXECUTE FUNCTION public.handle_api_key_update();
+  END IF;
+END $$;
+
+-- 17.5 常用索引
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_updated ON public.api_keys(user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_exchange ON public.api_keys(user_id, exchange);
+
+DO $$ BEGIN
+  PERFORM pg_notify('pgrst', 'reload schema');
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+

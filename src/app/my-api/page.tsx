@@ -23,38 +23,28 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronLeft, Plus, Trash2, Edit, Eye, EyeOff } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, Edit, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useSwipeable } from 'react-swipeable';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
-// Mock Data
-const mockApiKeys = [
-    { 
-        id: 'okx-1', 
-        exchange: 'okx', 
-        name: '我的主力OKX', 
-        apiKey: 'abc...xyz',
-        apiSecret: 'sec...ret',
-        passphrase: 'pass...ase',
-        createdAt: '2023-08-01 10:30:15',
-        updatedAt: '2023-08-20 14:05:22',
-        status: 'running' as 'running' | 'stopped'
-    },
-    { 
-        id: 'binance-1', 
-        exchange: 'binance', 
-        name: 'Binance小号', 
-        apiKey: '123...789',
-        apiSecret: 'scr...t12',
-        passphrase: '',
-        createdAt: '2023-07-15 09:00:41',
-        updatedAt: '2023-07-15 09:00:41',
-        status: 'stopped' as 'running' | 'stopped'
-    }
-];
+type ApiKeyPublic = {
+    id: string
+    user_id: string
+    name: string
+    exchange: 'okx' | 'binance'
+    api_key: string
+    api_key_masked: string
+    api_secret_masked: string
+    has_passphrase: boolean
+    status: 'running' | 'stopped'
+    created_at: string
+    updated_at: string
+}
 
 
 function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', className?: string }) {
@@ -84,32 +74,35 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', cl
     return logos[exchange] || null;
 }
 
-function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | null, children: React.ReactNode }) {
+function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null, onSaved: () => void, children: React.ReactNode }) {
     const isEditMode = !!apiKey;
+    const { user } = useAuth()
 
     // Use state to manage form inputs
-    const [exchange, setExchange] = useState(apiKey?.exchange || '');
+    const [exchange, setExchange] = useState<ApiKeyPublic['exchange']>(apiKey?.exchange || 'okx');
     const [name, setName] = useState(apiKey?.name || '');
-    const [key, setKey] = useState(apiKey?.apiKey || '');
-    const [secret, setSecret] = useState(apiKey?.apiSecret || '');
-    const [passphrase, setPassphrase] = useState(apiKey?.passphrase || '');
+    const [key, setKey] = useState('');
+    const [secret, setSecret] = useState('');
+    const [passphrase, setPassphrase] = useState('');
     const [open, setOpen] = useState(false);
     const [showKey, setShowKey] = useState(false);
     const [showSecret, setShowSecret] = useState(false);
     const [showPass, setShowPass] = useState(false);
+    const [submitting, setSubmitting] = useState(false)
 
     // Effect to update form when dialog opens for editing
     useEffect(() => {
         if (open && isEditMode) {
-            setExchange(apiKey?.exchange || '');
+            setExchange(apiKey?.exchange || 'okx');
             setName(apiKey?.name || '');
-            setKey(apiKey?.apiKey || '');
-            setSecret(apiKey?.apiSecret || '');
-            setPassphrase(apiKey?.passphrase || '');
+            // 出于安全，编辑态不回显明文 key/secret/passphrase
+            setKey('');
+            setSecret('');
+            setPassphrase('');
         }
         if (!open) {
              // Reset form on close
-            setExchange('');
+            setExchange('okx');
             setName('');
             setKey('');
             setSecret('');
@@ -120,13 +113,39 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
         }
     }, [open, apiKey, isEditMode]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // In a real app, you would handle form submission logic here.
-        // For now, we just log it and close the dialog.
-        console.log({ exchange, name, key, secret, passphrase });
-        setOpen(false); // Close dialog on submit
-    };
+        const handleSubmit = async (e: React.FormEvent) => {
+                e.preventDefault();
+                setSubmitting(true)
+                try {
+                    if (isEditMode && apiKey) {
+                        const update: any = { name, exchange }
+                        if (key) update.api_key = key
+                        if (secret) update.api_secret = secret
+                        if (passphrase) update.passphrase = passphrase
+                        const { error } = await supabase.from('api_keys').update(update).eq('id', apiKey.id)
+                        if (error) throw error
+                    } else {
+                        const insert = {
+                            user_id: user?.id,
+                            name,
+                            exchange,
+                            api_key: key,
+                            api_secret: secret,
+                            passphrase: passphrase || null,
+                            status: 'running' as const,
+                        }
+                        const { error } = await supabase.from('api_keys').insert(insert as any)
+                        if (error) throw error
+                    }
+                    onSaved()
+                    setOpen(false)
+                } catch (err) {
+                    console.error('save api key error', err)
+                    // TODO: toast 错误提示
+                } finally {
+                    setSubmitting(false)
+                }
+        };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -142,7 +161,7 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="exchange">交易所</Label>
-                            <Select required value={exchange} onValueChange={setExchange}>
+                            <Select required value={exchange} onValueChange={(v) => setExchange(v as ApiKeyPublic['exchange'])}>
                                 <SelectTrigger id="exchange">
                                     <SelectValue placeholder="请选择交易所" />
                                 </SelectTrigger>
@@ -159,7 +178,7 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
                         <div className="grid gap-2">
                             <Label htmlFor="api-key">API Key</Label>
                             <div className="relative">
-                                <Input id="api-key" type={showKey ? 'text' : 'password'} placeholder="请输入API Key" required value={key} onChange={e => setKey(e.target.value)} />
+                                <Input id="api-key" type={showKey ? 'text' : 'password'} placeholder="请输入API Key" required={!isEditMode} value={key} onChange={e => setKey(e.target.value)} />
                                 <button type="button" aria-label={showKey ? '隐藏' : '显示'} onClick={() => setShowKey(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -168,7 +187,7 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
                         <div className="grid gap-2">
                             <Label htmlFor="api-secret">API Secret</Label>
                             <div className="relative">
-                                <Input id="api-secret" type={showSecret ? 'text' : 'password'} placeholder="请输入API Secret" required value={secret} onChange={e => setSecret(e.target.value)} />
+                                <Input id="api-secret" type={showSecret ? 'text' : 'password'} placeholder="请输入API Secret" required={!isEditMode} value={secret} onChange={e => setSecret(e.target.value)} />
                                 <button type="button" aria-label={showSecret ? '隐藏' : '显示'} onClick={() => setShowSecret(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -184,10 +203,12 @@ function ApiDialog({ apiKey, children }: { apiKey?: (typeof mockApiKeys)[0] | nu
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="flex-row justify-end gap-2">
-                        <Button type="button" variant="secondary" onClick={() => setOpen(false)}>取消</Button>
-                        <Button type="submit">{isEditMode ? '确认修改' : '确认绑定'}</Button>
-                    </DialogFooter>
+                                        <DialogFooter className="flex-row justify-end gap-2">
+                                                <Button type="button" variant="secondary" onClick={() => setOpen(false)}>取消</Button>
+                                                <Button type="submit" disabled={submitting}>
+                                                    {submitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />提交中</>) : (isEditMode ? '确认修改' : '确认绑定')}
+                                                </Button>
+                                        </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
@@ -200,7 +221,7 @@ function maskMiddle(txt: string, left = 3, right = 3) {
     return `${txt.slice(0, left)}...${txt.slice(-right)}`
 }
 
-function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
+function ApiCard({ apiKey, onEdit, onDelete, onToggle }: { apiKey: ApiKeyPublic, onEdit: (k: ApiKeyPublic) => void, onDelete: (k: ApiKeyPublic) => void, onToggle: (k: ApiKeyPublic) => void }) {
     const [showKey, setShowKey] = useState(false)
     const [showSecret, setShowSecret] = useState(false)
     const [showPass, setShowPass] = useState(false)
@@ -212,8 +233,9 @@ function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
                 <ExchangeIcon exchange={apiKey.exchange as 'okx' | 'binance'} />
                 <h3 className="font-bold text-lg">{apiKey.name}</h3>
                 <Badge
+                    onClick={() => onToggle(apiKey)}
                     className={cn(
-                        'text-xs px-2 py-1 border-0 flex items-center gap-1.5',
+                        'text-xs px-2 py-1 border-0 flex items-center gap-1.5 cursor-pointer select-none',
                         apiKey.status === 'running'
                         ? "bg-green-500/20 text-green-400"
                         : "bg-muted text-muted-foreground"
@@ -224,12 +246,12 @@ function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
                 </Badge>
             </div>
             <div className="flex items-center gap-1">
-                <ApiDialog apiKey={apiKey}>
+                <ApiDialog apiKey={apiKey} onSaved={() => onEdit(apiKey)}>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
                         <Edit className="h-4 w-4" />
                     </Button>
                 </ApiDialog>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => onDelete(apiKey)}>
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </div>
@@ -238,7 +260,7 @@ function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">API Key:</span>
                         <div className="flex items-center gap-2">
-                            <span className="text-foreground select-all">{showKey ? apiKey.apiKey : maskMiddle(apiKey.apiKey)}</span>
+                              <span className="text-foreground select-all">{showKey ? apiKey.api_key : apiKey.api_key_masked}</span>
                             <button aria-label={showKey ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowKey(v => !v)}>
                                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
@@ -247,17 +269,17 @@ function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">API Secret:</span>
                         <div className="flex items-center gap-2">
-                            <span className="text-foreground select-all">{showSecret ? apiKey.apiSecret : '••••••••'}</span>
+                              <span className="text-foreground select-all">{showSecret ? apiKey.api_secret_masked /* 仅示意；实际不返回明文 */ : '••••••••'}</span>
                             <button aria-label={showSecret ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowSecret(v => !v)}>
                                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
                         </div>
                     </div>
-                    {apiKey.passphrase !== undefined && apiKey.passphrase !== null && apiKey.passphrase !== '' && (
+                    {apiKey.has_passphrase && (
                         <div className="flex items-center justify-between gap-2">
                             <span className="text-muted-foreground">Passphrase:</span>
                             <div className="flex items-center gap-2">
-                                <span className="text-foreground select-all">{showPass ? apiKey.passphrase : '••••••••'}</span>
+                        <span className="text-foreground select-all">{showPass ? '••••••••' /* 不回显明文 */ : '••••••••'}</span>
                                 <button aria-label={showPass ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowPass(v => !v)}>
                                     {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -268,11 +290,11 @@ function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
         <div className="border-t border-border/30 pt-3 text-xs text-muted-foreground space-y-1.5">
              <div className="flex justify-between">
                 <span>创建时间:</span>
-                <span>{apiKey.createdAt}</span>
+                <span>{new Date(apiKey.created_at).toLocaleString()}</span>
             </div>
              <div className="flex justify-between">
                 <span>更新时间:</span>
-                <span>{apiKey.updatedAt}</span>
+                <span>{new Date(apiKey.updated_at).toLocaleString()}</span>
             </div>
         </div>
       </CardContent>
@@ -283,11 +305,61 @@ function ApiCard({ apiKey }: { apiKey: (typeof mockApiKeys)[0] }) {
 const TABS = ['okx', 'binance'];
 
 export default function MyApiPage() {
-    const [apiKeys, setApiKeys] = useState(mockApiKeys);
-    const [activeTab, setActiveTab] = useState('okx');
+    const { user, loading: authLoading, isConfigured } = useAuth()
+    const [apiKeys, setApiKeys] = useState<ApiKeyPublic[]>([]);
+    const [loading, setLoading] = useState(false)
+    const [activeTab, setActiveTab] = useState<'okx' | 'binance'>('okx');
+
+    const fetchKeys = async () => {
+        if (!isConfigured || !user) return
+        setLoading(true)
+        try {
+            const { data, error } = await supabase
+                .from('api_keys_public')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('updated_at', { ascending: false })
+
+            if (error) throw error
+            setApiKeys((data || []) as ApiKeyPublic[])
+        } catch (e) {
+            console.error('加载 API Keys 失败:', e)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        if (!authLoading && user) {
+            fetchKeys()
+        }
+    }, [authLoading, user])
 
     const okxKeys = apiKeys.filter(key => key.exchange === 'okx');
     const binanceKeys = apiKeys.filter(key => key.exchange === 'binance');
+
+    const handleDelete = async (k: ApiKeyPublic) => {
+        const ok = window.confirm('您确认删除吗，删除后将无法跟单')
+        if (!ok) return
+        try {
+            const { error } = await supabase.from('api_keys').delete().eq('id', k.id)
+            if (error) throw error
+            fetchKeys()
+        } catch (e) {
+            console.error('删除失败:', e)
+        }
+    }
+
+    const handleToggle = async (k: ApiKeyPublic) => {
+        try {
+            const next = k.status === 'running' ? 'stopped' : 'running'
+            const { error } = await supabase.from('api_keys').update({ status: next }).eq('id', k.id)
+            if (error) throw error
+            fetchKeys()
+        } catch (e) {
+            console.error('切换状态失败:', e)
+        }
+    }
 
     const swipeHandlers = useSwipeable({
         onSwiped: (eventData) => {
@@ -295,7 +367,7 @@ export default function MyApiPage() {
             const currentIndex = TABS.indexOf(activeTab);
             const nextIndex = currentIndex + direction;
             if (nextIndex >= 0 && nextIndex < TABS.length) {
-                setActiveTab(TABS[nextIndex]);
+                setActiveTab(TABS[nextIndex] as 'okx' | 'binance');
             }
         },
         trackMouse: true,
@@ -313,7 +385,7 @@ export default function MyApiPage() {
                 <div className="w-9"></div> {/* Placeholder for spacing */}
             </header>
             
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'okx' | 'binance')} className="w-full flex flex-col flex-grow">
                 <div className="px-4 pt-4">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="okx">OKX</TabsTrigger>
@@ -329,28 +401,32 @@ export default function MyApiPage() {
                         })}>
                              <div className="w-full flex-shrink-0">
                                 <TabsContent value="okx" className="mt-0 space-y-4">
-                                    {okxKeys.length === 0 ? (
+                                    {loading ? (
+                                        <div className="text-center text-muted-foreground pt-20">加载中...</div>
+                                    ) : okxKeys.length === 0 ? (
                                         <div className="text-center text-muted-foreground pt-20">
                                             <p>您还没有绑定任何OKX API。</p>
                                             <p>请点击下方按钮新增。</p>
                                         </div>
                                     ) : (
                                         okxKeys.map(key => (
-                                            <ApiCard key={key.id} apiKey={key} />
+                                            <ApiCard key={key.id} apiKey={key} onEdit={() => fetchKeys()} onDelete={handleDelete} onToggle={handleToggle} />
                                         ))
                                     )}
                                 </TabsContent>
                             </div>
                             <div className="w-full flex-shrink-0">
                                 <TabsContent value="binance" className="mt-0 space-y-4">
-                                    {binanceKeys.length === 0 ? (
+                                    {loading ? (
+                                        <div className="text-center text-muted-foreground pt-20">加载中...</div>
+                                    ) : binanceKeys.length === 0 ? (
                                         <div className="text-center text-muted-foreground pt-20">
                                             <p>您还没有绑定任何Binance API。</p>
                                             <p>请点击下方按钮新增。</p>
                                         </div>
                                     ) : (
                                         binanceKeys.map(key => (
-                                            <ApiCard key={key.id} apiKey={key} />
+                                            <ApiCard key={key.id} apiKey={key} onEdit={() => fetchKeys()} onDelete={handleDelete} onToggle={handleToggle} />
                                         ))
                                     )}
                                 </TabsContent>
@@ -361,7 +437,7 @@ export default function MyApiPage() {
             </Tabs>
 
             <footer className="sticky bottom-0 z-10 p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
-                <ApiDialog>
+                <ApiDialog onSaved={() => fetchKeys()}>
                     <Button className="w-full h-12 text-base font-bold">
                         <Plus className="mr-2 h-5 w-5" />
                         新增API
