@@ -482,9 +482,26 @@ BEGIN
       status text not null default 'running'::text,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now(),
-      constraint unique_user_exchange_apikey unique (user_id, exchange, api_key),
+      constraint unique_user_exchange_key_secret unique (user_id, exchange, api_key, api_secret),
       constraint api_keys_user_id_fkey foreign key (user_id) references auth.users(id) on delete cascade
     );
+  END IF;
+END $$;
+
+-- 若表已存在但仍为旧的唯一约束（不含 api_secret），则调整为新的联合唯一
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_schema='public' AND table_name='api_keys' AND constraint_name='unique_user_exchange_apikey'
+  ) THEN
+    ALTER TABLE public.api_keys DROP CONSTRAINT unique_user_exchange_apikey;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_schema='public' AND table_name='api_keys' AND constraint_name='unique_user_exchange_key_secret'
+  ) THEN
+    ALTER TABLE public.api_keys ADD CONSTRAINT unique_user_exchange_key_secret UNIQUE (user_id, exchange, api_key, api_secret);
   END IF;
 END $$;
 
@@ -527,22 +544,22 @@ RETURNS text LANGUAGE sql IMMUTABLE AS $$
          end;
 $$;
 
-CREATE OR REPLACE VIEW public.api_keys_public AS
-SELECT
-  id,
-  user_id,
-  name,
-  exchange,
-  api_key,
-  public.mask_middle(api_key) AS api_key_masked,
-  '••••••••'::text AS api_secret_masked,
-  (passphrase is not null and length(passphrase) > 0) as has_passphrase,
-  status,
-  created_at,
-  updated_at
-FROM public.api_keys;
-
-GRANT SELECT ON public.api_keys_public TO authenticated;
+-- 轻量化：如需直接前端查询表，可不依赖视图；保留以下视图段以便需要时启用（可选）
+-- CREATE OR REPLACE VIEW public.api_keys_public AS
+-- SELECT
+--   id,
+--   user_id,
+--   name,
+--   exchange,
+--   api_key,
+--   public.mask_middle(api_key) AS api_key_masked,
+--   '••••••••'::text AS api_secret_masked,
+--   (passphrase is not null and length(passphrase) > 0) as has_passphrase,
+--   status,
+--   created_at,
+--   updated_at
+-- FROM public.api_keys;
+-- GRANT SELECT ON public.api_keys_public TO authenticated;
 
 -- 17.4 触发器：更新时间 & 留空即保留旧密钥
 CREATE OR REPLACE FUNCTION public.handle_api_key_update()

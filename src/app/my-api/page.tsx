@@ -31,6 +31,7 @@ import { useSwipeable } from 'react-swipeable';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 
 type ApiKeyPublic = {
     id: string
@@ -38,9 +39,8 @@ type ApiKeyPublic = {
     name: string
     exchange: 'okx' | 'binance'
     api_key: string
-    api_key_masked: string
-    api_secret_masked: string
-    has_passphrase: boolean
+    api_secret: string
+    passphrase: string | null
     status: 'running' | 'stopped'
     created_at: string
     updated_at: string
@@ -77,6 +77,7 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', cl
 function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null, onSaved: () => void, children: React.ReactNode }) {
     const isEditMode = !!apiKey;
     const { user } = useAuth()
+    const { toast } = useToast()
 
     // Use state to manage form inputs
     const [exchange, setExchange] = useState<ApiKeyPublic['exchange']>(apiKey?.exchange || 'okx');
@@ -117,11 +118,13 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                 e.preventDefault();
                 setSubmitting(true)
                 try {
+                    if (!user?.id) {
+                        toast({ title: '未登录', description: '请先登录后再操作', variant: 'destructive' as any })
+                        return
+                    }
                     if (isEditMode && apiKey) {
-                        const update: any = { name, exchange }
-                        if (key) update.api_key = key
-                        if (secret) update.api_secret = secret
-                        if (passphrase) update.passphrase = passphrase
+                        // 编辑模式强制三项必填并全部更新
+                        const update: any = { name, exchange, api_key: key, api_secret: secret, passphrase }
                         const { error } = await supabase.from('api_keys').update(update).eq('id', apiKey.id)
                         if (error) throw error
                     } else {
@@ -131,17 +134,23 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                             exchange,
                             api_key: key,
                             api_secret: secret,
-                            passphrase: passphrase || null,
+                            passphrase: passphrase,
                             status: 'running' as const,
                         }
                         const { error } = await supabase.from('api_keys').insert(insert as any)
                         if (error) throw error
                     }
+                    toast({ title: isEditMode ? '修改成功' : '绑定成功' })
                     onSaved()
                     setOpen(false)
                 } catch (err) {
-                    console.error('save api key error', err)
-                    // TODO: toast 错误提示
+                        console.error('save api key error', err)
+                        const anyErr = err as any
+                        if (anyErr?.code === '23505') {
+                        toast({ title: '绑定失败', description: '该交易所下该 API Key 已存在', variant: 'destructive' as any })
+                    } else {
+                            toast({ title: '操作失败', description: (anyErr?.message as string) || '请稍后重试', variant: 'destructive' as any })
+                    }
                 } finally {
                     setSubmitting(false)
                 }
@@ -178,7 +187,7 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                         <div className="grid gap-2">
                             <Label htmlFor="api-key">API Key</Label>
                             <div className="relative">
-                                <Input id="api-key" type={showKey ? 'text' : 'password'} placeholder="请输入API Key" required={!isEditMode} value={key} onChange={e => setKey(e.target.value)} />
+                                <Input id="api-key" type={showKey ? 'text' : 'password'} placeholder="请输入API Key" required value={key} onChange={e => setKey(e.target.value)} />
                                 <button type="button" aria-label={showKey ? '隐藏' : '显示'} onClick={() => setShowKey(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -187,7 +196,7 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                         <div className="grid gap-2">
                             <Label htmlFor="api-secret">API Secret</Label>
                             <div className="relative">
-                                <Input id="api-secret" type={showSecret ? 'text' : 'password'} placeholder="请输入API Secret" required={!isEditMode} value={secret} onChange={e => setSecret(e.target.value)} />
+                                <Input id="api-secret" type={showSecret ? 'text' : 'password'} placeholder="请输入API Secret" required value={secret} onChange={e => setSecret(e.target.value)} />
                                 <button type="button" aria-label={showSecret ? '隐藏' : '显示'} onClick={() => setShowSecret(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -196,7 +205,7 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                         <div className="grid gap-2">
                             <Label htmlFor="passphrase">Passphrase</Label>
                             <div className="relative">
-                                <Input id="passphrase" type={showPass ? 'text' : 'password'} placeholder="请输入Passphrase (如有)" value={passphrase} onChange={e => setPassphrase(e.target.value)} />
+                                <Input id="passphrase" type={showPass ? 'text' : 'password'} placeholder="请输入Passphrase" required value={passphrase} onChange={e => setPassphrase(e.target.value)} />
                                 <button type="button" aria-label={showPass ? '隐藏' : '显示'} onClick={() => setShowPass(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -260,7 +269,7 @@ function ApiCard({ apiKey, onEdit, onDelete, onToggle }: { apiKey: ApiKeyPublic,
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">API Key:</span>
                         <div className="flex items-center gap-2">
-                              <span className="text-foreground select-all">{showKey ? apiKey.api_key : apiKey.api_key_masked}</span>
+                              <span className="text-foreground select-all">{showKey ? apiKey.api_key : maskMiddle(apiKey.api_key)}</span>
                             <button aria-label={showKey ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowKey(v => !v)}>
                                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
@@ -269,17 +278,17 @@ function ApiCard({ apiKey, onEdit, onDelete, onToggle }: { apiKey: ApiKeyPublic,
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-muted-foreground">API Secret:</span>
                         <div className="flex items-center gap-2">
-                              <span className="text-foreground select-all">{showSecret ? apiKey.api_secret_masked /* 仅示意；实际不返回明文 */ : '••••••••'}</span>
+                              <span className="text-foreground select-all">{showSecret ? apiKey.api_secret : '••••••••'}</span>
                             <button aria-label={showSecret ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowSecret(v => !v)}>
                                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
                         </div>
                     </div>
-                    {apiKey.has_passphrase && (
+                    {apiKey.passphrase && (
                         <div className="flex items-center justify-between gap-2">
                             <span className="text-muted-foreground">Passphrase:</span>
                             <div className="flex items-center gap-2">
-                        <span className="text-foreground select-all">{showPass ? '••••••••' /* 不回显明文 */ : '••••••••'}</span>
+                        <span className="text-foreground select-all">{showPass ? apiKey.passphrase : '••••••••'}</span>
                                 <button aria-label={showPass ? '隐藏' : '显示'} className="text-muted-foreground" onClick={() => setShowPass(v => !v)}>
                                     {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -314,14 +323,13 @@ export default function MyApiPage() {
         if (!isConfigured || !user) return
         setLoading(true)
         try {
-            const { data, error } = await supabase
-                .from('api_keys_public')
-                .select('*')
+            const base = await supabase
+                .from('api_keys')
+                .select('id,user_id,name,exchange,api_key,api_secret,passphrase,status,created_at,updated_at')
                 .eq('user_id', user.id)
                 .order('updated_at', { ascending: false })
-
-            if (error) throw error
-            setApiKeys((data || []) as ApiKeyPublic[])
+            if (base.error) throw base.error
+            setApiKeys((base.data || []) as ApiKeyPublic[])
         } catch (e) {
             console.error('加载 API Keys 失败:', e)
         } finally {
