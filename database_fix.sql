@@ -789,3 +789,38 @@ END $$;
 
 DO $$ BEGIN PERFORM pg_notify('pgrst', 'reload schema'); EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+-- 18.6 RPC：安全地创建反馈（服务端绑定 user_id），可接收可选自定义 id 用于与前端上传路径关联
+CREATE OR REPLACE FUNCTION public.create_feedback(
+  p_id uuid DEFAULT NULL,
+  p_categories text[] DEFAULT ARRAY[]::text[],
+  p_description text DEFAULT NULL,
+  p_images jsonb DEFAULT '[]'::jsonb,
+  p_contact text DEFAULT NULL,
+  p_env jsonb DEFAULT NULL
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+  v_id uuid := coalesce(p_id, gen_random_uuid());
+BEGIN
+  -- 基本校验（与表约束保持一致）
+  IF p_description IS NULL OR char_length(p_description) < 10 OR char_length(p_description) > 500 THEN
+    RAISE EXCEPTION 'invalid description length';
+  END IF;
+  IF array_length(p_categories, 1) IS NULL OR array_length(p_categories, 1) < 1 OR array_length(p_categories, 1) > 4 THEN
+    RAISE EXCEPTION 'invalid categories length';
+  END IF;
+
+  INSERT INTO public.feedbacks (id, user_id, categories, description, images, contact, env)
+  VALUES (v_id, auth.uid(), p_categories, p_description, coalesce(p_images, '[]'::jsonb), p_contact, p_env);
+
+  RETURN v_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_feedback(uuid, text[], text, jsonb, text, jsonb) TO authenticated;
+
+DO $$ BEGIN PERFORM pg_notify('pgrst', 'reload schema'); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+

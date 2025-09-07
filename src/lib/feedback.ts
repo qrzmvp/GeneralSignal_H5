@@ -67,20 +67,20 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
   const imagePaths = params.images?.length ? await uploadImages(userId, feedbackId, params.images) : []
   dbg('images done', imagePaths)
 
-  dbg('insert start')
-  const { error } = await supabase.from('feedbacks').insert({
-    id: feedbackId,
-    categories: params.categories,
-    description: params.description.trim(),
-    images: imagePaths,
-    contact: params.contact ?? null,
-      env: params.env ?? null
-  } as any)
+  dbg('rpc insert start')
+  const { data, error } = await supabase.rpc('create_feedback', {
+    p_id: feedbackId,
+    p_categories: params.categories as unknown as string[],
+    p_description: params.description.trim(),
+    p_images: imagePaths as unknown as any,
+    p_contact: params.contact ?? null,
+    p_env: params.env ?? null,
+  })
   if (error) {
-    dbg('insert error', error)
+    dbg('rpc insert error', error)
     throw error
   }
-  dbg('insert ok', feedbackId)
+  dbg('rpc insert ok', data)
 
   return { id: feedbackId }
 }
