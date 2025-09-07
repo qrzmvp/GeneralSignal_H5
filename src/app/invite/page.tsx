@@ -20,7 +20,6 @@ export default function InvitePage() {
     const [code, setCode] = useState('')
     const [link, setLink] = useState('')
     const [showQrPreview, setShowQrPreview] = useState(false)
-    const [qrSize, setQrSize] = useState(360)
     const qrCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
     useEffect(() => {
@@ -136,24 +135,19 @@ export default function InvitePage() {
                 </Card>
             </main>
 
-            <Dialog open={showQrPreview} onOpenChange={setShowQrPreview}>
-                <DialogContent className="sm:max-w-[520px]">
+                    <Dialog open={showQrPreview} onOpenChange={setShowQrPreview}>
+                        <DialogContent className="sm:max-w-[520px] p-6">
                     <DialogHeader>
-                        <DialogTitle>二维码预览</DialogTitle>
-                        <DialogDescription>长按保存或点击下载，滑动调节尺寸</DialogDescription>
+                                <DialogTitle>二维码邀请</DialogTitle>
+                                <DialogDescription>长按保存或点击下载</DialogDescription>
                     </DialogHeader>
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="bg-white p-3 rounded-lg border">
-                            <QRCodeCanvas value={link || ''} size={qrSize} includeMargin ref={qrCanvasRef as any} />
+                            <div className="flex flex-col items-center gap-5">
+                                <div className="bg-white p-4 rounded-lg border">
+                                    <QRCodeCanvas value={link || ''} size={210} includeMargin ref={qrCanvasRef as any} />
                         </div>
-                        <div className="flex items-center gap-3 w-full">
-                            <span className="text-xs text-muted-foreground w-12">尺寸</span>
-                            <input type="range" min={200} max={720} step={20} value={qrSize} onChange={e => setQrSize(parseInt(e.target.value))} className="w-full" />
-                            <span className="text-xs w-12 text-right">{qrSize}px</span>
-                        </div>
-                        <div className="flex gap-3 w-full">
-                            <Button className="flex-1" variant="secondary" onClick={() => handleCopy(link)} disabled={!link}>复制链接</Button>
-                            <Button className="flex-1" onClick={handleDownload}>下载图片</Button>
+                                <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
+                                    <Button className="w-full" variant="secondary" onClick={() => handleCopy(link)} disabled={!link}>复制链接</Button>
+                                    <Button className="w-full" onClick={handleDownload}>下载图片</Button>
                         </div>
                     </div>
                 </DialogContent>
