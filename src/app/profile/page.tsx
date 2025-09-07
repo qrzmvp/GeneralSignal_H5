@@ -416,10 +416,12 @@ export default function ProfilePage() {
                                         <Image
                                             src="/support-qr.png"
                                             alt="Telegram QR Code"
-                                            width={160}
-                                            height={160}
+                                            width={200}
+                                            height={200}
+                                            priority
+                                            unoptimized
                                             data-ai-hint="qr code"
-                                            className="rounded-md object-cover"
+                                            className="rounded-md"
                                         />
                                         <div className="text-center">
                                             <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
