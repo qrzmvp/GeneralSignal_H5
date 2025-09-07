@@ -1,14 +1,21 @@
+
 "use client"
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ChevronLeft, Loader2, Copy, RefreshCcw } from 'lucide-react'
+import { ChevronLeft, Loader2, Copy, RefreshCcw, Search, ChevronDown, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
-// 移除 IntersectionObserver，改用稳定的 onScroll 触底检测
+import { Input } from '@/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface Invitee {
   email: string | null
@@ -57,6 +64,26 @@ function InviteeCard({ item }: { item: Invitee }) {
   )
 }
 
+function FilterDropdown({ label, options, onSelect }: { label: string; options: string[]; onSelect: (option: string) => void; }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="text-muted-foreground hover:text-foreground p-0 h-auto">
+          {label}
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-card">
+        {options.map((option) => (
+          <DropdownMenuItem key={option} onSelect={() => onSelect(option)}>
+            {option}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 export default function InviteRecordsPage() {
   const { user } = useAuth()
   const [items, setItems] = useState<Invitee[]>([])
@@ -72,18 +99,36 @@ export default function InviteRecordsPage() {
   const touchStartYRef = useRef(0)
   const pullingRef = useRef(false)
   const totalRef = useRef<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [timeFilter, setTimeFilter] = useState('近三个月')
 
   const loadPage = useCallback(async (targetPage: number) => {
     if (!user || inFlightRef.current) return
     inFlightRef.current = true
     setLoading(true)
+
+    // Calculate start_at based on timeFilter
+    let start_at: string | null = null;
+    const now = new Date();
+    if (timeFilter === '近三个月') {
+      now.setMonth(now.getMonth() - 3);
+      start_at = now.toISOString();
+    } else if (timeFilter === '近半年') {
+      now.setMonth(now.getMonth() - 6);
+      start_at = now.toISOString();
+    } else if (timeFilter === '近一年') {
+      now.setFullYear(now.getFullYear() - 1);
+      start_at = now.toISOString();
+    }
+    
     const res = await supabase.rpc('get_invitees_paged', {
       page: targetPage,
       page_size: PAGE_SIZE,
-      q: null,
-      start_at: null,
+      q: searchQuery || null,
+      start_at: start_at,
       end_at: null,
     })
+
     if (res.error) {
       console.error('get_invitees_paged RPC error:', res.error)
       setErrorMsg('加载失败：后台接口未就绪或无权限。请稍后重试。')
@@ -105,7 +150,7 @@ export default function InviteRecordsPage() {
     }
     setLoading(false)
     inFlightRef.current = false
-  }, [PAGE_SIZE, user])
+  }, [PAGE_SIZE, user, searchQuery, timeFilter])
 
   const resetAndLoadFirstPage = useCallback(async () => {
     if (!user) return
@@ -136,8 +181,14 @@ export default function InviteRecordsPage() {
     initialLoadDoneRef.current = true
     void resetAndLoadFirstPage()
   }, [user, resetAndLoadFirstPage])
+  
+  // Trigger reload when filters change
+  useEffect(() => {
+    if (initialLoadDoneRef.current) {
+        void resetAndLoadFirstPage();
+    }
+  }, [searchQuery, timeFilter, resetAndLoadFirstPage]);
 
-  // 去掉自动无限滚动，改为“加载更多”按钮，交互更可控
 
   return (
     <div className="bg-background min-h-screen text-foreground flex flex-col">
@@ -165,13 +216,42 @@ export default function InviteRecordsPage() {
         </div>
       </header>
 
+      <div className="flex-shrink-0 sticky top-14 z-10 bg-background/80 backdrop-blur-sm px-4 pt-4 pb-3 space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="搜索用户名或邮箱"
+            className="pl-10 pr-10 w-full bg-card border-border/60 rounded-full [&::-webkit-search-cancel-button]:hidden"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-foreground"
+              onClick={() => setSearchQuery('')}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <div className="flex justify-end">
+             <FilterDropdown
+                label={timeFilter}
+                options={['近三个月', '近半年', '近一年']}
+                onSelect={setTimeFilter}
+            />
+        </div>
+      </div>
+
       <main
         ref={scrollRef}
         className="flex-grow overflow-auto p-4 space-y-3"
         onTouchStart={(e) => {
           const el = scrollRef.current
           if (!el) return
-          // 仅在列表滚动到顶部时允许下拉
           pullingRef.current = el.scrollTop <= 0
           touchStartYRef.current = e.touches[0]?.clientY ?? 0
         }}
@@ -180,10 +260,8 @@ export default function InviteRecordsPage() {
           const currentY = e.touches[0]?.clientY ?? 0
           let dy = currentY - touchStartYRef.current
           if (dy > 0) {
-            // 阻尼效果，限制最大拉动距离
             dy = Math.min(80, dy / 2)
             setPullDistance(dy)
-            // 阻止页面整体滚动
             e.preventDefault()
           } else {
             setPullDistance(0)
@@ -198,7 +276,6 @@ export default function InviteRecordsPage() {
           if (shouldRefresh) void doRefresh()
         }}
       >
-        {/* 下拉刷新指示器占位 */}
         <div
           aria-hidden
           style={{ height: pullDistance, transition: pullDistance === 0 ? 'height 150ms ease-out' : 'none' }}
@@ -214,7 +291,7 @@ export default function InviteRecordsPage() {
             </div>
           )}
         </div>
-  {items.length === 0 && !loading ? (
+        {items.length === 0 && !loading ? (
           <div className="text-center text-muted-foreground pt-20">
             {errorMsg ? errorMsg : '暂无邀请记录'}
           </div>
@@ -241,3 +318,5 @@ export default function InviteRecordsPage() {
     </div>
   )
 }
+
+    
