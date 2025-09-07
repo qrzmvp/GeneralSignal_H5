@@ -4,20 +4,24 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { getTraderAvatar } from '@/lib/trader-avatars'
 import { ChevronDown, ChevronUp, RefreshCcw, Search } from 'lucide-react'
 
 type Row = {
   id: string
   name: string
   description: string | null
-  yield_rate: number
-  win_rate: number
-  profit_loss_ratio: number | null
-  total_signals: number
-  avatar_key: string | null
+  yield_rate: number | string
+  win_rate: number | string
+  profit_loss_ratio: number | string | null
+  total_signals: number | string
+  avatar_url: string | null
   score: number
+  tags?: string[] | null
 }
 
 type SortBy = 'score' | 'yield' | 'win'
@@ -56,7 +60,15 @@ export default function TraderListPage() {
         order_by: orderBy,
       })
       if (error) throw error
-      const items: Row[] = data || []
+      const items: Row[] = (data || []).map((r: any) => ({
+        ...r,
+        // 保底：把 numeric/text 转成 number，避免显示为 0 或空
+        yield_rate: r?.yield_rate != null ? Number(r.yield_rate) : 0,
+        win_rate: r?.win_rate != null ? Number(r.win_rate) : 0,
+        profit_loss_ratio: r?.profit_loss_ratio != null ? Number(r.profit_loss_ratio) : null,
+        total_signals: r?.total_signals != null ? Number(r.total_signals) : 0,
+        tags: Array.isArray(r?.tags) ? r.tags : [],
+      }))
       const merged = reset ? items : [...rows, ...items]
       setRows(merged)
       setHasMore(items.length >= pageSize)
@@ -99,8 +111,10 @@ export default function TraderListPage() {
     setOrderBy(prev => (prev === 'desc' ? 'asc' : 'desc'))
   }
 
-  const avatarUrl = (key: string | null) =>
-    key ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/trader-avatars/${key}` : '/avatar-default.svg'
+  // Prefer avatar_url from DB, fallback to deterministic mapping by name
+  const resolveAvatar = (row: Row) => row.avatar_url || getTraderAvatar(row.name)
+  const fmt = (n: number | string | null | undefined, suffix = '') =>
+    n == null || n === '' ? '--' : `${n}${suffix}`
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4">
@@ -130,26 +144,35 @@ export default function TraderListPage() {
       </div>
 
       <div className="space-y-3">
-        {rows.map((r) => (
-          <Card key={r.id} className="bg-card/50">
-            <CardContent className="p-4 flex gap-3">
-              <div className="relative w-14 h-14 flex-shrink-0">
-                <Image src={avatarUrl(r.avatar_key)} alt={r.name} fill className="object-cover rounded-full border"/>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-semibold truncate">{r.name}</div>
+  {rows.map((r) => (
+          <Link key={r.id} href={`/trader/${r.id}`} className="block">
+            <Card className="bg-card/50 hover:bg-card/70 transition-colors">
+              <CardContent className="p-4 flex gap-3">
+                <div className="relative w-14 h-14 flex-shrink-0">
+      <Image src={resolveAvatar(r)} alt={r.name} fill className="object-cover rounded-full border"/>
                 </div>
-                <div className="text-xs text-muted-foreground line-clamp-1">{r.description || '——'}</div>
-                <div className="mt-2 grid grid-cols-4 gap-2 text-sm">
-                  <div>收益率 <span className="text-green-500 font-semibold">{r.yield_rate}%</span></div>
-                  <div>胜率 <span className="font-semibold">{r.win_rate}%</span></div>
-                  <div>盈亏比 <span className="font-semibold">{r.profit_loss_ratio ?? '--'}</span></div>
-                  <div>累计信号 <span className="font-semibold">{r.total_signals}</span></div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-semibold truncate">{r.name}</div>
+                  </div>
+                  <div className="text-xs text-muted-foreground line-clamp-2">{r.description || '——'}</div>
+                  {!!(r.tags && r.tags.length) && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {r.tags.slice(0, 4).map((t, i) => (
+                        <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0.5">{t}</Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-2 grid grid-cols-4 gap-2 text-sm">
+                    <div>收益率 <span className="text-green-500 font-semibold">{fmt(r.yield_rate, '%')}</span></div>
+                    <div>胜率 <span className="font-semibold">{fmt(r.win_rate, '%')}</span></div>
+                    <div>盈亏比 <span className="font-semibold">{fmt(r.profit_loss_ratio as any)}</span></div>
+                    <div>累计信号 <span className="font-semibold">{fmt(r.total_signals as any)}</span></div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
         <div ref={sentinelRef} />
         <div className="text-center text-xs text-muted-foreground py-3">

@@ -69,7 +69,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
   return (
     <Card className="rounded-lg shadow-2xl border-0 bg-transparent">
       <CardHeader className="text-center space-y-2">
-        <Link href="/" className="flex items-center justify-center">
+  <Link href="/" className="flex items-center justify-center">
           <CardTitle className="text-3xl font-headline font-bold flex items-center justify-center">
             <div className="bg-primary text-primary-foreground p-1.5 rounded-md mr-3">
               <Bitcoin className="h-6 w-6" />

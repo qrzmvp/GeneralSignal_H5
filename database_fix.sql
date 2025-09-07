@@ -398,6 +398,29 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
+
+-- 17. 为 traders.name 添加唯一约束（仅当无重复时，幂等安全）
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'traders'
+  ) THEN
+    -- 若不存在命名唯一约束，且数据无重复，则添加；否则跳过
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint
+      WHERE conrelid = 'public.traders'::regclass AND conname = 'traders_name_unique'
+    ) THEN
+      IF NOT EXISTS (
+        SELECT name FROM public.traders
+        WHERE name IS NOT NULL
+        GROUP BY name HAVING COUNT(*) > 1
+      ) THEN
+        ALTER TABLE public.traders ADD CONSTRAINT traders_name_unique UNIQUE (name);
+      END IF;
+    END IF;
+  END IF;
+END $$;
 DO $$
 DECLARE
   obj_owner text;
@@ -841,10 +864,26 @@ BEGIN
       profit_loss_ratio numeric(7,2) NULL,
       total_signals integer NOT NULL DEFAULT 0,
       avatar_key text NULL,
+      avatar_url text NULL,
       tags text[] NOT NULL DEFAULT '{}'::text[],
       created_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now()),
       updated_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now())
     );
+  END IF;
+END $$;
+
+-- 向后兼容：如果已存在 traders 表，但缺少 avatar_url 字段，则添加之
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='traders'
+  ) THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema='public' AND table_name='traders' AND column_name='avatar_url'
+    ) THEN
+      ALTER TABLE public.traders ADD COLUMN avatar_url text NULL;
+    END IF;
   END IF;
 END $$;
 
@@ -923,6 +962,14 @@ DECLARE obj_owner text; BEGIN
 END $$;
 
 -- 19.7 统一分页 RPC：get_traders_paged
+-- 先删除旧版本函数（当返回列变化时，CREATE OR REPLACE 无法直接更改 OUT 参数定义）
+DO $$
+BEGIN
+  EXECUTE 'DROP FUNCTION IF EXISTS public.get_traders_paged(int,int,text,text,text)';
+EXCEPTION WHEN OTHERS THEN
+  NULL;
+END $$;
+
 CREATE OR REPLACE FUNCTION public.get_traders_paged(
   page int DEFAULT 1,
   page_size int DEFAULT 10,
@@ -939,6 +986,7 @@ RETURNS TABLE (
   profit_loss_ratio numeric,
   total_signals int,
   avatar_key text,
+  avatar_url text,
   tags text[],
   score numeric,
   updated_at timestamptz,
@@ -972,7 +1020,7 @@ BEGIN
   ranked AS (
     SELECT b.id, b.name, b.description,
            b.yield_rate, b.win_rate, b.profit_loss_ratio, b.total_signals,
-           b.avatar_key, b.tags, b.score, b.updated_at,
+           b.avatar_key, b.avatar_url, b.tags, b.score, b.updated_at,
            COUNT(*) OVER() AS total_count
     FROM base b
     ORDER BY
@@ -984,7 +1032,7 @@ BEGIN
   )
   SELECT r.id, r.name, r.description,
          r.yield_rate, r.win_rate, r.profit_loss_ratio, r.total_signals,
-         r.avatar_key, r.tags, r.score, r.updated_at, r.total_count
+         r.avatar_key, r.avatar_url, r.tags, r.score, r.updated_at, r.total_count
   FROM ranked r
   ORDER BY
     CASE WHEN v_sort='score' AND v_order='asc' THEN r.score END ASC NULLS LAST,

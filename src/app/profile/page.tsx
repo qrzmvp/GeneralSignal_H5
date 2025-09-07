@@ -528,7 +528,7 @@ export default function ProfilePage() {
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
         <div className="grid grid-cols-3 items-center h-full text-center">
             <Link 
-                href="/" 
+                href="/trader" 
                 passHref
                 className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
             >
