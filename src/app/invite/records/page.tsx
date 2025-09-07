@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ChevronLeft, Loader2, Copy } from 'lucide-react'
@@ -64,9 +64,11 @@ export default function InviteRecordsPage() {
   const [page, setPage] = useState(0)
   const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 })
   const PAGE_SIZE = 10
+  const inFlightRef = useRef(false)
 
   const loadPage = useCallback(async () => {
-    if (!user || loading || !hasMore) return
+    if (!user || loading || !hasMore || inFlightRef.current) return
+    inFlightRef.current = true
     setLoading(true)
     const offset = page * PAGE_SIZE
     let data: Invitee[] | null = null
@@ -81,6 +83,8 @@ export default function InviteRecordsPage() {
         data = (res2.data as Invitee[]) || []
       } else {
         error = res.error
+        // 分页参数不可用，立即停止进一步分页以避免死循环
+        setHasMore(false)
       }
     } else {
       data = (res.data as Invitee[]) || []
@@ -92,9 +96,10 @@ export default function InviteRecordsPage() {
     if (data) {
       setItems(prev => [...prev, ...data!])
       setPage(prev => prev + 1)
-      setHasMore(data.length === PAGE_SIZE)
+      if (data.length < PAGE_SIZE) setHasMore(false)
     }
     setLoading(false)
+    inFlightRef.current = false
   }, [PAGE_SIZE, hasMore, loading, page, user])
 
   useEffect(() => {
@@ -103,8 +108,9 @@ export default function InviteRecordsPage() {
       setItems([])
       setPage(0)
       setHasMore(true)
-      // use microtask to call loadPage after state set
-      setTimeout(() => void loadPage(), 0)
+      inFlightRef.current = false
+      // 等下一帧开始首次加载，避免与重置状态竞争
+      requestAnimationFrame(() => void loadPage())
     }
   }, [user, loadPage])
 
