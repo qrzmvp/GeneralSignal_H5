@@ -182,17 +182,21 @@ function FeedbackDialog() {
     };
 
     const handleSubmit = async () => {
+        console.debug('[feedback] click submit', { selectedTypes, descLen: description?.length, files: files?.length })
         if (!selectedTypes.length) {
+            console.debug('[feedback] validation fail: types')
             toast({ description: '请选择问题类型' });
             return;
         }
         if (!description || description.trim().length < 10) {
+            console.debug('[feedback] validation fail: desc')
             toast({ description: '问题描述至少 10 个字' });
             return;
         }
         setSubmitting(true);
         try {
             const categories = selectedTypes.map(id => categoryMap[id]).filter(Boolean) as FeedbackCategory[];
+            console.debug('[feedback] call submitFeedback')
             await submitFeedback({
                 categories,
                 description: description.trim(),
@@ -203,7 +207,9 @@ function FeedbackDialog() {
             resetForm();
             setOpen(false);
         } catch (err: any) {
-            toast({ description: String(err?.message || '提交失败，请稍后重试') });
+            console.debug('[feedback] submit error', err)
+            const msg = err?.message || err?.error_description || err?.hint || '提交失败，请稍后重试'
+            toast({ description: String(msg) });
         } finally {
             setSubmitting(false);
         }

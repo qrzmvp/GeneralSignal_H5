@@ -1,5 +1,9 @@
 import { supabase } from '@/lib/supabase'
 
+const dbg = (...args: any[]) => {
+  try { console.debug('[feedback]', ...args) } catch {}
+}
+
 export type FeedbackCategory = 'feature' | 'account' | 'ui' | 'other'
 
 export interface SubmitFeedbackParams {
@@ -37,14 +41,20 @@ async function uploadImages(userId: string, feedbackId: string, files: File[]) {
   for (const f of files.slice(0, 3)) {
     const ext = (f.name.split('.').pop() || 'png').toLowerCase()
     const key = `${userId}/${feedbackId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    dbg('upload start', { bucket, key, size: f.size, type: f.type })
     const { error } = await supabase.storage.from(bucket).upload(key, f, { upsert: false, cacheControl: '3600' })
-    if (error) throw error
+    if (error) {
+      dbg('upload error', error)
+      throw error
+    }
+    dbg('upload ok', key)
     paths.push(key)
   }
   return paths
 }
 
 export async function submitFeedback(params: SubmitFeedbackParams): Promise<SubmitFeedbackResult> {
+  dbg('submit begin', { categories: params.categories, hasImages: Boolean(params.images?.length) })
   const { data: auth } = await supabase.auth.getUser()
   const userId = auth?.user?.id
   if (!userId) throw new Error('请先登录')
@@ -53,9 +63,12 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
   if (!params.description || params.description.trim().length < 10) throw new Error('问题描述至少 10 个字')
 
   const feedbackId = genId()
+  dbg('user', userId, 'feedbackId', feedbackId)
   const imagePaths = params.images?.length ? await uploadImages(userId, feedbackId, params.images) : []
+  dbg('images done', imagePaths)
 
-    const { error } = await supabase.from('feedbacks').insert({
+  dbg('insert start')
+  const { error } = await supabase.from('feedbacks').insert({
     id: feedbackId,
     categories: params.categories,
     description: params.description.trim(),
@@ -63,7 +76,11 @@ export async function submitFeedback(params: SubmitFeedbackParams): Promise<Subm
     contact: params.contact ?? null,
       env: params.env ?? null
   } as any)
-  if (error) throw error
+  if (error) {
+    dbg('insert error', error)
+    throw error
+  }
+  dbg('insert ok', feedbackId)
 
   return { id: feedbackId }
 }
