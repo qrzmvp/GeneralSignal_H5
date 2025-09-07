@@ -655,8 +655,9 @@ END $$;
 CREATE POLICY feedbacks_select_own ON public.feedbacks
   FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
+-- 插入策略：允许 user_id 为空（交由默认值 auth.uid() 填充），或显式等于当前用户
 CREATE POLICY feedbacks_insert_own ON public.feedbacks
-  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+  FOR INSERT TO authenticated WITH CHECK (COALESCE(user_id, auth.uid()) = auth.uid());
 
 CREATE POLICY feedbacks_update_own ON public.feedbacks
   FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
