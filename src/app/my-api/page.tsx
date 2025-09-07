@@ -96,10 +96,10 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
         if (open && isEditMode) {
             setExchange(apiKey?.exchange || 'okx');
             setName(apiKey?.name || '');
-            // 出于安全，编辑态不回显明文 key/secret/passphrase
-            setKey('');
-            setSecret('');
-            setPassphrase('');
+            // 编辑态：默认以密文展示，但值预填（小眼睛可切换为明文）
+            setKey(apiKey?.api_key || '');
+            setSecret((apiKey as any)?.api_secret || '');
+            setPassphrase((apiKey as any)?.passphrase || '');
         }
         if (!open) {
              // Reset form on close
@@ -122,9 +122,18 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                         toast({ title: '未登录', description: '请先登录后再操作', variant: 'destructive' as any })
                         return
                     }
+                    if (!key.trim() || !secret.trim()) {
+                        toast({ title: '校验失败', description: '请填写 API Key 和 API Secret', variant: 'destructive' as any })
+                        return
+                    }
+                    if (exchange === 'okx' && !passphrase.trim()) {
+                        toast({ title: '校验失败', description: 'OKX 需要填写 Passphrase', variant: 'destructive' as any })
+                        return
+                    }
+                    const normalizedPass = passphrase.trim() === '' ? null : passphrase
                     if (isEditMode && apiKey) {
                         // 编辑模式强制三项必填并全部更新
-                        const update: any = { name, exchange, api_key: key, api_secret: secret, passphrase }
+                        const update: any = { name, exchange, api_key: key, api_secret: secret, passphrase: normalizedPass }
                         const { error } = await supabase.from('api_keys').update(update).eq('id', apiKey.id)
                         if (error) throw error
                     } else {
@@ -134,7 +143,7 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                             exchange,
                             api_key: key,
                             api_secret: secret,
-                            passphrase: passphrase,
+                            passphrase: normalizedPass,
                             status: 'running' as const,
                         }
                         const { error } = await supabase.from('api_keys').insert(insert as any)
@@ -202,10 +211,10 @@ function ApiDialog({ apiKey, onSaved, children }: { apiKey?: ApiKeyPublic | null
                                 </button>
                             </div>
                         </div>
-                        <div className="grid gap-2">
+            <div className="grid gap-2">
                             <Label htmlFor="passphrase">Passphrase</Label>
                             <div className="relative">
-                                <Input id="passphrase" type={showPass ? 'text' : 'password'} placeholder="请输入Passphrase" required value={passphrase} onChange={e => setPassphrase(e.target.value)} />
+                <Input id="passphrase" type={showPass ? 'text' : 'password'} placeholder="请输入Passphrase（OKX 必填，Binance 可选）" required={exchange === 'okx'} value={passphrase} onChange={e => setPassphrase(e.target.value)} />
                                 <button type="button" aria-label={showPass ? '隐藏' : '显示'} onClick={() => setShowPass(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
                                     {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
