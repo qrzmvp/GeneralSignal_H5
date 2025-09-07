@@ -91,6 +91,9 @@ $$ LANGUAGE plpgsql;
 -- 5.1 创建触发器函数来自动创建用户资料
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_ref_code text;
+  v_inviter uuid;
 BEGIN
   INSERT INTO public.profiles (id, email, username, invitation_code)
   VALUES (
@@ -99,6 +102,18 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
     COALESCE(NULLIF(NEW.raw_user_meta_data->>'invitation_code', ''), public.generate_invitation_code())
   );
+
+  -- 绑定邀请关系：使用 referrer_code 指向邀请人的邀请码
+  v_ref_code := NULLIF(NEW.raw_user_meta_data->>'referrer_code', '');
+  IF v_ref_code IS NOT NULL THEN
+    SELECT p.id INTO v_inviter FROM public.profiles p WHERE p.invitation_code = v_ref_code LIMIT 1;
+    IF v_inviter IS NOT NULL THEN
+      INSERT INTO public.referrals(inviter_id, invitee_id)
+      VALUES (v_inviter, NEW.id)
+      ON CONFLICT (invitee_id) DO NOTHING;
+    END IF;
+  END IF;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -211,6 +226,39 @@ BEGIN
     END IF;
   END IF;
 END $$;
+
+-- 14. 邀请绑定表（幂等）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'referrals'
+  ) THEN
+    CREATE TABLE public.referrals (
+      inviter_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+      invitee_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+      created_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now())
+    );
+    CREATE INDEX IF NOT EXISTS referrals_inviter_id_idx ON public.referrals(inviter_id);
+  END IF;
+END $$;
+
+-- 15. 校验邀请码 RPC（安全定义者）
+CREATE OR REPLACE FUNCTION public.validate_invitation_code(code text)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+  v_inviter uuid;
+BEGIN
+  IF code IS NULL OR length(code) = 0 THEN
+    RETURN NULL;
+  END IF;
+  SELECT id INTO v_inviter FROM public.profiles WHERE invitation_code = code LIMIT 1;
+  RETURN v_inviter;
+END;
+$$;
 
 -- 11.2 确保 storage.objects 开启 RLS（仅表拥有者/管理员可执行）
 DO $$

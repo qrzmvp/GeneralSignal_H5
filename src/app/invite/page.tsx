@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, Copy, Share2 } from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export default function InvitePage() {
     const [showToast, setShowToast] = useState(false);
-    const invitationCode = 'INVT8888';
-    const invitationLink = `https://signal-auth.com/register?ref=${invitationCode}`;
+    const { user } = useAuth();
+    const [code, setCode] = useState<string>('');
+    const [link, setLink] = useState<string>('');
+
+    useEffect(() => {
+        const load = async () => {
+            if (!user) return;
+            let invite = '';
+            // 先用 auth 元数据尝试
+            invite = (user as any)?.user_metadata?.invitation_code || '';
+            // 再查 profiles 表
+            if (!invite) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('invitation_code')
+                    .eq('id', user.id)
+                    .maybeSingle();
+                invite = data?.invitation_code || '';
+            }
+            setCode(invite);
+            const base = typeof window !== 'undefined' ? window.location.origin : 'https://signal-auth.com';
+            setLink(`${base}/login?ref=${invite}`);
+        };
+        void load();
+    }, [user]);
 
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -59,8 +84,8 @@ export default function InvitePage() {
                             <div className="space-y-2 text-left">
                                 <Label htmlFor="invite-code">我的邀请码</Label>
                                 <div className="flex items-center gap-2">
-                                    <Input id="invite-code" value={invitationCode} readOnly className="bg-muted/50 font-mono text-base" />
-                                    <Button size="icon" variant="secondary" onClick={() => handleCopy(invitationCode)}>
+                                    <Input id="invite-code" value={code || '——'} readOnly className="bg-muted/50 font-mono text-base" />
+                                    <Button size="icon" variant="secondary" onClick={() => handleCopy(code)} disabled={!code}>
                                         <Copy className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -68,8 +93,8 @@ export default function InvitePage() {
                              <div className="space-y-2 text-left">
                                 <Label htmlFor="invite-link">我的邀请链接</Label>
                                 <div className="flex items-center gap-2">
-                                    <Input id="invite-link" value={invitationLink} readOnly className="bg-muted/50 text-base" />
-                                     <Button size="icon" variant="secondary" onClick={() => handleCopy(invitationLink)}>
+                                    <Input id="invite-link" value={link || ''} readOnly className="bg-muted/50 text-base" />
+                                     <Button size="icon" variant="secondary" onClick={() => handleCopy(link)} disabled={!link}>
                                         <Copy className="h-4 w-4" />
                                     </Button>
                                 </div>
