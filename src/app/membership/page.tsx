@@ -1,11 +1,20 @@
 
 'use client'
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { ChevronLeft, ShieldCheck, Zap, Bot, BarChart4, TrendingUp, Gem, Check, X, Wallet, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -13,6 +22,8 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useSwipeable } from 'react-swipeable';
 import { SimpleToast } from '../components/SimpleToast';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 interface Plan {
   id: string;
@@ -20,19 +31,31 @@ interface Plan {
   price: string;
   originalPrice: string;
   description: string;
+  duration_months: number;
+  price_usdt: number;
+  original_price_usdt: number;
 }
 
-const manualPlans: Plan[] = [
-  { id: 'manual-yearly', duration: '1年', price: '119.9U', originalPrice: '140U', description: '长期投资者的选择' },
-  { id: 'manual-quarterly', duration: '3个月', price: '29.9U', originalPrice: '35U', description: '最具性价比' },
-  { id: 'manual-monthly', duration: '1个月', price: '9.9U', originalPrice: '12U', description: '适合短期体验' },
-];
+interface MembershipPlan {
+  id: string;
+  plan_type: 'manual' | 'auto';
+  duration_months: number;
+  price_usdt: number;
+  original_price_usdt: number;
+  title: string;
+  description: string;
+  features: string[];
+  is_active: boolean;
+  sort_order: number;
+}
 
-const autoPlans: Plan[] = [
-  { id: 'auto-yearly', duration: '1年', price: '240U', originalPrice: '280U', description: '一劳永逸，全年无忧' },
-  { id: 'auto-quarterly', duration: '3个月', price: '60U', originalPrice: '70U', description: '省心省力的选择' },
-  { id: 'auto-monthly', duration: '1个月', price: '20U', originalPrice: '25U', description: '灵活的自动跟单' },
-];
+interface PaymentConfig {
+  id: string;
+  payment_method: 'TRC20' | 'ERC20';
+  wallet_address: string;
+  network_name?: string;
+  is_active: boolean;
+}
 
 const comparisonData = [
   { feature: '跟单方式', manual: '手动', auto: '自动' },
@@ -44,21 +67,25 @@ const comparisonData = [
   { feature: '社区专属活动', manual: true, auto: true },
 ];
 
-const paymentMethods = {
-    'trc20': 'TXYZ...abcd...efgh',
-    'erc20': '0x12...cdef...3456'
-};
+// 支付方式数据将从数据库动态获取
 
 function PaymentSection() {
-    const [selectedMethod, setSelectedMethod] = useState('trc20');
+    const [selectedMethod, setSelectedMethod] = useState('TRC20');
     const [showToast, setShowToast] = useState(false);
+    
+    // 使用硬编码数据，避免复杂的异步逻辑
+    const paymentConfigs = [
+        { id: '1', payment_method: 'TRC20' as const, wallet_address: 'TXYZ...abcd...efgh', network_name: 'TRON', is_active: true },
+        { id: '2', payment_method: 'ERC20' as const, wallet_address: '0x12...cdef...3456', network_name: 'Ethereum', is_active: true }
+    ];
 
     const handleCopy = (address: string) => {
         navigator.clipboard.writeText(address);
         setShowToast(true);
     };
     
-    const currentAddress = paymentMethods[selectedMethod as keyof typeof paymentMethods];
+    const currentConfig = paymentConfigs.find(config => config.payment_method === selectedMethod);
+    const currentAddress = currentConfig?.wallet_address || '';
 
     return (
         <>
@@ -71,28 +98,25 @@ function PaymentSection() {
             <CardContent className="p-4 pt-0">
                 <RadioGroup value={selectedMethod} onValueChange={setSelectedMethod}>
                     <div className="space-y-3">
-                        <Label
-                            htmlFor="trc20"
-                            className={cn(
-                                'flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-all',
-                                'bg-muted/30 border-transparent',
-                                {'bg-primary/10 border-primary': selectedMethod === 'trc20'}
-                            )}
-                        >
-                            <div className="font-semibold">TRC20</div>
-                            <RadioGroupItem value="trc20" id="trc20" />
-                        </Label>
-                         <Label
-                            htmlFor="erc20"
-                            className={cn(
-                                'flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-all',
-                                'bg-muted/30 border-transparent',
-                                {'bg-primary/10 border-primary': selectedMethod === 'erc20'}
-                            )}
-                        >
-                            <div className="font-semibold">ERC20</div>
-                            <RadioGroupItem value="erc20" id="erc20" />
-                        </Label>
+                        {paymentConfigs.map((config) => (
+                            <Label
+                                key={config.id}
+                                htmlFor={config.payment_method}
+                                className={cn(
+                                    'flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-all',
+                                    'bg-muted/30 border-transparent',
+                                    {'bg-primary/10 border-primary': selectedMethod === config.payment_method}
+                                )}
+                            >
+                                <div className="flex flex-col">
+                                    <div className="font-semibold">{config.payment_method}</div>
+                                    {config.network_name && (
+                                        <div className="text-xs text-muted-foreground">{config.network_name}</div>
+                                    )}
+                                </div>
+                                <RadioGroupItem value={config.payment_method} id={config.payment_method} />
+                            </Label>
+                        ))}
                     </div>
                 </RadioGroup>
                 
@@ -142,9 +166,11 @@ function PlanSelector({ plans, selectedPlan, setSelectedPlan }: { plans: Plan[],
             </RadioGroup>
             <div className="space-y-4">
                 <PaymentSection />
-                <Button className="w-full h-12 text-base font-bold">
-                    立即开通
-                </Button>
+                <ContactServiceDialog>
+                    <Button className="w-full h-12 text-base font-bold">
+                        立即开通
+                    </Button>
+                </ContactServiceDialog>
             </div>
         </div>
     );
@@ -185,13 +211,140 @@ function ComparisonSection() {
     );
 }
 
+// 联系客服弹窗组件
+function ContactServiceDialog({ children }: { children: React.ReactNode }) {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                {children}
+            </DialogTrigger>
+            <DialogContent className="max-w-[90vw] sm:max-w-xs rounded-lg">
+                <DialogHeader>
+                    <DialogTitle>联系客服</DialogTitle>
+                    <DialogDescription>
+                        通过Telegram联系我们的客服团队。
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                        <Image
+                            src="/support-qr.png"
+                            alt="Telegram QR Code"
+                            width={200}
+                            height={200}
+                            priority
+                            unoptimized
+                            data-ai-hint="qr code"
+                            className="rounded-md"
+                        />
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
+                            <p className="font-mono text-lg text-primary mt-2">@Michael_Qin</p>
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 const TABS = ['auto', 'manual'];
 
-export default function MembershipPage() {
+function MembershipPageContent() {
     const router = useRouter();
     const [selectedTab, setSelectedTab] = useState('auto');
-    const [manualSelectedPlan, setManualSelectedPlan] = useState('manual-yearly');
-    const [autoSelectedPlan, setAutoSelectedPlan] = useState('auto-yearly');
+    const [manualSelectedPlan, setManualSelectedPlan] = useState('');
+    const [autoSelectedPlan, setAutoSelectedPlan] = useState('');
+    const [manualPlans, setManualPlans] = useState<Plan[]>([]);
+    const [autoPlans, setAutoPlans] = useState<Plan[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    // const { toast } = useToast(); // 暂时注释掉toast
+
+    useEffect(() => {
+        fetchMembershipPlans();
+    }, []);
+
+    const fetchMembershipPlans = async () => {
+        console.log('开始获取会员套餐数据...');
+        
+        // 设置5秒超时
+        const timeoutId = setTimeout(() => {
+            console.error('请求超时');
+            setError('请求超时，请检查网络连接');
+            setLoading(false);
+        }, 5000);
+        
+        try {
+            const { data, error } = await supabase
+                .from('membership_plans')
+                .select('*')
+                .eq('is_active', true)
+                .order('sort_order');
+
+            clearTimeout(timeoutId);
+            console.log('Supabase响应:', { data, error });
+
+            if (error) {
+                console.error('Supabase查询错误:', error);
+                throw error;
+            }
+
+            const plans = data || [];
+            console.log('获取到的套餐数据:', plans);
+            
+            if (plans.length === 0) {
+                setError('暂无套餐数据，请联系管理员');
+                return;
+            }
+            
+            // 转换数据格式
+            const convertPlan = (plan: MembershipPlan): Plan => ({
+                id: plan.id,
+                duration: getDurationText(plan.duration_months),
+                price: `${plan.price_usdt}U`,
+                originalPrice: `${plan.original_price_usdt}U`,
+                description: plan.description,
+                duration_months: plan.duration_months,
+                price_usdt: plan.price_usdt,
+                original_price_usdt: plan.original_price_usdt
+            });
+
+            const manualPlansData = plans
+                .filter(plan => plan.plan_type === 'manual')
+                .map(convertPlan);
+            
+            const autoPlansData = plans
+                .filter(plan => plan.plan_type === 'auto')
+                .map(convertPlan);
+
+            console.log('转换后的数据:', { manualPlansData, autoPlansData });
+
+            setManualPlans(manualPlansData);
+            setAutoPlans(autoPlansData);
+
+            // 设置默认选中的套餐
+            if (manualPlansData.length > 0) {
+                setManualSelectedPlan(manualPlansData[0].id);
+            }
+            if (autoPlansData.length > 0) {
+                setAutoSelectedPlan(autoPlansData[0].id);
+            }
+        } catch (error: any) {
+            clearTimeout(timeoutId);
+            console.error('获取会员套餐失败:', error);
+            setError(`获取会员套餐失败: ${error.message || '未知错误'}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getDurationText = (months: number): string => {
+        if (months >= 12) {
+            return `${months / 12}年`;
+        }
+        return `${months}个月`;
+    };
 
     const swipeHandlers = useSwipeable({
         onSwipedLeft: () => {
@@ -230,24 +383,110 @@ export default function MembershipPage() {
                         <TabsTrigger value="manual">手动跟单</TabsTrigger>
                     </TabsList>
                     <div {...swipeHandlers}>
-                        <TabsContent value="auto" className="mt-6">
-                            <PlanSelector
-                                plans={autoPlans}
-                                selectedPlan={autoSelectedPlan}
-                                setSelectedPlan={setAutoSelectedPlan}
-                            />
-                        </TabsContent>
-                        <TabsContent value="manual" className="mt-6">
-                            <PlanSelector
-                                plans={manualPlans}
-                                selectedPlan={manualSelectedPlan}
-                                setSelectedPlan={setManualSelectedPlan}
-                            />
-                        </TabsContent>
+                        {loading ? (
+                            <div className="flex justify-center items-center py-20">
+                                <div className="text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                                    <p className="text-muted-foreground">加载套餐信息...</p>
+                                </div>
+                            </div>
+                        ) : error ? (
+                            <div className="flex justify-center items-center py-20">
+                                <div className="text-center">
+                                    <p className="text-red-500 mb-4">{error}</p>
+                                    <Button onClick={() => { setError(null); setLoading(true); fetchMembershipPlans(); }}>重试</Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <TabsContent value="auto" className="mt-6">
+                                    {autoPlans.length > 0 ? (
+                                        <PlanSelector
+                                            plans={autoPlans}
+                                            selectedPlan={autoSelectedPlan}
+                                            setSelectedPlan={setAutoSelectedPlan}
+                                        />
+                                    ) : (
+                                        <div className="text-center py-10 text-muted-foreground">
+                                            暂无自动跟单套餐
+                                        </div>
+                                    )}
+                                </TabsContent>
+                                <TabsContent value="manual" className="mt-6">
+                                    {manualPlans.length > 0 ? (
+                                        <PlanSelector
+                                            plans={manualPlans}
+                                            selectedPlan={manualSelectedPlan}
+                                            setSelectedPlan={setManualSelectedPlan}
+                                        />
+                                    ) : (
+                                        <div className="text-center py-10 text-muted-foreground">
+                                            暂无手动跟单套餐
+                                        </div>
+                                    )}
+                                </TabsContent>
+                            </>
+                        )}
                     </div>
                 </Tabs>
                 <ComparisonSection />
             </main>
         </div>
     )
+}
+
+// 错误边界组件
+class ErrorBoundary extends React.Component<
+    { children: React.ReactNode },
+    { hasError: boolean; error?: Error }
+> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(error: Error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: any) {
+        console.error('会员中心页面错误:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="bg-background min-h-screen text-foreground flex flex-col">
+                    <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 px-4 backdrop-blur-sm">
+                        <Link href="/profile" passHref>
+                            <Button variant="ghost" size="icon">
+                                <ChevronLeft className="h-6 w-6" />
+                            </Button>
+                        </Link>
+                        <h1 className="text-lg font-bold">会员中心</h1>
+                        <div className="w-10"></div>
+                    </header>
+                    <main className="flex-grow overflow-auto p-4 space-y-8">
+                        <div className="flex justify-center items-center py-20">
+                            <div className="text-center">
+                                <p className="text-red-500 mb-4">页面加载出错</p>
+                                <p className="text-muted-foreground mb-4">请刷新页面重试</p>
+                                <Button onClick={() => window.location.reload()}>刷新页面</Button>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+export default function MembershipPage() {
+    return (
+        <ErrorBoundary>
+            <MembershipPageContent />
+        </ErrorBoundary>
+    );
 }

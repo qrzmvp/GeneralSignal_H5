@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试会员中心链接</title>
+</head>
+<body>
+    <h1>测试页面</h1>
+    <p>点击下面的链接测试会员中心页面：</p>
+    <a href="http://localhost:9002/membership" target="_blank">直接访问会员中心</a>
+    <br><br>
+    <a href="http://localhost:9002/profile" target="_blank">访问个人中心</a>
+    
+    <script>
+        // 测试JavaScript路由跳转
+        function testNavigation() {
+            window.location.href = 'http://localhost:9002/membership';
+        }
+    </script>
+    
+    <br><br>
+    <button onclick="testNavigation()">JavaScript跳转到会员中心</button>
+</body>
+</html>
