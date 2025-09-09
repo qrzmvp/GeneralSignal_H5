@@ -749,7 +749,7 @@ export default function TraderDetailPage() {
         <span className="text-xs font-medium">将军榜</span>
       </Link>
       <div className="relative flex flex-col items-center justify-center h-full">
-         <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
+         <Link href="/my-account" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
           <ArrowRightLeft className="w-6 h-6" />
         </Link>
         <span className="text-xs font-medium pt-8 text-muted-foreground">交易</span>

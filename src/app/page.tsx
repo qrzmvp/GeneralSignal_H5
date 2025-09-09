@@ -411,16 +411,19 @@ export default function LeaderboardPage() {
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
                 <div className="grid grid-cols-3 items-center h-full text-center">
-                        <Link 
-                                href="/" 
-                                passHref
-                                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-primary"
+                        <button 
+                                onClick={() => {
+                                        if (typeof window !== 'undefined') {
+                                                window.location.assign('/')
+                                        }
+                                }}
+                                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-primary cursor-pointer"
                         >
                                 <BarChart className="h-6 w-6" />
                                 <span className="text-xs font-medium">将军榜</span>
-                        </Link>
+                        </button>
                         <div className="relative flex flex-col items-center justify-center h-full">
-                                 <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
+                                 <Link href="/my-account" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
                                         <ArrowRightLeft className="w-6 h-6" />
                                 </Link>
                                 <span className="text-xs font-medium pt-8 text-muted-foreground">交易</span>
