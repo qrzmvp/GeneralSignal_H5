@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 23% 22%;
+    --foreground: 210 17% 93%;
+    --card: 223 23% 14%;
+    --card-foreground: 210 17% 93%;
+    --popover: 223 23% 14%;
+    --popover-foreground: 210 17% 93%;
+    --primary: 210 17% 93%;
+    --primary-foreground: 223 23% 14%;
+    --secondary: 222 23% 30%;
+    --secondary-foreground: 210 17% 93%;
+    --muted: 222 23% 30%;
+    --muted-foreground: 210 17% 65%;
+    --accent: 222 23% 30%;
+    --accent-foreground: 210 17% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 23% 30%;
+    --input: 222 23% 30%;
+    --ring: 210 17% 93%;
+    --radius: 0.625rem;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 223 23% 14%;
+    --sidebar-foreground: 210 17% 93%;
+    --sidebar-primary: 210 17% 93%;
+    --sidebar-primary-foreground: 223 23% 14%;
+    --sidebar-accent: 222 23% 30%;
+    --sidebar-accent-foreground: 210 17% 98%;
+    --sidebar-border: 222 23% 30%;
+    --sidebar-ring: 210 17% 93%;
+  }
+
+  .dark {
+    --background: 222 23% 22%;
+    --foreground: 210 17% 93%;
+    --card: 223 23% 14%;
+    --card-foreground: 210 17% 93%;
+    --popover: 223 23% 14%;
+    --popover-foreground: 210 17% 93%;
+    --primary: 210 17% 93%;
+    --primary-foreground: 223 23% 14%;
+    --secondary: 222 23% 30%;
+    --secondary-foreground: 210 17% 93%;
+    --muted: 222 23% 30%;
+    --muted-foreground: 210 17% 65%;
+    --accent: 222 23% 30%;
+    --accent-foreground: 210 17% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 23% 30%;
+    --input: 222 23% 30%;
+    --ring: 210 17% 93%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 223 23% 14%;
+    --sidebar-foreground: 210 17% 93%;
+    --sidebar-primary: 210 17% 93%;
+    --sidebar-primary-foreground: 223 23% 14%;
+    --sidebar-accent: 222 23% 30%;
+    --sidebar-accent-foreground: 210 17% 98%;
+    --sidebar-border: 222 23% 30%;
+    --sidebar-ring: 210 17% 93%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-25px) translateX(15px) scale(1.05);
+    opacity: 0.1;
+  }
+  75% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+}
+
+.floating-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.floating-text, .floating-candlestick {
+  position: absolute;
+  animation: float ease-in-out infinite;
+  opacity: 0;
+}
+
+.floating-text {
+  color: hsl(var(--foreground));
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 15px hsl(var(--foreground) / 0.6);
+  white-space: nowrap;
+}
+
+@keyframes signal-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(74, 222, 128, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
+.signal-light {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #4ade80; /* green-400 */
+}
+
+.pulsing-light {
+  animation: signal-pulse 2s infinite;
+}
+
+
+/* Custom styles for reference image */
+@layer components {
+    .tabs-trigger-style {
+        @apply relative pb-2 text-muted-foreground transition-colors data-[state=active]:text-primary;
+    }
+    .tabs-trigger-style::after {
+        content: '';
+        @apply absolute bottom-0 left-0 right-0 h-0.5 bg-transparent transition-colors;
+    }
+    .tabs-trigger-style[data-state=active]::after {
+        @apply bg-primary;
+    }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
