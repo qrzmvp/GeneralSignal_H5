@@ -737,8 +737,8 @@ export default function TraderDetailPage() {
     )}
     </main>
       
-    {/* Bottom Navigation */}
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
+    {/* Bottom Navigation - Hidden on trader detail page */}
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0 hidden">
     <div className="grid grid-cols-3 items-center h-full text-center">
       <Link
         href="/"

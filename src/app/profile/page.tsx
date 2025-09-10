@@ -482,7 +482,21 @@ export default function ProfilePage() {
                                         />
                                         <div className="text-center">
                                             <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
-                                            <p className="font-mono text-lg text-primary mt-2">@Michael_Qin</p>
+                                            <p 
+                                                className="font-mono text-lg text-primary mt-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded transition-colors"
+                                                onClick={async () => {
+                                                    try {
+                                                        await navigator.clipboard.writeText('@Michael_Qin');
+                                                        // 可以添加一个简单的提示
+                                                        // toast 提示已复制
+                                                    } catch (err) {
+                                                        console.log('复制失败:', err);
+                                                    }
+                                                }}
+                                                title="点击复制"
+                                            >
+                                                @Michael_Qin
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
