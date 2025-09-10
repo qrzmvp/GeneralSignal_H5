@@ -54,7 +54,7 @@ function InviteeCard({ item }: { item: Invitee }) {
   return (
     <Card className="bg-card/50 border-border/30 overflow-hidden">
       <CardContent className="p-4">
-        <div className="border-t border-border/30 pt-1">
+        <div>
           <InfoRow label="用户名" value={item.username || '—'} copyValue={item.username || undefined} />
           <InfoRow label="邮箱" value={item.email || '—'} copyValue={item.email || undefined} />
           <InfoRow label="邀请时间" value={dt} />

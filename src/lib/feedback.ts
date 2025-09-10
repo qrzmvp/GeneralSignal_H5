@@ -42,15 +42,23 @@ async function uploadImages(userId: string, feedbackId: string, files: File[]) {
     const ext = (f.name.split('.').pop() || 'png').toLowerCase()
     const key = `${userId}/${feedbackId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
     dbg('upload start', { bucket, key, size: f.size, type: f.type })
+    
     const { error } = await supabase.storage.from(bucket).upload(key, f, {
       upsert: true,
       cacheControl: '3600',
-      contentType: (f as any).type || 'image/png',
+      contentType: f.type || 'image/png',
     })
+    
     if (error) {
-      dbg('upload error', { key, code: (error as any)?.statusCode || (error as any)?.code, message: error.message })
+      dbg('upload error', { 
+        key, 
+        code: (error as any)?.statusCode || (error as any)?.code, 
+        message: error.message,
+        status: (error as any)?.status
+      })
       throw error
     }
+    
     dbg('upload ok', key)
     paths.push(key)
   }
