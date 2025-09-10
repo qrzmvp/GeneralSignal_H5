@@ -9,8 +9,8 @@ export interface Trader {
   totalOrders: number
   chartData: { value: number }[]
   tags?: string[]
-  followers?: number
-  days?: number
+  followers: number
+  days: number
 }
 
 export const allTraders: Trader[] = [

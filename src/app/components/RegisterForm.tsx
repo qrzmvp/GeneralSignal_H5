@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
 
 interface RegisterFormProps {
     onSwitchToLogin: () => void;
@@ -138,6 +139,22 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess, invitationCod
     setLoading(true);
 
     try {
+      // 0. 若填了邀请码，先校验有效性（存在即有效）
+      let inviterId: string | null = null;
+      if (code && code.trim().length > 0) {
+        const { data, error } = await supabase.rpc('validate_invitation_code', { code });
+        if (error) {
+          toast({ title: '注册失败', description: '邀请码校验失败，请稍后重试', variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+        if (!data) {
+          toast({ title: '注册失败', description: '邀请码无效，请检查后重试', variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+        inviterId = data as string;
+      }
   // 6. 注册前先精确检查邮箱是否已存在（RPC）
   const check = await checkEmailExists(email)
       if (check?.error) {
@@ -163,7 +180,7 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess, invitationCod
       }
 
   // 7. 未命中重复邮箱，执行注册（用户名允许重复）
-      const result = await signUp(email, password, username, code || undefined);
+  const result = await signUp(email, password, username, code || undefined);
       
       if (result.error) {
         let errorMessage = "注册失败，请重试";
@@ -185,7 +202,7 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess, invitationCod
           variant: "destructive",
         });
       } else {
-        // 注册成功
+  // 注册成功
         let successMessage = "注册成功！";
         
         if (result.needsEmailConfirmation) {
@@ -201,6 +218,14 @@ export function RegisterForm({ onSwitchToLogin, onRegisterSuccess, invitationCod
         if (result.needsEmailConfirmation) {
           setShowResendOption(true);
         } else {
+          // 将 referrer_code 一并保存到用户元数据（便于后端触发器绑定）
+          if (inviterId) {
+            try {
+              await supabase.auth.updateUser({
+                data: { referrer_code: code }
+              });
+            } catch {}
+          }
           // 清空表单
           setEmail("");
           setPassword("");

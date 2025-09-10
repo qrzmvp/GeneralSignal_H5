@@ -1,388 +1,231 @@
-'use client'
+"use client"
 
-import { useState, useRef } from 'react';
-import { useRouter }from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-  DialogFooter,
-  DialogClose
-} from "@/components/ui/dialog";
-import { 
-    ArrowRightLeft,
-    BarChart, 
-    ChevronRight, 
-    Copy, 
-    Crown, 
-    Edit, 
-    FileQuestion, 
-    Headset, 
-    ImagePlus, 
-    KeyRound, 
-    LogOut,
-    Mail, 
-    ReceiptText, 
-    Settings, 
-    User, 
-    Wallet,
-    X,
-    Users,
-    Ticket
-} from 'lucide-react';
-import { SimpleToast } from '../components/SimpleToast';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useEffect, useRef, useState } from "react"
+import ReactCrop, { PercentCrop } from "react-image-crop"
+import "react-image-crop/dist/ReactCrop.css"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { supabase } from "@/lib/supabase"
 
-
-function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
-    const isClickable = !!onClick || !!href;
-    const Component = href ? Link : (isClickable ? 'button' : 'div');
-    
-    const props = href ? { href } : { onClick };
-
-    return (
-        <Component {...props} className={`flex items-center p-4 w-full text-left ${isClickable ? 'hover:bg-accent/50 transition-colors' : ''}`}>
-            {icon}
-            <span className="ml-4 text-sm font-medium">{label}</span>
-            <div className="ml-auto flex items-center gap-2">
-                {value && <span className="text-sm text-muted-foreground">{value}</span>}
-                {action}
-            </div>
-        </Component>
-    )
+type Props = {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    userId: string
+    currentUrl?: string | null
+    onUploaded: (url: string) => void
 }
 
-const feedbackTypes = [
-    { id: 'feature-suggestion', label: '功能建议' },
-    { id: 'ui-issue', label: '界面问题' },
-    { id: 'account-issue', label: '账号问题' },
-    { id: 'other', label: '其他问题' },
-];
+export default function AvatarEditor({ open, onOpenChange, userId, currentUrl, onUploaded }: Props) {
+    const [fileUrl, setFileUrl] = useState<string | null>(null)
+    const [imgEl, setImgEl] = useState<HTMLImageElement | null>(null)
+    const [crop, setCrop] = useState<PercentCrop>({ unit: "%", width: 70, height: 70, x: 15, y: 15 })
+    const [scale, setScale] = useState(1)
+    const [saving, setSaving] = useState(false)
+    const cameraInputRef = useRef<HTMLInputElement | null>(null)
+    const galleryInputRef = useRef<HTMLInputElement | null>(null)
+    const previewRef = useRef<HTMLCanvasElement | null>(null)
 
-function FeedbackDialog() {
-    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-    const [description, setDescription] = useState('');
-    const [images, setImages] = useState<string[]>([]);
-    const [showSuccessToast, setShowSuccessToast] = useState(false);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const files = Array.from(e.target.files);
-            const newImages = files.map(file => URL.createObjectURL(file));
-            setImages(prev => [...prev, ...newImages].slice(0, 3));
+    useEffect(() => {
+        if (!open) {
+            // reset state when closed
+        if (fileUrl) URL.revokeObjectURL(fileUrl)
+        setFileUrl(null)
+            setImgEl(null)
+            setCrop({ unit: "%", width: 70, height: 70, x: 15, y: 15 })
+            setScale(1)
         }
-    };
+    }, [open])
 
-    const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
-    };
+    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0]
+        if (!f) return
+        if (f.size > 5 * 1024 * 1024) {
+            alert("图片大小需小于 5MB")
+            return
+        }
+        const url = URL.createObjectURL(f)
+        setFileUrl(url)
+    }
 
-    const handleTypeChange = (typeId: string) => {
-        setSelectedTypes(prev =>
-            prev.includes(typeId)
-                ? prev.filter(id => id !== typeId)
-                : [...prev, typeId]
-        );
-    };
-    
-    const handleSubmit = () => {
-        console.log({
-            types: selectedTypes,
-            description,
-            images,
-        });
-        
-        setSelectedTypes([]);
-        setDescription('');
-        setImages([]);
+    const openCamera = () => cameraInputRef.current?.click()
+    const openGallery = () => galleryInputRef.current?.click()
 
-        setShowSuccessToast(true);
-    };
+    // Draw the cropped image to a canvas and return a blob
+    const getCroppedBlob = async (): Promise<Blob | null> => {
+    if (!imgEl || !crop.width || !crop.height) return null
+    const image = imgEl
+    const canvas = document.createElement("canvas")
+
+    const naturalW = image.naturalWidth
+    const naturalH = image.naturalHeight
+
+    // convert percent crop to pixel coords on the natural image
+    const xPx = (crop.x || 0) * naturalW / 100
+    const yPx = (crop.y || 0) * naturalH / 100
+    const wPx = (crop.width || 0) * naturalW / 100
+    const hPx = (crop.height || 0) * naturalH / 100
+
+    // Apply zoom: reduce source rect size around center when scale > 1
+    const centerX = xPx + wPx / 2
+    const centerY = yPx + hPx / 2
+    const srcW = Math.max(1, wPx / Math.max(1, scale))
+    const srcH = Math.max(1, hPx / Math.max(1, scale))
+    let srcX = centerX - srcW / 2
+    let srcY = centerY - srcH / 2
+    // clamp to image bounds
+    srcX = Math.max(0, Math.min(srcX, naturalW - srcW))
+    srcY = Math.max(0, Math.min(srcY, naturalH - srcH))
+
+    // Output to a square canvas (avatar)
+    canvas.width = 400
+    canvas.height = 400
+        const ctx = canvas.getContext("2d")!
+        ctx.imageSmoothingQuality = "high"
+
+        ctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height)
+
+        return await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9))
+    }
+
+    // live round preview (small)
+    useEffect(() => {
+        if (!imgEl || !fileUrl || !previewRef.current || !crop.width || !crop.height) return
+        const canvas = previewRef.current
+        const image = imgEl
+        const naturalW = image.naturalWidth
+        const naturalH = image.naturalHeight
+        const xPx = (crop.x || 0) * naturalW / 100
+        const yPx = (crop.y || 0) * naturalH / 100
+        const wPx = (crop.width || 0) * naturalW / 100
+        const hPx = (crop.height || 0) * naturalH / 100
+        const centerX = xPx + wPx / 2
+        const centerY = yPx + hPx / 2
+        const srcW = Math.max(1, wPx / Math.max(1, scale))
+        const srcH = Math.max(1, hPx / Math.max(1, scale))
+        let srcX = centerX - srcW / 2
+        let srcY = centerY - srcH / 2
+        srcX = Math.max(0, Math.min(srcX, naturalW - srcW))
+        srcY = Math.max(0, Math.min(srcY, naturalH - srcH))
+
+        const size = 160
+        canvas.width = size
+        canvas.height = size
+        const ctx = canvas.getContext("2d")!
+        ctx.clearRect(0, 0, size, size)
+        ctx.save()
+        // round mask
+        ctx.beginPath()
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+        ctx.closePath()
+        ctx.clip()
+        ctx.imageSmoothingQuality = "high"
+        ctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, size, size)
+        ctx.restore()
+    }, [fileUrl, imgEl, crop, scale])
+
+    const handleSave = async () => {
+        setSaving(true)
+        try {
+            const blob = await getCroppedBlob()
+            if (!blob) throw new Error("无法生成头像数据")
+
+            const filePath = `${userId}/${Date.now()}.jpg`
+            const { error: upErr } = await supabase.storage.from("avatars").upload(filePath, blob, {
+                cacheControl: "3600",
+                upsert: true,
+                contentType: "image/jpeg",
+            })
+            if (upErr) throw upErr
+
+            const { data } = supabase.storage.from("avatars").getPublicUrl(filePath)
+            const publicUrl = data.publicUrl
+
+            const { error: dbErr } = await supabase
+                .from("profiles")
+                .update({ avatar_url: publicUrl })
+                .eq("id", userId)
+            if (dbErr) throw dbErr
+
+            onUploaded(publicUrl)
+            onOpenChange(false)
+        } catch (e) {
+            const msg = (e as any)?.message || (e as any)?.error || String(e)
+            console.error("保存头像失败:", e)
+            alert(`保存头像失败：${msg}\n\n请稍后重试，或确认已在 Supabase Storage\n1) 创建公开的 avatars 存储桶\n2) 为 storage.objects 配置插入/更新/删除策略`)
+        } finally {
+            setSaving(false)
+        }
+    }
 
     return (
-        <Dialog onOpenChange={(open) => !open && setShowSuccessToast(false)}>
-             {showSuccessToast && <SimpleToast message="提交成功" onDismiss={() => setShowSuccessToast(false)} />}
-            <DialogTrigger asChild>
-                <div className="divide-y divide-border/30">
-                    <ProfileItem icon={<FileQuestion className="text-primary"/>} label="问题反馈" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
-                </div>
-            </DialogTrigger>
-            <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
-                <DialogHeader>
-                    <DialogTitle>问题反馈</DialogTitle>
-                    <DialogDescription>我们重视您的每一个建议</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 py-4">
-                    <div className="grid gap-3">
-                        <Label>问题类型</Label>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                           {feedbackTypes.map((type) => (
-                                <div key={type.id} className="flex items-center gap-2">
-                                    <Checkbox
-                                        id={type.id}
-                                        checked={selectedTypes.includes(type.id)}
-                                        onCheckedChange={() => handleTypeChange(type.id)}
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent side="bottom" className="p-0 pb-safe overflow-hidden">
+                <SheetHeader className="p-4 pb-2">
+                    <SheetTitle>编辑头像</SheetTitle>
+                    <SheetDescription>支持缩放与裁剪（圆形预览，保存为正方形）</SheetDescription>
+                </SheetHeader>
+
+                <div className="px-4 pb-24">
+                    {!fileUrl ? (
+                        <div className="mx-auto w-full max-w-sm">
+                            <div className="rounded-xl overflow-hidden bg-white text-foreground dark:bg-neutral-900 border border-border/50 text-center">
+                                <button className="w-full py-3 text-base active:bg-black/5 dark:active:bg-white/10" onClick={openCamera}>拍摄</button>
+                                <div className="h-px bg-border/70" />
+                                <button className="w-full py-3 text-base active:bg-black/5 dark:active:bg-white/10" onClick={openGallery}>从手机相册选择</button>
+                            </div>
+                            <div className="h-2" />
+                            <div className="rounded-xl overflow-hidden bg-white text-foreground dark:bg-neutral-900 border border-border/50 text-center">
+                                <button className="w-full py-3 text-base active:bg-black/5 dark:active:bg-white/10" onClick={() => onOpenChange(false)}>取消</button>
+                            </div>
+                            <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={onFileChange} />
+                            <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+                        </div>
+                    ) : (
+                        <div className="grid gap-4">
+                            <div className="avatar-crop">
+                                <ReactCrop crop={crop} onChange={(_c, percent) => setCrop(percent)} aspect={1}>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={fileUrl}
+                                        alt="to-crop"
+                                        ref={(el) => setImgEl(el)}
+                                        className="max-h-[48vh] w-full object-contain"
+                                        style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
                                     />
-                                    <Label htmlFor={type.id} className="font-normal text-sm">{type.label}</Label>
-                                </div>
-                            ))}
+                                </ReactCrop>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-muted-foreground w-14">缩放</span>
+                                <input
+                                    type="range"
+                                    min={0.5}
+                                    max={3}
+                                    step={0.1}
+                                    value={scale}
+                                    onChange={(e) => setScale(parseFloat(e.target.value))}
+                                    className="w-full"
+                                />
+                                <span className="text-xs w-10 text-right">{scale.toFixed(1)}x</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="text-xs text-muted-foreground">圆形预览</span>
+                                <canvas ref={previewRef} className="rounded-full border size-16" />
+                            </div>
                         </div>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="description">问题描述</Label>
-                        <Textarea
-                            id="description"
-                            placeholder="请详细描述您的问题或建议..."
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            maxLength={500}
-                            className="h-28"
-                        />
-                        <p className="text-xs text-muted-foreground text-right">{description.length} / 500</p>
-                    </div>
-                    <div className="grid gap-2">
-                         <Label>上传图片 (可选, 最多3张)</Label>
-                         <div className="flex items-center gap-2">
-                            {images.map((img, index) => (
-                                <div key={index} className="relative w-20 h-20">
-                                    <Image src={img} alt={`upload-preview-${index}`} layout="fill" objectFit="cover" className="rounded-md" />
-                                    <button onClick={() => removeImage(index)} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5">
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </div>
-                            ))}
-                            {images.length < 3 && (
-                                <Label htmlFor="file-upload" className="w-20 h-20 bg-muted rounded-md flex items-center justify-center cursor-pointer hover:bg-muted/80">
-                                    <ImagePlus className="w-8 h-8 text-muted-foreground" />
-                                </Label>
-                            )}
-                         </div>
-                         <Input id="file-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/jpg" multiple onChange={handleFileChange} />
-                    </div>
+                    )}
                 </div>
-                <DialogFooter className="flex-row justify-end gap-2">
-                    <DialogClose asChild>
-                        <Button type="button" variant="secondary">取消</Button>
-                    </DialogClose>
-                     <DialogClose asChild>
-                        <Button type="submit" onClick={handleSubmit}>提交</Button>
-                    </DialogClose>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+
+                <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75 border-t p-3 flex gap-3">
+                    <Button variant="secondary" className="flex-1" onClick={() => onOpenChange(false)} disabled={saving}>取消</Button>
+                    <Button className="flex-1" onClick={handleSave} disabled={!fileUrl || saving}>{saving ? "保存中..." : "保存"}</Button>
+                </div>
+
+                {/* circular crop selection style */}
+                <style jsx global>{`
+                  .avatar-crop .ReactCrop__crop-selection { border-radius: 9999px; }
+                `}</style>
+            </SheetContent>
+        </Sheet>
     )
 }
-
-export default function ProfilePage() {
-    const [activeTab, setActiveTab] = useState('profile');
-    const [showToast, setShowToast] = useState(false);
-    const router = useRouter();
-
-    const [user, setUser] = useState({
-        name: 'CryptoKing',
-        id: '88888888',
-        invitationCode: 'INVT8888',
-        avatar: 'https://i.pravatar.cc/150?u=cryptoking',
-        membership: '年度会员'
-    });
-
-    const handleCopy = (text: string) => {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(text);
-            setShowToast(true);
-        }
-    }
-
-    const handleLogout = () => {
-        router.push('/login');
-    }
-
-  return (
-    <>
-    <div className="bg-background min-h-screen text-foreground flex flex-col h-screen">
-      {showToast && <SimpleToast message="复制成功" onDismiss={() => setShowToast(false)} />}
-      <header className="flex-shrink-0 flex items-center justify-center p-4 h-14">
-        <h1 className="font-bold text-lg">我的</h1>
-      </header>
-
-      <main className="flex-grow overflow-auto px-4 pt-2 pb-24">
-        <div className="space-y-6">
-            <Card className="bg-card/50 border-0 shadow-none">
-                <CardContent className="p-4 flex items-center gap-4">
-                    <div className="relative">
-                        <Avatar className="h-16 w-16 border-2 border-primary/50">
-                            <AvatarImage src={user.avatar} alt={user.name} />
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                    </div>
-                    <div className="space-y-1">
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                            {user.name}
-                            {user.membership && (
-                                <span className="bg-yellow-400 text-yellow-900 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <Crown className="w-3 h-3" />
-                                    {user.membership}
-                                </span>
-                            )}
-                        </h2>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                            <span>ID: {user.id}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => handleCopy(user.id)}>
-                                <Copy className="h-3 w-3" />
-                            </Button>
-                        </div>
-                         <div className="flex items-center text-xs text-muted-foreground gap-1">
-                            <Ticket className="w-3 h-3" />
-                            <span>邀请码: {user.invitationCode}</span>
-                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(user.invitationCode)}>
-                                <Copy className="h-3 w-3" />
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Common Functions */}
-            <Card className="bg-card/50 border-border/30">
-                 <CardContent className="p-0">
-                    <div className="divide-y divide-border/30">
-                        <ProfileItem href="/membership" icon={<Crown className="text-yellow-400"/>} label="购买会员" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
-                        <ProfileItem href="/payment-details" icon={<ReceiptText className="text-primary"/>} label="付费明细" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
-                        <ProfileItem href="/my-api" icon={<KeyRound className="text-primary"/>} label="我的API" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
-                        <ProfileItem href="/invite" icon={<Users className="text-primary"/>} label="邀请好友" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
-                    </div>
-                 </CardContent>
-            </Card>
-
-
-             {/* Support */}
-             <Card className="bg-card/50 border-border/30">
-                <CardContent className="p-0">
-                    <div className="divide-y divide-border/30">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <div>
-                                    <ProfileItem icon={<Headset className="text-primary"/>} label="联系客服" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
-                                </div>
-                            </DialogTrigger>
-                             <DialogContent className="max-w-[90vw] sm:max-w-xs rounded-lg">
-                                <DialogHeader>
-                                <DialogTitle>联系客服</DialogTitle>
-                                <DialogDescription>
-                                    通过Telegram联系我们的客服团队。
-                                </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="flex flex-col items-center justify-center gap-4">
-                                        <Image
-                                            src="https://picsum.photos/200/200"
-                                            alt="Telegram QR Code"
-                                            width={160}
-                                            height={160}
-                                            data-ai-hint="qr code"
-                                            className="rounded-md"
-                                        />
-                                        <div className="text-center">
-                                            <p className="text-sm text-muted-foreground">扫描二维码或搜索下方账号</p>
-                                            <p className="font-mono text-lg text-primary mt-2">@SignalAuthSupport</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                        <FeedbackDialog />
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Logout */}
-            <Card className="bg-transparent border-0 shadow-none">
-                <CardContent className="p-0">
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="secondary" className="w-full justify-center gap-2 text-muted-foreground">
-                                <LogOut className="w-4 h-4" />
-                                退出登录
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>确定要退出登录吗?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                您随时可以重新登录。
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel variant="secondary">取消</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleLogout} className="bg-primary hover:bg-primary/90">确认退出</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </CardContent>
-            </Card>
-        </div>
-      </main>
-
-
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
-        <div className="grid grid-cols-3 items-center h-full text-center">
-            <Link 
-                href="/" 
-                passHref
-                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-muted-foreground"
-            >
-                <BarChart className="h-6 w-6" />
-                <span className="text-xs font-medium">将军榜</span>
-            </Link>
-            <div className="relative flex flex-col items-center justify-center h-full">
-                 <Link href="/trade" passHref className="absolute -top-5 flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg border-4 border-background transition-transform active:scale-95">
-                    <ArrowRightLeft className="w-6 h-6" />
-                </Link>
-                <span className="text-xs font-medium pt-8 text-muted-foreground">交易</span>
-            </div>
-            <Link 
-                href="/profile" 
-                passHref
-                className="flex flex-col items-center justify-center space-y-1 transition-colors w-full h-full text-primary"
-            >
-                <User className="h-6 w-6" />
-                <span className="text-xs font-medium">我的</span>
-            </Link>
-        </div>
-      </nav>
-    </div>
-    </>
-  );
-}
+ 

@@ -22,6 +22,19 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+        port: '',
+        pathname: '/**',
+      },
+      // Supabase Storage public assets (avatars)
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
 };

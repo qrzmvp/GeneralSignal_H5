@@ -16,6 +16,9 @@ import { ChevronLeft, ChevronDown, Bot, Loader2, AlertTriangle, X, Copy } from '
 import { SimpleToast } from '@/app/components/SimpleToast';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 
 const HandClickIcon = () => (
@@ -39,50 +42,40 @@ const HandClickIcon = () => (
       </svg>
     );
 
-const allMockPayments = Array.from({ length: 30 }, (_, i) => {
-    const type = i % 4;
-    let paymentType, icon, typeKey;
-    const statusOptions = ['支付成功', '支付失败', '审核中'];
-    const status = statusOptions[i % 3];
+interface PaymentRecord {
+    id: string;
+    user_id: string;
+    plan_id?: string;
+    payment_method: 'TRC20' | 'ERC20';
+    payment_address: string;
+    sender_address?: string;
+    amount_usdt: number;
+    transaction_hash?: string;
+    status: 'pending' | 'completed' | 'failed' | 'reviewing';
+    payment_type: string;
+    completed_at?: string;
+    expires_at?: string;
+    created_at: string;
+    plan_title?: string;
+    plan_price?: number;
+}
 
-
-    switch (type) {
-        case 0:
-            paymentType = '自动跟单 · 1年';
-            icon = <Bot className="w-5 h-5 text-green-400" />;
-            typeKey = 'auto-year';
-            break;
-        case 1:
-            paymentType = '手动跟单 · 3个月';
-            icon = <HandClickIcon />;
-            typeKey = 'manual-quarter';
-            break;
-        case 2:
-            paymentType = '自动跟单 · 1个月';
-            icon = <Bot className="w-5 h-5 text-green-400" />;
-            typeKey = 'auto-month';
-            break;
-        default:
-            paymentType = '手动跟单 · 1年';
-            icon = <HandClickIcon />;
-            typeKey = 'manual-year';
-            break;
+const getPaymentIcon = (paymentType: string) => {
+    if (paymentType.includes('自动跟单')) {
+        return <Bot className="w-5 h-5 text-green-400" />;
     }
-    const paymentMethod = i % 3 === 0 ? 'ERC20' : 'TRC20';
-    const date = new Date(2024, 4 - Math.floor(i / 10), 28 - (i % 28), 10, 30, 15);
+    return <HandClickIcon />;
+};
 
-    return { 
-        id: `${i + 1}`, 
-        paymentMethod,
-        paymentAddress: 'TXYZ...abcd',
-        senderAddress: `T${[...Array(3)].map(() => Math.random().toString(36)[2]).join('')}...${[...Array(4)].map(() => Math.random().toString(36)[2]).join('')}`,
-        paymentType,
-        completionTime: date.toISOString().replace('T', ' ').substring(0, 19),
-        icon,
-        type: typeKey,
-        status,
+const getStatusText = (status: string) => {
+    const statusMap: Record<string, string> = {
+        'pending': '审核中',
+        'completed': '支付成功',
+        'failed': '支付失败',
+        'reviewing': '审核中'
     };
-});
+    return statusMap[status] || status;
+};
 
 const PAGE_SIZE = 10;
 
@@ -113,7 +106,10 @@ function InfoPill({ label, value, action, isAddress = false }: { label: string; 
     )
 }
 
-function PaymentCard({ payment }: { payment: typeof allMockPayments[0] }) {
+function PaymentCard({ payment }: { payment: PaymentRecord }) {
+    const statusText = getStatusText(payment.status);
+    const icon = getPaymentIcon(payment.payment_type);
+    
     const statusVariant: { [key: string]: 'default' | 'destructive' | 'secondary' } = {
         '支付成功': 'default',
         '支付失败': 'destructive',
@@ -131,18 +127,45 @@ function PaymentCard({ payment }: { payment: typeof allMockPayments[0] }) {
       <CardContent className="p-4 space-y-2">
         <div className="flex justify-between items-center pb-2">
             <div className="flex items-center gap-3">
-                {payment.icon}
-                <h3 className="font-bold text-base">{payment.paymentType}</h3>
+                {icon}
+                <h3 className="font-bold text-base">{payment.payment_type}</h3>
             </div>
-             <Badge variant="outline" className={statusColor[payment.status]}>
-                {payment.status}
+             <Badge variant="outline" className={statusColor[statusText]}>
+                {statusText}
             </Badge>
         </div>
         <div className="border-t border-border/30 pt-1">
-            <InfoPill label="支付方式" value={payment.paymentMethod} />
-            <InfoPill label="收款地址" value={payment.paymentAddress} isAddress />
-            <InfoPill label="付款地址" value={payment.senderAddress} isAddress />
-            <InfoPill label="支付完成时间" value={payment.completionTime} />
+            <InfoPill label="支付方式" value={payment.payment_method} />
+            <InfoPill label="收款地址" value={payment.payment_address} isAddress />
+            {payment.sender_address && (
+                <InfoPill label="付款地址" value={payment.sender_address} isAddress />
+            )}
+            <InfoPill label="金额" value={`${payment.amount_usdt}U`} />
+            {payment.transaction_hash && (
+                <InfoPill label="交易哈希" value={payment.transaction_hash} isAddress />
+            )}
+            <InfoPill 
+                label="创建时间" 
+                value={new Date(payment.created_at).toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })} 
+            />
+            {payment.completed_at && (
+                <InfoPill 
+                    label="完成时间" 
+                    value={new Date(payment.completed_at).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })} 
+                />
+            )}
         </div>
       </CardContent>
     </Card>
@@ -223,44 +246,83 @@ function NotificationBanner() {
 
 
 export default function PaymentDetailsPage() {
-    const [payments, setPayments] = useState<(typeof allMockPayments[0])[]>([]);
-    const [page, setPage] = useState(1);
-    const [loading, setLoading] = useState(true);
+    const [payments, setPayments] = useState<PaymentRecord[]>([]);
+    const [page, setPage] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [hasMore, setHasMore] = useState(true);
     const { ref: loadMoreRef, inView } = useInView({ threshold: 0.1 });
+    const { user } = useAuth();
+    const { toast } = useToast();
     
     const [timeFilterLabel, setTimeFilterLabel] = useState('近三个月');
     const [methodFilter, setMethodFilter] = useState('全部方式');
     const [typeFilter, setTypeFilter] = useState('全部类型');
     const [statusFilter, setStatusFilter] = useState('全部状态');
 
-    const loadMorePayments = useCallback(() => {
-        if (loading || !hasMore) return;
-        setLoading(true);
-        
-        setTimeout(() => {
-            const newPayments = allMockPayments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-            setPayments(prev => [...prev, ...newPayments]);
-            setPage(prev => prev + 1);
-            setHasMore(page * PAGE_SIZE < allMockPayments.length);
-            setLoading(false);
-        }, 1000);
-    }, [loading, hasMore, page]);
-    
     useEffect(() => {
-        // Initial load
-        setLoading(true);
-        setPayments(allMockPayments.slice(0, PAGE_SIZE));
-        setPage(2);
-        setHasMore(PAGE_SIZE < allMockPayments.length);
-        setLoading(false);
-    }, []);
+        if (user) {
+            loadPayments(true);
+        }
+    }, [user, methodFilter, typeFilter, statusFilter]);
+
+    const getFilterValue = (filter: string, prefix: string) => {
+        if (filter === `全部${prefix}`) return null;
+        if (filter === '支付成功') return 'completed';
+        if (filter === '支付失败') return 'failed';
+        if (filter === '审核中') return 'pending';
+        return filter;
+    };
+
+    const loadPayments = async (reset = false) => {
+        if (!user || loading) return;
+        
+        try {
+            setLoading(true);
+            const currentPage = reset ? 0 : page;
+            
+            const { data, error } = await supabase.rpc('get_payment_records', {
+                page_size: PAGE_SIZE,
+                page_offset: currentPage * PAGE_SIZE,
+                filter_status: getFilterValue(statusFilter, '状态'),
+                filter_method: getFilterValue(methodFilter, '方式'),
+                filter_type: getFilterValue(typeFilter, '类型')
+            });
+
+            if (error) throw error;
+
+            const newPayments = data || [];
+            
+            if (reset) {
+                setPayments(newPayments);
+                setPage(1);
+            } else {
+                setPayments(prev => [...prev, ...newPayments]);
+                setPage(prev => prev + 1);
+            }
+            
+            setHasMore(newPayments.length === PAGE_SIZE);
+        } catch (error: any) {
+            console.error('获取付费记录失败:', error);
+            toast({ description: '获取付费记录失败，请刷新重试' });
+        } finally {
+            setLoading(false);
+            if (initialLoading) {
+                setInitialLoading(false);
+            }
+        }
+    };
+
+    const loadMorePayments = useCallback(() => {
+        if (!hasMore || loading) return;
+        loadPayments(false);
+    }, [hasMore, loading, page, user]);
 
     useEffect(() => {
-        if (inView && !loading) {
+        if (inView && !loading && !initialLoading) {
             loadMorePayments();
         }
-    }, [inView, loading, loadMorePayments]);
+    }, [inView, loadMorePayments, loading, initialLoading]);
 
 
     return (
@@ -308,7 +370,7 @@ export default function PaymentDetailsPage() {
                         onSelect={setTimeFilterLabel}
                     />
                 </div>
-                {payments.length === 0 && !loading ? (
+                {payments.length === 0 && !initialLoading ? (
                     <div className="text-center text-muted-foreground pt-20">
                         <p>暂无付费记录</p>
                     </div>
@@ -319,14 +381,14 @@ export default function PaymentDetailsPage() {
                         ))}
                     </div>
                 )}
-                <div ref={loadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                    {loading && (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            <span>加载中...</span>
-                        </>
+                <div ref={loadMoreRef} className="flex justify-center items-center min-h-[200px] text-muted-foreground">
+                    {(loading || initialLoading) && (
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                            <p className="text-muted-foreground">加载中...</p>
+                        </div>
                     )}
-                    {!loading && !hasMore && payments.length > 0 && (
+                    {!loading && !initialLoading && !hasMore && payments.length > 0 && (
                         <span>已经到底了</span>
                     )}
                 </div>

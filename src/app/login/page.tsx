@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { LoginForm } from '../components/LoginForm'
 import { RegisterForm } from '../components/RegisterForm'
@@ -14,6 +14,13 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const invitationCode = searchParams.get('ref');
+
+  // 如果链接带有 ref，则默认切换到注册页并自动带上邀请码
+  useEffect(() => {
+    if (invitationCode) {
+      setCurrentPage('register')
+    }
+  }, [invitationCode])
 
   const handleSwitchToRegister = () => {
     setCurrentPage('register')
@@ -32,7 +39,7 @@ function LoginPageContent() {
   }
 
   return (
-    <main className="min-h-screen relative flex justify-center pt-20">
+    <main className="min-h-screen relative flex justify-center items-center">
       <CryptoBackground />
       
       <div className="relative z-10 w-full max-w-sm px-4 py-8 sm:px-6 md:px-8">
