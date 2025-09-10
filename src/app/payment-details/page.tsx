@@ -296,15 +296,19 @@ export default function PaymentDetailsPage() {
             if (reset) {
                 setPayments(newPayments);
                 setPage(1);
+                // 如果是重置且第一次加载返回0条记录，则没有更多数据
+                setHasMore(newPayments.length === PAGE_SIZE);
             } else {
                 setPayments(prev => [...prev, ...newPayments]);
                 setPage(prev => prev + 1);
+                // 只有当返回的数据等于页面大小时才可能有更多数据
+                setHasMore(newPayments.length === PAGE_SIZE);
             }
-            
-            setHasMore(newPayments.length === PAGE_SIZE);
         } catch (error: any) {
             console.error('获取付费记录失败:', error);
             toast({ description: '获取付费记录失败，请刷新重试' });
+            // 发生错误时停止加载更多
+            setHasMore(false);
         } finally {
             setLoading(false);
             if (initialLoading) {
@@ -319,10 +323,15 @@ export default function PaymentDetailsPage() {
     }, [hasMore, loading, page, user]);
 
     useEffect(() => {
-        if (inView && !loading && !initialLoading) {
+        // 只有当以下条件都满足时才触发加载更多：
+        // 1. loadMoreRef 在视口内
+        // 2. 不在加载中且初始加载已完成
+        // 3. 还有更多数据可加载
+        // 4. 已经有数据存在（避免空数据时的无限滚动）
+        if (inView && !loading && !initialLoading && hasMore && payments.length > 0) {
             loadMorePayments();
         }
-    }, [inView, loadMorePayments, loading, initialLoading]);
+    }, [inView, loadMorePayments, loading, initialLoading, hasMore, payments.length]);
 
 
     return (
@@ -381,17 +390,21 @@ export default function PaymentDetailsPage() {
                         ))}
                     </div>
                 )}
-                <div ref={loadMoreRef} className="flex justify-center items-center min-h-[200px] text-muted-foreground">
-                    {(loading || initialLoading) && (
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                            <p className="text-muted-foreground">加载中...</p>
-                        </div>
-                    )}
-                    {!loading && !initialLoading && !hasMore && payments.length > 0 && (
-                        <span>已经到底了</span>
-                    )}
-                </div>
+                
+                {/* 只有当有数据或正在加载时才显示加载更多区域 */}
+                {(payments.length > 0 || initialLoading || loading) && (
+                    <div ref={loadMoreRef} className="flex justify-center items-center min-h-[200px] text-muted-foreground">
+                        {(loading || initialLoading) && (
+                            <div className="text-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                                <p className="text-muted-foreground">加载中...</p>
+                            </div>
+                        )}
+                        {!loading && !initialLoading && !hasMore && payments.length > 0 && (
+                            <span>已经到底了</span>
+                        )}
+                    </div>
+                )}
             </main>
         </div>
     );
