@@ -44,6 +44,7 @@ import {
 import { useSwipeable } from 'react-swipeable';
 import { supabase } from '@/lib/supabase'
 import { getTraderAvatar } from '@/lib/trader-avatars'
+import { UnifiedSignal, CurrentSignal, HistoricalSignal, SignalType } from '@/lib/data'
 
 
 const PAGE_SIZE = 5;
@@ -76,7 +77,7 @@ function MetricItem({ label, value, valueClassName }: { label: string; value: st
   )
 }
 
-function SignalCard({ signal }: { signal: any }) {
+function SignalCard({ signal }: { signal: CurrentSignal }) {
   return (
     <Card className="bg-card/80 border-border/50">
       <CardContent className="p-4">
@@ -88,7 +89,7 @@ function SignalCard({ signal }: { signal: any }) {
             </div>
              <div className="flex items-center gap-2">
               <Badge variant="secondary">{signal.orderType}</Badge>
-              <Badge variant="secondary">{signal.type}</Badge>
+              <Badge variant="secondary">{signal.contractType}</Badge>
               <Badge variant="secondary">{signal.marginMode}</Badge>
             </div>
           </div>
@@ -113,7 +114,7 @@ function SignalCard({ signal }: { signal: any }) {
   );
 }
 
-function HistoricalSignalCard({ signal }: { signal: any }) {
+function HistoricalSignalCard({ signal }: { signal: HistoricalSignal }) {
   return (
     <Card className="bg-card/80 border-border/50">
       <CardContent className="p-4">
@@ -122,7 +123,7 @@ function HistoricalSignalCard({ signal }: { signal: any }) {
              <div className="font-mono text-base text-muted-foreground">{signal.pair}</div>
              <div className="flex items-center gap-2">
               <Badge variant="secondary">{signal.orderType}</Badge>
-              <Badge variant="secondary">{signal.type}</Badge>
+              <Badge variant="secondary">{signal.contractType}</Badge>
               <Badge variant="secondary">{signal.marginMode}</Badge>
             </div>
           </div>
@@ -145,6 +146,15 @@ function HistoricalSignalCard({ signal }: { signal: any }) {
       </CardContent>
     </Card>
   );
+}
+
+// 统一信号卡片组件，根据信号类型选择对应的卡片
+function UnifiedSignalCard({ signal }: { signal: UnifiedSignal }) {
+  if (signal.signalType === 'current') {
+    return <SignalCard signal={signal as CurrentSignal} />;
+  } else {
+    return <HistoricalSignalCard signal={signal as HistoricalSignal} />;
+  }
 }
 
 function FollowerCard({ follower }: { follower: any }) {
@@ -198,8 +208,7 @@ function FilterDropdown({ label, options, onSelect, setLabel }: { label: string;
 }
 
 const TABS = [
-  { value: "current", label: "当前信号", icon: User },
-  { value: "historical", label: "历史信号", icon: History },
+  { value: "signals", label: "信号列表", icon: BarChart },
   { value: "followers", label: "跟单用户", icon: Users }
 ];
 
@@ -222,10 +231,23 @@ export default function TraderDetailPage() {
   const [activeTab, setActiveTab] = useState(TABS[0].value);
   const [isMetricsOpen, setIsMetricsOpen] = useState(true);
 
-  const [allSignals, setAllSignals] = useState<any[]>([]);
-  const [allHistoricalSignals, setAllHistoricalSignals] = useState<any[]>([]);
+  // 统一信号状态管理
+  const [allUnifiedSignals, setAllUnifiedSignals] = useState<UnifiedSignal[]>([]);
   const [allFollowers, setAllFollowers] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+
+  // 统一信号列表状态
+  const [unifiedSignals, setUnifiedSignals] = useState<UnifiedSignal[]>([]);
+  const [signalsPage, setSignalsPage] = useState(1);
+  const [signalsLoading, setSignalsLoading] = useState(false);
+  const [signalsHasMore, setSignalsHasMore] = useState(true);
+  const { ref: signalsLoadMoreRef, inView: signalsInView } = useInView({ threshold: 0.1 });
+
+  // 筛选器状态
+  const [signalTypeFilter, setSignalTypeFilter] = useState('全部信号');
+  const [directionFilter, setDirectionFilter] = useState('全部方向');
+  const [pairFilter, setPairFilter] = useState('全部币种');
+  const [timeFilter, setTimeFilter] = useState('近三个月');
 
   // load trader detail
   useEffect(() => {
@@ -299,95 +321,83 @@ export default function TraderDetailPage() {
   }, [traderId])
 
   useEffect(() => {
-  // Generate mock data for signals & followers
-  const generatedSignals = Array.from({ length: 25 }, (_, i) => {
-    const isLong = Math.random() > 0.5;
-    const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
-    const entryPrice = Math.random() * 50000 + 20000;
-    const useRange = Math.random() > 0.7;
-    return {
-      id: i + 1,
-      pair: `${pair}-USDT-SWAP`,
-      direction: isLong ? '做多' : '做空',
-      directionColor: isLong ? 'text-green-400' : 'text-red-400',
-      entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
-      takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
-      takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
-      stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
-      pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-      createdAt: `2024-05-2${8-i} 14:0${i % 10}:00`,
-      orderType: '限价单',
-      type: '永续合约',
-      marginMode: '全仓',
-    };
-  });
+    // 生成模拟的当前信号和历史信号数据
+    const generatedCurrentSignals: CurrentSignal[] = Array.from({ length: 25 }, (_, i) => {
+      const isLong = Math.random() > 0.5;
+      const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
+      const entryPrice = Math.random() * 50000 + 20000;
+      const useRange = Math.random() > 0.7;
+      return {
+        id: i + 1,
+        signalType: 'current' as const,
+        pair: `${pair}-USDT-SWAP`,
+        direction: isLong ? '做多' : '做空',
+        directionColor: isLong ? 'text-green-400' : 'text-red-400',
+        entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
+        takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
+        takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
+        stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
+        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+        createdAt: `2024-05-2${8-i} 14:0${i % 10}:00`,
+        orderType: '限价单',
+        contractType: '永续合约',
+        marginMode: '全仓',
+      };
+    });
 
-  const generatedHistoricalSignals = Array.from({ length: 30 }, (_, i) => {
-    const isLong = Math.random() > 0.5;
-    const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
-    const entryPrice = Math.random() * 500 + 100;
-    const startDate = new Date(2024, 3, 18 - (i % 9), 18, 30 + (i%10), 0);
-    const endDate = new Date(startDate.getTime() + (Math.random() * 72 + 8) * 60 * 60 * 1000); // 8-80 hours later
-    const formatDate = (date: Date) => date.toISOString().replace('T', ' ').substring(0, 19);
+    const generatedHistoricalSignals: HistoricalSignal[] = Array.from({ length: 30 }, (_, i) => {
+      const isLong = Math.random() > 0.5;
+      const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
+      const entryPrice = Math.random() * 500 + 100;
+      const startDate = new Date(2024, 3, 18 - (i % 9), 18, 30 + (i%10), 0);
+      const endDate = new Date(startDate.getTime() + (Math.random() * 72 + 8) * 60 * 60 * 1000); // 8-80 hours later
+      const formatDate = (date: Date) => date.toISOString().replace('T', ' ').substring(0, 19);
 
-    return {
-      id: i + 100, // Avoid key collision
-      pair: `${pair}-USDT-SWAP`,
-      direction: isLong ? '做多' : '做空',
-      directionColor: isLong ? 'text-green-400' : 'text-red-400',
-      entryPrice: entryPrice.toFixed(3),
-      takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
-      takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
-      stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
-      pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-      createdAt: formatDate(startDate),
-      endedAt: formatDate(endDate),
-      orderType: '限价单',
-      type: '永续合约',
-      marginMode: '全仓',
-      status: Math.random() > 0.3 ? '止盈平仓' : '止损平仓',
-    };
-  });
+      return {
+        id: i + 100, // Avoid key collision
+        signalType: 'historical' as const,
+        pair: `${pair}-USDT-SWAP`,
+        direction: isLong ? '做多' : '做空',
+        directionColor: isLong ? 'text-green-400' : 'text-red-400',
+        entryPrice: entryPrice.toFixed(3),
+        takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
+        takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
+        stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
+        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
+        createdAt: formatDate(startDate),
+        endedAt: formatDate(endDate),
+        orderType: '限价单',
+        contractType: '永续合约',
+        marginMode: '全仓',
+        status: Math.random() > 0.3 ? '止盈平仓' : '止损平仓',
+      };
+    });
 
-  const generatedFollowers = Array.from({ length: 40 }, (_, i) => {
-    const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
-    return {
-      id: i + 200,
-      name: `***${name.slice(-4)}`,
-      profit: (Math.random() * 5000).toFixed(2),
-      duration: Math.floor(Math.random() * 365) + 1,
-    };
-  });
-  setAllSignals(generatedSignals);
-  setAllHistoricalSignals(generatedHistoricalSignals);
-  setAllFollowers(generatedFollowers);
-  setDataLoading(false);
+    const generatedFollowers = Array.from({ length: 40 }, (_, i) => {
+      const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
+      return {
+        id: i + 200,
+        name: `***${name.slice(-4)}`,
+        profit: (Math.random() * 5000).toFixed(2),
+        duration: Math.floor(Math.random() * 365) + 1,
+      };
+    });
+
+    // 合并信号并按时间排序
+    const combinedSignals: UnifiedSignal[] = [...generatedCurrentSignals, ...generatedHistoricalSignals]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    setAllUnifiedSignals(combinedSignals);
+    setAllFollowers(generatedFollowers);
+    setDataLoading(false);
   }, []);
 
-  const [currentSignals, setCurrentSignals] = useState<(typeof allSignals[0])[]>([]);
-  const [currentSignalsPage, setCurrentSignalsPage] = useState(1);
-  const [currentSignalsLoading, setCurrentSignalsLoading] = useState(false);
-  const [currentSignalsHasMore, setCurrentSignalsHasMore] = useState(true);
-  const { ref: currentLoadMoreRef, inView: currentInView } = useInView({ threshold: 0.1 });
-  const [currentFilterLabel, setCurrentFilterLabel] = useState('近三个月');
-
-  const [historicalSignals, setHistoricalSignals] = useState<(typeof allHistoricalSignals[0])[]>([]);
-  const [historicalSignalsPage, setHistoricalSignalsPage] = useState(1);
-  const [historicalSignalsLoading, setHistoricalSignalsLoading] = useState(false);
-  const [historicalSignalsHasMore, setHistoricalSignalsHasMore] = useState(true);
-  const { ref: historicalLoadMoreRef, inView: historicalInView } = useInView({ threshold: 0.1 });
-  const [historicalFilterLabel, setHistoricalFilterLabel] = useState('近三个月');
-
+  // 跟单用户状态
   const [followers, setFollowers] = useState<(typeof allFollowers[0])[]>([]);
   const [followersPage, setFollowersPage] = useState(1);
   const [followersLoading, setFollowersLoading] = useState(false);
   const [followersHasMore, setFollowersHasMore] = useState(true);
   const { ref: followersLoadMoreRef, inView: followersInView } = useInView({ threshold: 0.1 });
-
-  const [directionFilter, setDirectionFilter] = useState('全部方向');
-  const [pairFilter, setPairFilter] = useState('全部币种');
-  const [historicalDirectionFilter, setHistoricalDirectionFilter] = useState('全部方向');
-  const [historicalPairFilter, setHistoricalPairFilter] = useState('全部币种');
 
   const swipeHandlers = useSwipeable({
     onSwiped: (eventData) => {
@@ -401,86 +411,100 @@ export default function TraderDetailPage() {
     trackMouse: true
   });
   
-  const loadMore = useCallback((type: 'current' | 'historical' | 'followers') => {
-  if (type === 'current') {
-    if (currentSignalsLoading || !currentSignalsHasMore) return;
-    setCurrentSignalsLoading(true);
-    setTimeout(() => {
-      const newSignals = allSignals.slice((currentSignalsPage - 1) * PAGE_SIZE, currentSignalsPage * PAGE_SIZE);
-      setCurrentSignals(prev => [...prev, ...newSignals]);
-      setCurrentSignalsPage(prev => prev + 1);
-      setCurrentSignalsHasMore(currentSignalsPage * PAGE_SIZE < allSignals.length);
-      setCurrentSignalsLoading(false);
-    }, 1000);
-  } else if (type === 'historical') {
-    if (historicalSignalsLoading || !historicalSignalsHasMore) return;
-    setHistoricalSignalsLoading(true);
-    setTimeout(() => {
-      const newSignals = allHistoricalSignals.slice((historicalSignalsPage - 1) * PAGE_SIZE, historicalSignalsPage * PAGE_SIZE);
-      setHistoricalSignals(prev => [...prev, ...newSignals]);
-      setHistoricalSignalsPage(prev => prev + 1);
-      setHistoricalSignalsHasMore(historicalSignalsPage * PAGE_SIZE < allHistoricalSignals.length);
-      setHistoricalSignalsLoading(false);
-    }, 1000);
-  } else if (type === 'followers') {
-    if (followersLoading || !followersHasMore) return;
-    setFollowersLoading(true);
-    setTimeout(() => {
-      const newFollowers = allFollowers.slice((followersPage - 1) * PAGE_SIZE, followersPage * PAGE_SIZE);
-      setFollowers(prev => [...prev, ...newFollowers]);
-      setFollowersPage(prev => prev + 1);
-      setFollowersHasMore(followersPage * PAGE_SIZE < allFollowers.length);
-      setFollowersLoading(false);
-    }, 1000);
-  }
+  // 数据筛选函数
+  const filterSignals = useCallback((signals: UnifiedSignal[]): UnifiedSignal[] => {
+    return signals.filter(signal => {
+      // 信号类型筛选
+      if (signalTypeFilter === '当前信号' && signal.signalType !== 'current') return false;
+      if (signalTypeFilter === '历史信号' && signal.signalType !== 'historical') return false;
+      
+      // 方向筛选
+      if (directionFilter !== '全部方向' && signal.direction !== directionFilter) return false;
+      
+      // 币种筛选
+      if (pairFilter !== '全部币种') {
+        const coinFromPair = signal.pair.split('-')[0];
+        if (coinFromPair !== pairFilter) return false;
+      }
+      
+      return true;
+    });
+  }, [signalTypeFilter, directionFilter, pairFilter]);
+  
+  const loadMore = useCallback((type: 'signals' | 'followers') => {
+    if (type === 'signals') {
+      if (signalsLoading || !signalsHasMore) return;
+      setSignalsLoading(true);
+      setTimeout(() => {
+        const filteredSignals = filterSignals(allUnifiedSignals);
+        const newSignals = filteredSignals.slice((signalsPage - 1) * PAGE_SIZE, signalsPage * PAGE_SIZE);
+        setUnifiedSignals(prev => [...prev, ...newSignals]);
+        setSignalsPage(prev => prev + 1);
+        setSignalsHasMore(signalsPage * PAGE_SIZE < filteredSignals.length);
+        setSignalsLoading(false);
+      }, 1000);
+    } else if (type === 'followers') {
+      if (followersLoading || !followersHasMore) return;
+      setFollowersLoading(true);
+      setTimeout(() => {
+        const newFollowers = allFollowers.slice((followersPage - 1) * PAGE_SIZE, followersPage * PAGE_SIZE);
+        setFollowers(prev => [...prev, ...newFollowers]);
+        setFollowersPage(prev => prev + 1);
+        setFollowersHasMore(followersPage * PAGE_SIZE < allFollowers.length);
+        setFollowersLoading(false);
+      }, 1000);
+    }
   }, [
-    currentSignalsLoading, currentSignalsHasMore, currentSignalsPage, allSignals,
-    historicalSignalsLoading, historicalSignalsHasMore, historicalSignalsPage, allHistoricalSignals,
+    signalsLoading, signalsHasMore, signalsPage, allUnifiedSignals, filterSignals,
     followersLoading, followersHasMore, followersPage, allFollowers
   ]);
   
   useEffect(() => {
-  if (dataLoading) return;
-  const initialLoad = (type: 'current' | 'historical' | 'followers') => {
-    if (type === 'current') {
-      setCurrentSignalsLoading(true);
-      const newSignals = allSignals.slice(0, PAGE_SIZE);
-      setCurrentSignals(newSignals);
-      setCurrentSignalsPage(2);
-      setCurrentSignalsHasMore(PAGE_SIZE < allSignals.length);
-      setCurrentSignalsLoading(false);
-    } else if (type === 'historical') {
-      setHistoricalSignalsLoading(true);
-      const newSignals = allHistoricalSignals.slice(0, PAGE_SIZE);
-      setHistoricalSignals(newSignals);
-      setHistoricalSignalsPage(2);
-      setHistoricalSignalsHasMore(PAGE_SIZE < allHistoricalSignals.length);
-      setHistoricalSignalsLoading(false);
-    } else if (type === 'followers') {
-      setFollowersLoading(true);
-      const newFollowers = allFollowers.slice(0, PAGE_SIZE);
-      setFollowers(newFollowers);
-      setFollowersPage(2);
-      setFollowersHasMore(PAGE_SIZE < allFollowers.length);
-      setFollowersLoading(false);
-    }
-  };
+    if (dataLoading) return;
+    const initialLoad = (type: 'signals' | 'followers') => {
+      if (type === 'signals') {
+        setSignalsLoading(true);
+        const filteredSignals = filterSignals(allUnifiedSignals);
+        const newSignals = filteredSignals.slice(0, PAGE_SIZE);
+        setUnifiedSignals(newSignals);
+        setSignalsPage(2);
+        setSignalsHasMore(PAGE_SIZE < filteredSignals.length);
+        setSignalsLoading(false);
+      } else if (type === 'followers') {
+        setFollowersLoading(true);
+        const newFollowers = allFollowers.slice(0, PAGE_SIZE);
+        setFollowers(newFollowers);
+        setFollowersPage(2);
+        setFollowersHasMore(PAGE_SIZE < allFollowers.length);
+        setFollowersLoading(false);
+      }
+    };
 
-  initialLoad('current');
-  initialLoad('historical');
-  initialLoad('followers');
-  }, [dataLoading, allSignals, allHistoricalSignals, allFollowers]);
+    initialLoad('signals');
+    initialLoad('followers');
+  }, [dataLoading, allUnifiedSignals, allFollowers, filterSignals]);
+
+  // 重新加载信号当筛选条件变化时
+  useEffect(() => {
+    if (dataLoading) return;
+    setUnifiedSignals([]);
+    setSignalsPage(1);
+    setSignalsHasMore(true);
+    
+    // 重新加载第一页数据
+    const filteredSignals = filterSignals(allUnifiedSignals);
+    const newSignals = filteredSignals.slice(0, PAGE_SIZE);
+    setUnifiedSignals(newSignals);
+    setSignalsPage(2);
+    setSignalsHasMore(PAGE_SIZE < filteredSignals.length);
+  }, [signalTypeFilter, directionFilter, pairFilter, allUnifiedSignals, filterSignals, dataLoading]);
 
   useEffect(() => {
-  if (currentInView && !currentSignalsLoading) loadMore('current');
-  }, [currentInView, currentSignalsLoading, loadMore]);
-
-  useEffect(() => {
-  if (historicalInView && !historicalSignalsLoading) loadMore('historical');
-  }, [historicalInView, historicalSignalsLoading, loadMore]);
+    if (signalsInView && !signalsLoading) loadMore('signals');
+  }, [signalsInView, signalsLoading, loadMore]);
   
   useEffect(() => {
-  if (followersInView && !followersLoading) loadMore('followers');
+    if (followersInView && !followersLoading) loadMore('followers');
   }, [followersInView, followersLoading, loadMore]);
 
 
@@ -608,7 +632,7 @@ export default function TraderDetailPage() {
       </div>
     ) : (
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           {TABS.map((tab) => (
             <TabsTrigger 
               key={tab.value}
@@ -624,10 +648,17 @@ export default function TraderDetailPage() {
             className="flex transition-transform duration-300"
             style={{ transform: `translateX(-${activeTabIndex * 100}%)` }}
           >
+            {/* 信号列表标签页 */}
             <div className="w-full flex-shrink-0">
                <div className="mt-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
+                    <FilterDropdown
+                      label={signalTypeFilter}
+                      options={['全部信号', '当前信号', '历史信号']}
+                      onSelect={setSignalTypeFilter}
+                      setLabel={setSignalTypeFilter}
+                    />
                     <FilterDropdown
                       label={directionFilter}
                       options={['全部方向', '做多', '做空']}
@@ -636,81 +667,38 @@ export default function TraderDetailPage() {
                     />
                     <FilterDropdown
                       label={pairFilter}
-                      options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE']}
+                      options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE', 'ADA', 'XRP', 'BNB', 'LINK']}
                       onSelect={setPairFilter}
                       setLabel={setPairFilter}
                     />
                   </div>
                   <FilterDropdown
-                    label={currentFilterLabel}
+                    label={timeFilter}
                     options={['近三个月', '近半年', '近一年']}
-                    onSelect={setCurrentFilterLabel}
-                    setLabel={setCurrentFilterLabel}
+                    onSelect={setTimeFilter}
+                    setLabel={setTimeFilter}
                   />
                 </div>
                 <div className="space-y-3">
-                  {currentSignals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} />
+                  {unifiedSignals.map(signal => (
+                    <UnifiedSignalCard key={signal.id} signal={signal} />
                   ))}
                 </div>
-                <div ref={currentLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                  {currentSignalsLoading && (
+                <div ref={signalsLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
+                  {signalsLoading && (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       <span>加载中...</span>
                     </>
                   )}
-                  {!currentSignalsLoading && !currentSignalsHasMore && currentSignals.length > 0 && (
+                  {!signalsLoading && !signalsHasMore && unifiedSignals.length > 0 && (
                     <span>已经到底了</span>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="w-full flex-shrink-0">
-              <div className="mt-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <FilterDropdown
-                      label={historicalDirectionFilter}
-                      options={['全部方向', '做多', '做空']}
-                      onSelect={setHistoricalDirectionFilter}
-                      setLabel={setHistoricalDirectionFilter}
-                    />
-                    <FilterDropdown
-                      label={historicalPairFilter}
-                      options={['全部币种', 'ADA', 'XRP', 'BNB', 'LINK']}
-                      onSelect={setHistoricalPairFilter}
-                      setLabel={setHistoricalPairFilter}
-                    />
-                  </div>
-                  <FilterDropdown
-                    label={historicalFilterLabel}
-                    options={['近三个月', '近半年', '近一年']}
-                    onSelect={setHistoricalFilterLabel}
-                    setLabel={setHistoricalFilterLabel}
-                  />
-
-                </div>
-                <div className="space-y-3">
-                  {historicalSignals.map(signal => (
-                    <HistoricalSignalCard key={signal.id} signal={signal} />
-                  ))}
-                </div>
-                <div ref={historicalLoadMoreRef} className="flex justify-center items-center h-16 text-muted-foreground">
-                  {historicalSignalsLoading && (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span>加载中...</span>
-                    </>
-                  )}
-                  {!historicalSignalsLoading && !historicalSignalsHasMore && historicalSignals.length > 0 && (
-                    <span>已经到底了</span>
-                  )}
-                </div>
-              </div>
-            </div>
-                        
+            {/* 跟单用户标签页 */}           
             <div className="w-full flex-shrink-0">
               <div className="mt-4 space-y-3">
                 <div className="space-y-3">

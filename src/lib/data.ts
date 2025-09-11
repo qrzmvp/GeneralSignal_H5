@@ -13,6 +13,41 @@ export interface Trader {
   days: number
 }
 
+// 信号类型枚举
+export type SignalType = 'current' | 'historical';
+
+// 基础信号接口
+export interface BaseSignal {
+  id: number;
+  pair: string;
+  direction: string;
+  directionColor: string;
+  entryPrice: string;
+  takeProfit1: string | null;
+  takeProfit2: string | null;
+  stopLoss: string;
+  pnlRatio: string;
+  createdAt: string;
+  orderType: string;
+  contractType: string; // 订单类型 如永续合约
+  marginMode: string;
+}
+
+// 当前信号接口
+export interface CurrentSignal extends BaseSignal {
+  signalType: 'current';
+}
+
+// 历史信号接口
+export interface HistoricalSignal extends BaseSignal {
+  signalType: 'historical';
+  endedAt: string;
+  status: string;
+}
+
+// 统一信号类型
+export type UnifiedSignal = CurrentSignal | HistoricalSignal;
+
 export const allTraders: Trader[] = [
     {
     id: 1,
