@@ -4,6 +4,7 @@ import { UnifiedSignal, CurrentSignal, HistoricalSignal } from './data';
 export interface TraderStatistics {
   winRate: number;          // 胜率百分比
   pnlRatio: string;         // 盈亏比 (格式: "X.XX:1" 或 "--")
+  yieldRate: number;        // 收益率百分比
   totalSignals: number;     // 累计信号数量
   totalDays: number;        // 累计天数
   totalProfit: number;      // 总盈利
@@ -198,6 +199,7 @@ export const calculateProfitLossDetails = (signals: UnifiedSignal[]): { totalPro
 export const calculateAllStatistics = (signals: UnifiedSignal[]): TraderStatistics => {
   const winRate = calculateWinRate(signals);
   const pnlRatio = calculatePnlRatio(signals);
+  const yieldRate = calculateYieldRate(signals);
   const totalSignals = calculateTotalSignals(signals);
   const totalDays = calculateTotalDays(signals);
   const { totalProfit, totalLoss } = calculateProfitLossDetails(signals);
@@ -208,6 +210,7 @@ export const calculateAllStatistics = (signals: UnifiedSignal[]): TraderStatisti
   return {
     winRate,
     pnlRatio,
+    yieldRate,
     totalSignals,
     totalDays,
     totalProfit,
@@ -218,11 +221,73 @@ export const calculateAllStatistics = (signals: UnifiedSignal[]): TraderStatisti
 };
 
 /**
+ * 计算基于历史信号的收益率
+ * 收益率 = (总净盈亏 / 1000 USDT) × 100%
+ * 固定使用1000 USDT作为基准仓位计算收益率
+ */
+export const calculateYieldRate = (signals: UnifiedSignal[], fixedCapital: number = 1000): number => {
+  const historicalSignals = signals.filter(
+    signal => signal.signalType === 'historical'
+  ) as HistoricalSignal[];
+  
+  if (historicalSignals.length === 0) return 0;
+  
+  // 计算总净盈亏
+  const totalNetPnl = historicalSignals.reduce((sum, signal) => {
+    return sum + calculateSignalProfitLoss(signal);
+  }, 0);
+  
+  // 计算收益率百分比（固定1000 USDT基准）
+  const yieldRate = (totalNetPnl / fixedCapital) * 100;
+  
+  return Math.round(yieldRate * 100) / 100; // 保留2位小数
+};
+
+/**
+ * 计算基于历史信号的收益率（基于实际盈亏金额）
+ * 从数据库的 actual_pnl 字段直接计算，固定使用1000 USDT基准
+ */
+export const calculateRealYieldRate = (historicalSignals: any[], fixedCapital: number = 1000): number => {
+  if (!historicalSignals || historicalSignals.length === 0) return 0;
+  
+  // 计算总净盈亏（来自数据库的 actual_pnl 字段）
+  const totalNetPnl = historicalSignals.reduce((sum, signal) => {
+    const pnl = signal.actual_pnl || signal.actualPnl || 0;
+    return sum + Number(pnl);
+  }, 0);
+  
+  // 计算收益率百分比（固定1000 USDT基准）
+  const yieldRate = (totalNetPnl / fixedCapital) * 100;
+  
+  return Math.round(yieldRate * 100) / 100; // 保留2位小数
+};
+
+/**
+ * 格式化收益率显示
+ */
+export const formatYieldRate = (yieldRate: number): string => {
+  if (typeof yieldRate !== 'number' || isNaN(yieldRate)) return '--';
+  
+  const prefix = yieldRate >= 0 ? '+' : '';
+  return `${prefix}${yieldRate.toFixed(2)}%`;
+};
+
+/**
+ * 根据数值格式化收益率显示
+ */
+export const formatYieldRateFromNumber = (yieldRate: number | null | undefined): string => {
+  if (yieldRate == null || typeof yieldRate !== 'number' || isNaN(yieldRate)) {
+    return '--';
+  }
+  return formatYieldRate(yieldRate);
+};
+
+/**
  * 格式化数值显示
  * 处理特殊情况的显示格式
  */
 export const formatStatisticValue = (
-  type: 'winRate' | 'pnlRatio' | 'totalSignals' | 'totalDays',
+  type: 'winRate' | 'pnlRatio' | 'totalSignals' | 'totalDays' | 'yieldRate',
   value: string | number
 ): string => {
   switch (type) {
@@ -230,6 +295,8 @@ export const formatStatisticValue = (
       return typeof value === 'number' ? `${value.toFixed(2)}%` : '--';
     case 'pnlRatio':
       return typeof value === 'string' && value !== '--' ? `${value}:1` : value as string;
+    case 'yieldRate':
+      return typeof value === 'number' ? formatYieldRate(value) : '--';
     case 'totalSignals':
     case 'totalDays':
       return typeof value === 'number' ? value.toString() : '--';

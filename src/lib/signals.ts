@@ -1,5 +1,6 @@
-import { supabase } from './supabase';
 import { UnifiedSignal, CurrentSignal, HistoricalSignal } from './data';
+import { calculateRealYieldRate } from './statistics';
+import { supabase } from '@/lib/supabase';
 
 export interface TraderSignalDB {
   id: string;
@@ -150,6 +151,7 @@ export const getTraderSignalsPaged = async (
 export interface RealTimeTraderStats {
   winRate: number;
   pnlRatio: number | null;
+  yieldRate: number;         // 收益率
   totalSignals: number;
   totalProfit: number;
   totalLoss: number;
@@ -210,9 +212,15 @@ export const calculateRealTimeStats = async (traderId: string): Promise<{
       }
     }
 
+    // 计算收益率（基于实际盈亏，固定1000 USDT基准）
+    const totalNetPnl = pnlData ? pnlData.reduce((sum, d) => sum + (d.actual_pnl || 0), 0) : 0;
+    const fixedCapital = 1000; // 固定1000 USDT作为基准仓位
+    const yieldRate = Math.round((totalNetPnl / fixedCapital) * 10000) / 100; // 保留2位小数
+
     const stats: RealTimeTraderStats = {
       winRate,
       pnlRatio,
+      yieldRate,
       totalSignals: signals.length,
       totalProfit: Math.round(totalProfit * 100) / 100,
       totalLoss: Math.round(totalLoss * 100) / 100,

@@ -7,7 +7,8 @@ import {
   formatStatisticValue, 
   TraderStatistics,
   formatPnlRatioFromNumber,
-  formatWinRateFromNumber
+  formatWinRateFromNumber,
+  formatYieldRateFromNumber
 } from '@/lib/statistics';
 
 interface MetricItemProps {
@@ -34,6 +35,7 @@ interface TraderStatisticsDisplayProps {
   overrideStats?: {
     winRate?: number | null;
     pnlRatio?: number | null;
+    yieldRate?: number | null;  // 计算出的真实收益率
     totalSignals?: number | null;
   };
 }
@@ -92,7 +94,10 @@ const TraderStatisticsDisplay: React.FC<TraderStatisticsDisplayProps> = ({
 
   const displayClassName = `grid grid-cols-3 gap-y-4 pt-6 text-center ${className}`;
   
-  const yieldValue = yieldRate !== undefined && yieldRate !== null ? `+${yieldRate}%` : '--';
+  // 收益率显示逻辑：优先使用计算出的真实收益率
+  const yieldValue = overrideStats?.yieldRate !== undefined 
+    ? formatYieldRateFromNumber(overrideStats.yieldRate)
+    : (yieldRate !== undefined && yieldRate !== null ? `+${yieldRate}%` : '--');
   const followersValue = followers !== undefined && followers !== null ? followers.toString() : '--';
 
   return (

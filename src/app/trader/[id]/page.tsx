@@ -567,6 +567,7 @@ export default function TraderDetailPage() {
               overrideStats={realTimeStats ? {
                 winRate: realTimeStats.winRate,
                 pnlRatio: realTimeStats.pnlRatio,
+                yieldRate: realTimeStats.yieldRate,  // 使用计算出的真实收益率
                 totalSignals: realTimeStats.totalSignals
               } : undefined}
             />
