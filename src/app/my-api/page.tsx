@@ -71,14 +71,21 @@ function ExchangeIcon({ exchange, className }: { exchange: 'okx' | 'binance', cl
             </svg>
         ),
         binance: (
-            <svg className={cn("w-8 h-8", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="24" height="24" rx="2" fill="#1E2026"/>
-                <path d="M6.60781 12.6961L9.3039 15.3922L12 12.6961L9.3039 10L6.60781 12.6961Z" fill="#F0B90B"/>
-                <path d="M12 7.3039L14.6961 10.0001L17.3922 7.3039L14.6961 4.60781L12 7.3039Z" fill="#F0B90B" />
-                <path d="M12 7.3039L9.3039 10.0001L12 12.6963L14.6961 10.0001L12 7.3039Z" fill="#F0B90B"/>
-                <path d="M14.6961 10L17.3922 12.6961L14.6961 15.3922L12 12.6961L14.6961 10Z" fill="#F0B90B"/>
-                <path d="M12 18.0882L9.3039 15.3921L12 12.6959L14.6961 15.3921L12 18.0882Z" fill="#F0B90B"/>
-                <path d="M12 12.6961L10.652 14.0441L12 15.3922L13.348 14.0441L12 12.6961Z" fill="#F0B90B"/>
+            <svg className={cn("w-8 h-8", className)} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" rx="4" fill="#1E2026"/>
+                {/* Binance BNB Logo - 经典5钻石排列 */}
+                <g transform="translate(4, 4)">
+                    {/* 顶部钻石 */}
+                    <path d="M12 3L15.5 6.5L12 10L8.5 6.5L12 3Z" fill="#F0B90B"/>
+                    {/* 左侧钻石 */}
+                    <path d="M4.5 10.5L8 7L11.5 10.5L8 14L4.5 10.5Z" fill="#F0B90B"/>
+                    {/* 右侧钻石 */}
+                    <path d="M12.5 10.5L16 7L19.5 10.5L16 14L12.5 10.5Z" fill="#F0B90B"/>
+                    {/* 底部钻石 */}
+                    <path d="M12 14L15.5 17.5L12 21L8.5 17.5L12 14Z" fill="#F0B90B"/>
+                    {/* 中央钻石 */}
+                    <path d="M12 7L15.5 10.5L12 14L8.5 10.5L12 7Z" fill="#F0B90B"/>
+                </g>
             </svg>
         ),
     };
@@ -259,7 +266,7 @@ function ApiCard({ apiKey, onEdit, onDelete, onToggle }: { apiKey: ApiKeyPublic,
       <CardContent className="p-4 space-y-3">
         <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-                <ExchangeIcon exchange={apiKey.exchange as 'okx' | 'binance'} />
+                <ExchangeIcon exchange={apiKey.exchange as 'okx' | 'binance'} className="flex-shrink-0" />
                 <h3 className="font-bold text-lg">{apiKey.name}</h3>
                 <Badge
                     onClick={() => onToggle(apiKey)}
