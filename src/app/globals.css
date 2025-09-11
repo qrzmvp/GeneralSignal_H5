@@ -174,3 +174,35 @@
     scrollbar-width: none; /* Firefox */
   }
 }
+
+/* Membership Badge Special Effects */
+@layer components {
+  .membership-glow-vip {
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+  }
+
+  .membership-gradient-vip {
+    background: linear-gradient(135deg, #a855f7, #c084fc);
+  }
+  
+  .membership-pulse-vip {
+    animation: membership-vip-pulse 2s ease-in-out infinite;
+  }
+  
+  .membership-hover-pro:hover {
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.3);
+    transform: translateY(-1px);
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+@keyframes membership-vip-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}

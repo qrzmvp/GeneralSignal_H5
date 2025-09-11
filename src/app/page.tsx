@@ -41,6 +41,8 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { supabase } from '@/lib/supabase'
 import { getTraderAvatar } from '@/lib/trader-avatars'
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet'
+import { MembershipBadge, type MembershipLevel } from '@/components/ui/membership-badge'
+import { formatPnlRatioFromNumber, formatWinRateFromNumber } from '@/lib/statistics'
 
 const PAGE_SIZE = 10;
 const RANK_BADGES: {[key: number]: { color: string }} = {
@@ -60,6 +62,30 @@ type HomeTrader = {
     pnlRatio: number | null
     totalOrders: number
     chartData: { value: number }[]
+    membershipLevel?: MembershipLevel
+}
+
+// 根据交易员表现分配会员等级
+function getMembershipLevel(trader: Omit<HomeTrader, 'membershipLevel'>): MembershipLevel {
+    const { yield: yieldRate, winRate, totalOrders } = trader;
+    
+    // VIP 等级：高收益、高胜率、多信号
+    if (yieldRate >= 200 && winRate >= 90 && totalOrders >= 500) {
+        return 'vip';
+    }
+    
+    // Pro 等级：中高收益或高胜率
+    if ((yieldRate >= 100 && winRate >= 85) || (yieldRate >= 150 && winRate >= 75)) {
+        return 'pro';
+    }
+    
+    // Basic 等级：一定表现
+    if (yieldRate >= 50 && winRate >= 70 && totalOrders >= 100) {
+        return 'basic';
+    }
+    
+    // 其他为免费用户
+    return 'free';
 }
 
 function makeChartData(seed: number): { value: number }[] {
@@ -78,6 +104,7 @@ function makeChartData(seed: number): { value: number }[] {
 function TraderCard({ trader, rank, is综合排序, onFollowClick }: { trader: HomeTrader, rank: number, is综合排序: boolean, onFollowClick: () => void }) {
         // const router = useRouter()
         const badge = is综合排序 && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
+        const membershipLevel = trader.membershipLevel || 'free';
 
         return (
                 <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden relative">
@@ -100,8 +127,19 @@ function TraderCard({ trader, rank, is综合排序, onFollowClick }: { trader: H
                                         <AvatarImage src={trader.avatar} alt={trader.name} />
                                         <AvatarFallback className="bg-muted text-muted-foreground">{trader.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
+                                {/* 排名徽章（仅显示前三名） */}
                                 {badge && (
                                          <Crown className={`absolute -top-1 -left-1 h-6 w-6 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                                )}
+                                {/* 会员徽章（显示在右下角） */}
+                                {membershipLevel !== 'free' && (
+                                    <div className="absolute -bottom-1 -right-1">
+                                        <MembershipBadge 
+                                            level={membershipLevel}
+                                            size="sm"
+                                            showText={false}
+                                        />
+                                    </div>
                                 )}
                         </div>
                         <div className="flex-grow">
@@ -129,11 +167,11 @@ function TraderCard({ trader, rank, is综合排序, onFollowClick }: { trader: H
                                 </div>
                                 <div>
                                         <p className="text-xs text-muted-foreground">胜率</p>
-                                        <p className="text-sm font-semibold text-foreground mt-1">{trader.winRate}%</p>
+                                        <p className="text-sm font-semibold text-foreground mt-1">{formatWinRateFromNumber(trader.winRate)}</p>
                                 </div>
                                 <div>
                                         <p className="text-xs text-muted-foreground">盈亏比</p>
-                                        <p className="text-sm font-semibold text-foreground mt-1">{trader.pnlRatio ?? '--'}</p>
+                                        <p className="text-sm font-semibold text-foreground mt-1">{formatPnlRatioFromNumber(trader.pnlRatio)}</p>
                                 </div>
                                 <div>
                                         <p className="text-xs text-muted-foreground">累计信号</p>
@@ -193,17 +231,24 @@ export default function LeaderboardPage() {
             return 'score' as const
         }, [sortConfig.key])
 
-        const mapRow = (r: any): HomeTrader => ({
-            id: r.id,
-            name: r.name,
-            description: r.description || '',
-            avatar: r.avatar_url || getTraderAvatar(r.name),
-            yield: r?.yield_rate != null ? Number(r.yield_rate) : 0,
-            winRate: r?.win_rate != null ? Number(r.win_rate) : 0,
-            pnlRatio: r?.profit_loss_ratio != null ? Number(r.profit_loss_ratio) : null,
-            totalOrders: r?.total_signals != null ? Number(r.total_signals) : 0,
-            chartData: makeChartData(Math.abs((r.id || '').split('-').join('').slice(-6).split('').reduce((s:number,c:string)=>s + c.charCodeAt(0),0)))
-        })
+        const mapRow = (r: any): HomeTrader => {
+            const trader = {
+                id: r.id,
+                name: r.name,
+                description: r.description || '',
+                avatar: r.avatar_url || getTraderAvatar(r.name),
+                yield: r?.yield_rate != null ? Number(r.yield_rate) : 0,
+                winRate: r?.win_rate != null ? Number(r.win_rate) : 0,
+                pnlRatio: r?.profit_loss_ratio != null ? Number(r.profit_loss_ratio) : null,
+                totalOrders: r?.total_signals != null ? Number(r.total_signals) : 0,
+                chartData: makeChartData(Math.abs((r.id || '').split('-').join('').slice(-6).split('').reduce((s:number,c:string)=>s + c.charCodeAt(0),0)))
+            };
+            
+            return {
+                ...trader,
+                membershipLevel: getMembershipLevel(trader)
+            };
+        };
 
         const load = async (nextPage: number, reset = false) => {
             if (loading) return

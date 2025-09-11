@@ -61,17 +61,14 @@ import {
     Camera
 } from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { submitFeedback, type FeedbackCategory } from '@/lib/feedback';
 import { useToast } from '@/hooks/use-toast';
 import AvatarEditor from '../components/AvatarEditor';
+import { MembershipBadge, type MembershipLevel } from '@/components/ui/membership-badge';
 import { getAvatarDisplayUrl } from '@/lib/avatar-utils';
+import { UsernameEditDialog } from '@/components/UsernameEditDialog';
 
 
 function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
@@ -123,179 +120,12 @@ const feedbackTypes = [
     { id: 'other', label: '其他问题' },
 ];
 
-function FeedbackDialog() {
-    const [open, setOpen] = useState(false);
-    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-    const [description, setDescription] = useState('');
-    const [previews, setPreviews] = useState<string[]>([]);
-    const [files, setFiles] = useState<File[]>([]);
-    const [submitting, setSubmitting] = useState(false);
-    const { toast } = useToast();
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files) return;
-        const picked = Array.from(e.target.files);
-        const next: File[] = [];
-        const nextPreviews: string[] = [];
-        const current = files.length;
-        for (let i = 0; i < picked.length && current + next.length < 3; i++) {
-            const f = picked[i];
-            const okType = /image\/(png|jpe?g|webp)/i.test(f.type);
-            const okSize = f.size <= 5 * 1024 * 1024; // 5MB
-            if (!okType || !okSize) {
-                toast({ description: '仅支持 png/jpg/webp 且单张 ≤ 5MB' });
-                continue;
-            }
-            next.push(f);
-            nextPreviews.push(URL.createObjectURL(f));
-        }
-        setFiles(prev => [...prev, ...next].slice(0, 3));
-        setPreviews(prev => [...prev, ...nextPreviews].slice(0, 3));
-        e.currentTarget.value = '';
-    };
-
-    const removeImage = (index: number) => {
-        setPreviews(prev => {
-            const url = prev[index];
-            try { URL.revokeObjectURL(url); } catch {}
-            return prev.filter((_, i) => i !== index);
-        });
-        setFiles(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const handleTypeChange = (typeId: string) => {
-        setSelectedTypes(prev =>
-            prev.includes(typeId)
-                ? prev.filter(id => id !== typeId)
-                : [...prev, typeId]
-        );
-    };
-    
-    const categoryMap: Record<string, FeedbackCategory> = {
-        'feature-suggestion': 'feature',
-        'ui-issue': 'ui',
-        'account-issue': 'account',
-        'other': 'other',
-    };
-
-    const resetForm = () => {
-        setSelectedTypes([]);
-        setDescription('');
-        setFiles([]);
-        setPreviews(prev => { prev.forEach(u => { try { URL.revokeObjectURL(u); } catch {} }); return []; });
-    };
-
-    const handleSubmit = async () => {
-        console.debug('[feedback] click submit', { selectedTypes, descLen: description?.length, files: files?.length })
-        if (!selectedTypes.length) {
-            console.debug('[feedback] validation fail: types')
-            toast({ description: '请选择问题类型' });
-            return;
-        }
-        if (!description || description.trim().length < 10) {
-            console.debug('[feedback] validation fail: desc')
-            toast({ description: '问题描述至少 10 个字' });
-            return;
-        }
-        setSubmitting(true);
-        try {
-            const categories = selectedTypes.map(id => categoryMap[id]).filter(Boolean) as FeedbackCategory[];
-            console.debug('[feedback] call submitFeedback')
-            await submitFeedback({
-                categories,
-                description: description.trim(),
-                images: files,
-                env: { ua: navigator.userAgent, viewport: { w: window.innerWidth, h: window.innerHeight } }
-            });
-            toast({ description: '提交成功' });
-            resetForm();
-            setOpen(false);
-        } catch (err: any) {
-            console.debug('[feedback] submit error', err)
-            const msg = err?.message || err?.error_description || err?.hint || '提交失败，请稍后重试'
-            toast({ description: String(msg) });
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    return (
-        <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); setOpen(v); }}>
-            <DialogTrigger asChild>
-                <div className="divide-y divide-border/30" onClick={() => setOpen(true)}>
-                    <ProfileItem icon={<FileQuestion className="text-primary"/>} label="问题反馈" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
-                </div>
-            </DialogTrigger>
-            <DialogContent className="max-w-[90vw] sm:max-w-md rounded-lg">
-                <DialogHeader>
-                    <DialogTitle>问题反馈</DialogTitle>
-                    <DialogDescription>我们重视您的每一个建议</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 py-4">
-                    <div className="grid gap-3">
-                        <Label>问题类型</Label>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                           {feedbackTypes.map((type) => (
-                                <div key={type.id} className="flex items-center gap-2">
-                                    <Checkbox
-                                        id={type.id}
-                                        checked={selectedTypes.includes(type.id)}
-                                        onCheckedChange={() => handleTypeChange(type.id)}
-                                    />
-                                    <Label htmlFor={type.id} className="font-normal text-sm">{type.label}</Label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="description">问题描述</Label>
-                        <Textarea
-                            id="description"
-                            placeholder="请详细描述您的问题或建议..."
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            maxLength={500}
-                            className="h-28"
-                        />
-                        <p className="text-xs text-muted-foreground text-right">{description.length} / 500</p>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label>上传图片 (可选, 最多3张)</Label>
-                        <div className="flex items-center gap-2">
-                            {previews.map((img, index) => (
-                                <div key={index} className="relative w-20 h-20">
-                                    <Image src={img} alt={`upload-preview-${index}`} layout="fill" objectFit="cover" className="rounded-md" />
-                                    <button onClick={() => removeImage(index)} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5">
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </div>
-                            ))}
-                            {previews.length < 3 && (
-                                <Label htmlFor="file-upload" className="w-20 h-20 bg-muted rounded-md flex items-center justify-center cursor-pointer hover:bg-muted/80">
-                                    <ImagePlus className="w-8 h-8 text-muted-foreground" />
-                                </Label>
-                            )}
-                        </div>
-                        <Input id="file-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/jpg, image/webp" multiple onChange={handleFileChange} />
-                    </div>
-                </div>
-                <DialogFooter className="flex-row justify-end gap-2">
-                    <DialogClose asChild>
-                        <Button type="button" variant="secondary">取消</Button>
-                    </DialogClose>
-                    <Button type="submit" onClick={handleSubmit} disabled={submitting} className="min-w-20">
-                        {submitting ? '提交中…' : '提交'}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
+// 移除feedbackTypes定义，因为它现在没有被使用
 export default function ProfilePage() {
         const [activeTab, setActiveTab] = useState('profile');
         const [showToast, setShowToast] = useState(false);
         const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+    const [usernameEditOpen, setUsernameEditOpen] = useState(false);
         const router = useRouter();
         const { user: authUser, signOut, loading } = useAuth();
 
@@ -392,6 +222,23 @@ export default function ProfilePage() {
         setProfile(prev => ({ ...prev, avatar: newAvatarUrl }));
     }
 
+    const handleUsernameUpdate = (newUsername: string) => {
+        setProfile(prev => ({ ...prev, name: newUsername }));
+    }
+
+    // 将字符串会员类型转换为 MembershipLevel
+    const getMembershipLevel = (membership: string | null): MembershipLevel => {
+        if (!membership) {
+            // 如果没有会员数据，默认显示 basic 等级作为演示
+            return 'basic';
+        }
+        const membershipLower = membership.toLowerCase();
+        if (['basic', 'pro', 'vip'].includes(membershipLower)) {
+            return membershipLower as MembershipLevel;
+        }
+        return 'basic'; // 默认显示 basic 等级
+    };
+
   return (
     <>
     <ProtectedRoute>
@@ -432,15 +279,28 @@ export default function ProfilePage() {
                         </button>
                     </div>
                     <div className="space-y-1">
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                            {profile.name}
-                            {profile.membership && (
-                                <span className="bg-yellow-400 text-yellow-900 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <Crown className="w-3 h-3" />
-                                    {profile.membership}
-                                </span>
-                            )}
-                        </h2>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-xl font-bold">
+                                    {profile.name}
+                                </h2>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                    onClick={() => setUsernameEditOpen(true)}
+                                    title="编辑用户名"
+                                >
+                                    <Edit3 className="h-3 w-3" />
+                                </Button>
+                            </div>
+                            <MembershipBadge 
+                                level={getMembershipLevel(profile.membership)}
+                                membershipType={profile.membership || undefined}
+                                size="md"
+                                showText={true}
+                            />
+                        </div>
                         <div className="flex items-center text-xs text-muted-foreground no-underline">
                             <span>邮箱: {authUser?.email || '——'}</span>
                             {authUser?.email && (
@@ -530,7 +390,7 @@ export default function ProfilePage() {
                                 </div>
                             </DialogContent>
                         </Dialog>
-                        <FeedbackDialog />
+                        <ProfileItem href="/profile/feedback" icon={<FileQuestion className="text-primary"/>} label="问题反馈" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                     </div>
                 </CardContent>
             </Card>
@@ -571,6 +431,17 @@ export default function ProfilePage() {
                     userId={authUser.id}
                     currentUrl={profile.avatar}
                     onUploaded={handleAvatarUploaded}
+                />
+            )}
+
+            {/* 用户名编辑器 */}
+            {authUser && (
+                <UsernameEditDialog
+                    isOpen={usernameEditOpen}
+                    onClose={() => setUsernameEditOpen(false)}
+                    currentUsername={profile.name}
+                    userId={authUser.id}
+                    onUpdate={handleUsernameUpdate}
                 />
             )}
 

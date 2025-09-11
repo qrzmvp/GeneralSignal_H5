@@ -45,6 +45,9 @@ import { useSwipeable } from 'react-swipeable';
 import { supabase } from '@/lib/supabase'
 import { getTraderAvatar } from '@/lib/trader-avatars'
 import { UnifiedSignal, CurrentSignal, HistoricalSignal, SignalType } from '@/lib/data'
+import TraderStatisticsDisplay from '@/components/TraderStatistics'
+import { useTraderStatistics } from '@/hooks/use-trader-statistics'
+import { useRealSignals } from '@/hooks/use-real-signals'
 
 
 const PAGE_SIZE = 5;
@@ -231,10 +234,27 @@ export default function TraderDetailPage() {
   const [activeTab, setActiveTab] = useState(TABS[0].value);
   const [isMetricsOpen, setIsMetricsOpen] = useState(true);
 
-  // 统一信号状态管理
-  const [allUnifiedSignals, setAllUnifiedSignals] = useState<UnifiedSignal[]>([]);
+  // 真实信号数据
+  const { 
+    signals: allUnifiedSignals, 
+    stats: realTimeStats,
+    isLoading: signalsDataLoading, 
+    error: signalsError,
+    lastUpdated: signalsLastUpdated,
+    refresh: refreshSignals 
+  } = useRealSignals({
+    traderId,
+    enabled: !loadingTrader && !!trader,
+    refreshInterval: 300000 // 5分钟刷新一次
+  });
+  // 统计数据计算
+  const { statistics, isLoading: statisticsLoading } = useTraderStatistics({
+    signals: allUnifiedSignals,
+    autoUpdate: true,
+    updateInterval: 60000 // 1分钟更新一次
+  });
   const [allFollowers, setAllFollowers] = useState<any[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false); // 由于现在使用 useRealtimeSignals，所以不需要手动管理这个状态
 
   // 统一信号列表状态
   const [unifiedSignals, setUnifiedSignals] = useState<UnifiedSignal[]>([]);
@@ -320,59 +340,8 @@ export default function TraderDetailPage() {
   })()
   }, [traderId])
 
+  // 生成模拟的跟单用户数据
   useEffect(() => {
-    // 生成模拟的当前信号和历史信号数据
-    const generatedCurrentSignals: CurrentSignal[] = Array.from({ length: 25 }, (_, i) => {
-      const isLong = Math.random() > 0.5;
-      const pair = ['BTC', 'ETH', 'SOL', 'DOGE'][Math.floor(Math.random() * 4)];
-      const entryPrice = Math.random() * 50000 + 20000;
-      const useRange = Math.random() > 0.7;
-      return {
-        id: i + 1,
-        signalType: 'current' as const,
-        pair: `${pair}-USDT-SWAP`,
-        direction: isLong ? '做多' : '做空',
-        directionColor: isLong ? 'text-green-400' : 'text-red-400',
-        entryPrice: useRange ? `${(entryPrice * 0.99).toFixed(2)}-${(entryPrice * 1.01).toFixed(2)}` : entryPrice.toFixed(2),
-        takeProfit1: i % 4 === 0 ? null : (entryPrice * (isLong ? 1.02 : 0.98)).toFixed(2),
-        takeProfit2: i % 5 === 0 ? null : (entryPrice * (isLong ? 1.04 : 0.96)).toFixed(2),
-        stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
-        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-        createdAt: `2024-05-2${8-i} 14:0${i % 10}:00`,
-        orderType: '限价单',
-        contractType: '永续合约',
-        marginMode: '全仓',
-      };
-    });
-
-    const generatedHistoricalSignals: HistoricalSignal[] = Array.from({ length: 30 }, (_, i) => {
-      const isLong = Math.random() > 0.5;
-      const pair = ['ADA', 'XRP', 'BNB', 'LINK'][Math.floor(Math.random() * 4)];
-      const entryPrice = Math.random() * 500 + 100;
-      const startDate = new Date(2024, 3, 18 - (i % 9), 18, 30 + (i%10), 0);
-      const endDate = new Date(startDate.getTime() + (Math.random() * 72 + 8) * 60 * 60 * 1000); // 8-80 hours later
-      const formatDate = (date: Date) => date.toISOString().replace('T', ' ').substring(0, 19);
-
-      return {
-        id: i + 100, // Avoid key collision
-        signalType: 'historical' as const,
-        pair: `${pair}-USDT-SWAP`,
-        direction: isLong ? '做多' : '做空',
-        directionColor: isLong ? 'text-green-400' : 'text-red-400',
-        entryPrice: entryPrice.toFixed(3),
-        takeProfit1: (entryPrice * (isLong ? 1.05 : 0.95)).toFixed(3),
-        takeProfit2: (entryPrice * (isLong ? 1.10 : 0.90)).toFixed(3),
-        stopLoss: (entryPrice * (isLong ? 0.98 : 1.02)).toFixed(3),
-        pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
-        createdAt: formatDate(startDate),
-        endedAt: formatDate(endDate),
-        orderType: '限价单',
-        contractType: '永续合约',
-        marginMode: '全仓',
-        status: Math.random() > 0.3 ? '止盈平仓' : '止损平仓',
-      };
-    });
-
     const generatedFollowers = Array.from({ length: 40 }, (_, i) => {
       const name = `用户${(Math.random() + 1).toString(36).substring(7)}`;
       return {
@@ -383,13 +352,7 @@ export default function TraderDetailPage() {
       };
     });
 
-    // 合并信号并按时间排序
-    const combinedSignals: UnifiedSignal[] = [...generatedCurrentSignals, ...generatedHistoricalSignals]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    setAllUnifiedSignals(combinedSignals);
     setAllFollowers(generatedFollowers);
-    setDataLoading(false);
   }, []);
 
   // 跟单用户状态
@@ -460,7 +423,7 @@ export default function TraderDetailPage() {
   ]);
   
   useEffect(() => {
-    if (dataLoading) return;
+    if (signalsDataLoading) return;
     const initialLoad = (type: 'signals' | 'followers') => {
       if (type === 'signals') {
         setSignalsLoading(true);
@@ -482,11 +445,11 @@ export default function TraderDetailPage() {
 
     initialLoad('signals');
     initialLoad('followers');
-  }, [dataLoading, allUnifiedSignals, allFollowers, filterSignals]);
+  }, [signalsDataLoading, allUnifiedSignals, allFollowers, filterSignals]);
 
   // 重新加载信号当筛选条件变化时
   useEffect(() => {
-    if (dataLoading) return;
+    if (signalsDataLoading) return;
     setUnifiedSignals([]);
     setSignalsPage(1);
     setSignalsHasMore(true);
@@ -497,7 +460,7 @@ export default function TraderDetailPage() {
     setUnifiedSignals(newSignals);
     setSignalsPage(2);
     setSignalsHasMore(PAGE_SIZE < filteredSignals.length);
-  }, [signalTypeFilter, directionFilter, pairFilter, allUnifiedSignals, filterSignals, dataLoading]);
+  }, [signalTypeFilter, directionFilter, pairFilter, allUnifiedSignals, filterSignals, signalsDataLoading]);
 
   useEffect(() => {
     if (signalsInView && !signalsLoading) loadMore('signals');
@@ -595,14 +558,18 @@ export default function TraderDetailPage() {
           </div>
 
           <CollapsibleContent>
-            <div className="grid grid-cols-3 gap-y-4 pt-6 text-center">
-              <MetricItem label="收益率" value={`+${trader.yield}%`} valueClassName="text-green-400" />
-              <MetricItem label="胜率" value={`${trader.winRate}%`} valueClassName="text-foreground" />
-              <MetricItem label="盈亏比" value={trader.pnlRatio ?? '--'} valueClassName="text-foreground" />
-              <MetricItem label="累计信号" value={trader.totalOrders} valueClassName="text-foreground" />
-              <MetricItem label="累计跟单" value={trader.followers ?? '--'} valueClassName="text-foreground" />
-              <MetricItem label="累计天数(天)" value={trader.days ?? '--'} valueClassName="text-foreground" />
-            </div>
+            <TraderStatisticsDisplay 
+              signals={allUnifiedSignals}
+              yieldRate={trader.yield}
+              followers={trader.followers}
+              className=""
+              // 使用真实计算的统计数据，如果可用的话
+              overrideStats={realTimeStats ? {
+                winRate: realTimeStats.winRate,
+                pnlRatio: realTimeStats.pnlRatio,
+                totalSignals: realTimeStats.totalSignals
+              } : undefined}
+            />
           </CollapsibleContent>
 
           <div className="flex flex-col items-center w-full mt-4">
@@ -625,7 +592,7 @@ export default function TraderDetailPage() {
       </Collapsible>
     </Card>
 
-    { dataLoading ? (
+    { signalsDataLoading ? (
       <div className="flex h-40 items-center justify-center">
         <Loader2 className="mr-2 h-8 w-8 animate-spin" />
         <span>加载中...</span>

@@ -28,12 +28,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Supabase Storage public assets (avatars)
+      // Supabase Storage - all paths (more permissive)
       {
         protocol: 'https',
         hostname: '**.supabase.co',
         port: '',
-        pathname: '/storage/v1/object/public/**',
+        pathname: '/**',
       },
     ],
   },
