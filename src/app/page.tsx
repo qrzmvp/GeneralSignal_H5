@@ -8,7 +8,6 @@ import {
     User,
     Plus,
     Loader2,
-    Crown,
     ArrowRightLeft,
     X,
     LogOut,
@@ -43,13 +42,11 @@ import { getTraderAvatar } from '@/lib/trader-avatars'
 import { FollowOrderSheet } from '@/app/components/FollowOrderSheet'
 import { MembershipBadge, type MembershipLevel } from '@/components/ui/membership-badge'
 import { formatPnlRatioFromNumber, formatWinRateFromNumber } from '@/lib/statistics'
+import { METALLIC_RANK_ICONS } from '@/components/ui/rank-icons'
 
 const PAGE_SIZE = 10;
-const RANK_BADGES: {[key: number]: { color: string }} = {
-        1: { color: "text-yellow-400" }, // Gold
-        2: { color: "text-slate-400" }, // Silver
-        3: { color: "text-amber-600" },   // Bronze
-}
+// 使用新的立体金属感图标
+const RANK_BADGES = METALLIC_RANK_ICONS;
 
 // Shape the DB row into the UI's expected Trader-like data
 type HomeTrader = {
@@ -129,10 +126,18 @@ function TraderCard({ trader, rank, is综合排序, onFollowClick }: { trader: H
                                 </Avatar>
                                 {/* 排名徽章（仅显示前三名） */}
                                 {badge && (
-                                         <Crown className={`absolute -top-1 -left-1 h-6 w-6 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                                         <div className="absolute -top-2 -left-2 transform -rotate-12">
+                                                <badge.Icon className="w-8 h-8" />
+                                         </div>
                                 )}
-                                {/* 会员徽章（显示在右下角） */}
-                                {membershipLevel !== 'free' && (
+                                {/* 排名小徽章（显示在右下角） */}
+                                {badge && (
+                                    <div className="absolute -bottom-1 -right-1">
+                                        <badge.Badge />
+                                    </div>
+                                )}
+                                {/* 会员徽章（显示在右下角，如果没有排名徽章） */}
+                                {!badge && membershipLevel !== 'free' && (
                                     <div className="absolute -bottom-1 -right-1">
                                         <MembershipBadge 
                                             level={membershipLevel}

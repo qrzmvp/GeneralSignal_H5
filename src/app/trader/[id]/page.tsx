@@ -18,7 +18,6 @@ import {
   Loader2,
   History,
   Users,
-  Crown,
   ArrowRightLeft,
   BarChart,
   ChevronUp
@@ -48,28 +47,16 @@ import { UnifiedSignal, CurrentSignal, HistoricalSignal, SignalType } from '@/li
 import TraderStatisticsDisplay from '@/components/TraderStatistics'
 import { useTraderStatistics } from '@/hooks/use-trader-statistics'
 import { useRealSignals } from '@/hooks/use-real-signals'
+import { METALLIC_RANK_ICONS } from '@/components/ui/rank-icons'
+import ActiveSignalIndicator from '@/components/ActiveSignalIndicator'
+import InfoPill from '@/components/InfoPill'
 
 
 const PAGE_SIZE = 5;
 
-const RANK_BADGES: {[key: number]: { color: string }} = {
-  1: { color: "text-yellow-400" }, // Gold
-  2: { color: "text-slate-400" }, // Silver
-  3: { color: "text-amber-600" },   // Bronze
-}
+// 使用新的立体金属感图标
+const RANK_BADGES = METALLIC_RANK_ICONS;
 
-
-function InfoPill({ label, value, action }: { label: string; value: string | number | null | undefined, action?: React.ReactNode }) {
-  return (
-  <div className="flex items-center justify-between text-sm py-2">
-    <span className="text-muted-foreground">{label}</span>
-    <div className="flex items-center gap-2">
-    <span className="font-medium text-foreground">{value || '--'}</span>
-    {action}
-    </div>
-  </div>
-  )
-}
 
 function MetricItem({ label, value, valueClassName }: { label: string; value: string | number, valueClassName?: string }) {
   return (
@@ -88,7 +75,7 @@ function SignalCard({ signal }: { signal: CurrentSignal }) {
           <div className="flex flex-col gap-2 items-start">
              <div className="flex items-center gap-2">
               <div className="font-mono text-base text-primary active-signal" style={{ transformOrigin: 'left' }}>{signal.pair}</div>
-              <div className="signal-light pulsing-light" />
+              <ActiveSignalIndicator size="md" showLabel={true} labelText="有效" />
             </div>
              <div className="flex items-center gap-2">
               <Badge variant="secondary">{signal.orderType}</Badge>
@@ -99,18 +86,23 @@ function SignalCard({ signal }: { signal: CurrentSignal }) {
           <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
         </div>
         <div className="space-y-2 border-t border-border/50 pt-3">
-          <InfoPill label="入场点位" value={signal.entryPrice} />
-          <InfoPill label="止盈点位 1" value={signal.takeProfit1} />
-          <InfoPill label="止盈点位 2" value={signal.takeProfit2} />
-          <InfoPill label="止损点位" value={signal.stopLoss} />
-          <InfoPill label="建议盈亏比" value={signal.pnlRatio} />
+          <InfoPill label="入场点位" value={signal.entryPrice} variant="highlighted" />
+          <InfoPill label="止盈点位 1" value={signal.takeProfit1} variant="highlighted" />
+          <InfoPill label="止盈点位 2" value={signal.takeProfit2} variant="highlighted" />
+          <InfoPill label="止损点位" value={signal.stopLoss} variant="highlighted" />
+          <InfoPill label="建议盈亏比" value={signal.pnlRatio} variant="highlighted" />
         </div>
         <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
-          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Clock className="w-3 h-3" />
-            {signal.createdAt}
+          <div className="text-xs flex items-center gap-1.5">
+            <Clock className="w-3 h-3 text-muted-foreground" />
+            <span className="text-foreground font-medium">{signal.createdAt}</span>
           </div>
-          <Button size="sm" className="h-8 px-3 rounded-full bg-primary/20 text-primary hover:bg-primary/30">手动跟单</Button>
+          <Button 
+            size="sm" 
+            className="h-8 px-4 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+          >
+            手动跟单
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -118,6 +110,33 @@ function SignalCard({ signal }: { signal: CurrentSignal }) {
 }
 
 function HistoricalSignalCard({ signal }: { signal: HistoricalSignal }) {
+  // 为历史信号的做多/做空颜色转换为浅色版本
+  const getDegradedDirectionColor = (originalColor: string): string => {
+    // 将绿色做多转换为浅绿色
+    if (originalColor.includes('green')) {
+      return 'text-green-400/70'; // 浅绿色
+    }
+    // 将红色做空转换为浅红色
+    if (originalColor.includes('red')) {
+      return 'text-red-400/70'; // 浅红色
+    }
+    // 其他颜色使用透明度降级
+    if (originalColor.includes('/')) {
+      return originalColor;
+    }
+    return `${originalColor}/70`;
+  };
+
+  // 数值格式化函数，保留两位小数
+  const formatValue = (value: string | null): string => {
+    if (!value || value === '--') return '--';
+    const numValue = parseFloat(value.toString());
+    if (isNaN(numValue)) return value.toString();
+    return numValue.toFixed(2);
+  };
+
+  const degradedDirectionColor = getDegradedDirectionColor(signal.directionColor);
+
   return (
     <Card className="bg-card/80 border-border/50">
       <CardContent className="p-4">
@@ -130,20 +149,47 @@ function HistoricalSignalCard({ signal }: { signal: HistoricalSignal }) {
               <Badge variant="secondary">{signal.marginMode}</Badge>
             </div>
           </div>
-          <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
+          <span className={`text-lg font-bold ${degradedDirectionColor}`}>{signal.direction}</span>
         </div>
         <div className="space-y-2 border-t border-border/50 pt-3">
-          <InfoPill label="入场点位" value={signal.entryPrice} />
-          <InfoPill label="止盈点位 1" value={signal.takeProfit1} />
-          <InfoPill label="止盈点位 2" value={signal.takeProfit2} />
-          <InfoPill label="止损点位" value={signal.stopLoss} />
-          <InfoPill label="平仓盈亏比" value={signal.pnlRatio} />
+          <InfoPill 
+            label="入场点位" 
+            value={formatValue(signal.entryPrice)} 
+            labelClassName="text-muted-foreground"
+            valueClassName="text-muted-foreground"
+          />
+          <InfoPill 
+            label="止盈点位 1" 
+            value={formatValue(signal.takeProfit1)} 
+            labelClassName="text-muted-foreground"
+            valueClassName="text-muted-foreground"
+          />
+          <InfoPill 
+            label="止盈点位 2" 
+            value={formatValue(signal.takeProfit2)} 
+            labelClassName="text-muted-foreground"
+            valueClassName="text-muted-foreground"
+          />
+          <InfoPill 
+            label="止损点位" 
+            value={formatValue(signal.stopLoss)} 
+            labelClassName="text-muted-foreground"
+            valueClassName="text-muted-foreground"
+          />
+          <InfoPill 
+            label="平仓盈亏比" 
+            value={signal.pnlRatio} 
+            labelClassName="text-muted-foreground"
+            valueClassName="text-muted-foreground"
+          />
         </div>
          <div className="mt-1 pt-3 border-t border-border/50">
           <InfoPill 
             label="开/平仓时间" 
             value={`${signal.createdAt.split(' ')[1]} -> ${signal.endedAt.split(' ')[1]}`} 
             action={<span className="text-sm font-medium text-muted-foreground">{signal.status}</span>}
+            labelClassName="text-muted-foreground"
+            valueClassName="text-muted-foreground"
           />
          </div>
       </CardContent>
@@ -544,7 +590,15 @@ export default function TraderDetailPage() {
                 <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
               </Avatar>
               {badge && (
-                <Crown className={`absolute -top-1 -left-1 h-7 w-7 transform -rotate-12 ${badge.color}`} fill="currentColor" />
+                <div className="absolute -top-2 -left-2 transform -rotate-12">
+                  <badge.Icon className="w-9 h-9" />
+                </div>
+              )}
+              {/* 排名小徽章（显示在右下角） */}
+              {badge && (
+                <div className="absolute -bottom-1 -right-1">
+                  <badge.Badge />
+                </div>
               )}
             </div>
           </div>
