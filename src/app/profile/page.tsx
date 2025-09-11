@@ -56,7 +56,9 @@ import {
     Wallet,
     X,
     Users,
-    Ticket
+    Ticket,
+    Edit3,
+    Camera
 } from 'lucide-react';
 import { SimpleToast } from '../components/SimpleToast';
 import { Label } from '@/components/ui/label';
@@ -68,6 +70,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { submitFeedback, type FeedbackCategory } from '@/lib/feedback';
 import { useToast } from '@/hooks/use-toast';
+import AvatarEditor from '../components/AvatarEditor';
+import { getAvatarDisplayUrl } from '@/lib/avatar-utils';
 
 
 function ProfileItem({ icon, label, value, action, onClick, href }: { icon: React.ReactNode, label: string, value?: string, action?: React.ReactNode, onClick?: () => void, href?: string }) {
@@ -291,6 +295,7 @@ function FeedbackDialog() {
 export default function ProfilePage() {
         const [activeTab, setActiveTab] = useState('profile');
         const [showToast, setShowToast] = useState(false);
+        const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
         const router = useRouter();
         const { user: authUser, signOut, loading } = useAuth();
 
@@ -383,6 +388,10 @@ export default function ProfilePage() {
         await signOut();
     }
 
+    const handleAvatarUploaded = (newAvatarUrl: string) => {
+        setProfile(prev => ({ ...prev, avatar: newAvatarUrl }));
+    }
+
   return (
     <>
     <ProtectedRoute>
@@ -394,45 +403,65 @@ export default function ProfilePage() {
 
       <main className="flex-grow overflow-auto px-4 pt-2 pb-24">
         <div className="space-y-6">
+            {/* User Profile Card */}
             <Card className="bg-card/50 border-0 shadow-none">
                 <CardContent className="p-4 flex items-center gap-4">
-                                        <div className="relative">
-                                            <Avatar className="h-16 w-16 border-2 border-primary/50">
-                                                <AvatarImage src={'/avatar-default.svg'} alt={profile.name || '用户'} />
-                                                <AvatarFallback>{(profile.name || '用').charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        </div>
+                    <div className="relative group">
+                        <Avatar className="h-16 w-16 border-2 border-primary/50">
+                            <AvatarImage 
+                                src={getAvatarDisplayUrl(profile.avatar)} 
+                                alt={profile.name || '用户'} 
+                            />
+                            <AvatarFallback>{(profile.name || '用').charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {/* 头像编辑按钮 */}
+                        <button
+                            onClick={() => setAvatarEditorOpen(true)}
+                            className="absolute inset-0 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center"
+                            aria-label="编辑头像"
+                        >
+                            <Edit3 className="h-4 w-4" />
+                        </button>
+                        {/* 右下角编辑图标提示 */}
+                        <button
+                            onClick={() => setAvatarEditorOpen(true)}
+                            className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg hover:bg-primary/90 transition-colors"
+                            aria-label="编辑头像"
+                        >
+                            <Camera className="h-3 w-3" />
+                        </button>
+                    </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold flex items-center gap-2">
-                {profile.name}
-                {profile.membership && (
+                            {profile.name}
+                            {profile.membership && (
                                 <span className="bg-yellow-400 text-yellow-900 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Crown className="w-3 h-3" />
-                    {profile.membership}
+                                    {profile.membership}
                                 </span>
                             )}
                         </h2>
-                                                <div className="flex items-center text-xs text-muted-foreground no-underline">
-                                                    <span>邮箱: {authUser?.email || '——'}</span>
-                                                        {authUser?.email && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-6 w-6 ml-1"
-                                                                onClick={() => handleCopy(authUser.email!)}
-                                                            >
-                                                                <Copy className="h-3 w-3" />
-                                                            </Button>
-                                                        )}
-                                                </div>
-                         <div className="flex items-center text-xs text-muted-foreground gap-1">
+                        <div className="flex items-center text-xs text-muted-foreground no-underline">
+                            <span>邮箱: {authUser?.email || '——'}</span>
+                            {authUser?.email && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 ml-1"
+                                    onClick={() => handleCopy(authUser.email!)}
+                                >
+                                    <Copy className="h-3 w-3" />
+                                </Button>
+                            )}
+                        </div>
+                        <div className="flex items-center text-xs text-muted-foreground gap-1">
                             <Ticket className="w-3 h-3" />
                             <span>邀请码: {profile.invitationCode || '——'} </span>
-                             {profile.invitationCode && (
-                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(profile.invitationCode!)}>
-                                <Copy className="h-3 w-3" />
-                            </Button>
-                             )}
+                            {profile.invitationCode && (
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(profile.invitationCode!)}>
+                                    <Copy className="h-3 w-3" />
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </CardContent>
@@ -440,19 +469,18 @@ export default function ProfilePage() {
 
             {/* Common Functions */}
             <Card className="bg-card/50 border-border/30">
-                 <CardContent className="p-0">
+                <CardContent className="p-0">
                     <div className="divide-y divide-border/30">
                         <ProfileItem href="/membership" icon={<Crown className="text-yellow-400"/>} label="购买会员" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem href="/payment-details" icon={<ReceiptText className="text-primary"/>} label="付费明细" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem href="/my-api" icon={<KeyRound className="text-primary"/>} label="我的API" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                         <ProfileItem href="/invite" icon={<Users className="text-primary"/>} label="邀请好友" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} />
                     </div>
-                 </CardContent>
+                </CardContent>
             </Card>
 
-
-             {/* Support */}
-             <Card className="bg-card/50 border-border/30">
+            {/* Support */}
+            <Card className="bg-card/50 border-border/30">
                 <CardContent className="p-0">
                     <div className="divide-y divide-border/30">
                         <Dialog>
@@ -461,12 +489,12 @@ export default function ProfilePage() {
                                     <ProfileItem icon={<Headset className="text-primary"/>} label="联系客服" action={<ChevronRight className="h-4 w-4 text-muted-foreground"/>} onClick={() => {}}/>
                                 </div>
                             </DialogTrigger>
-                             <DialogContent className="max-w-[90vw] sm:max-w-xs rounded-lg">
+                            <DialogContent className="max-w-[90vw] sm:max-w-xs rounded-lg">
                                 <DialogHeader>
-                                <DialogTitle>联系客服</DialogTitle>
-                                <DialogDescription>
-                                    通过Telegram联系我们的客服团队。
-                                </DialogDescription>
+                                    <DialogTitle>联系客服</DialogTitle>
+                                    <DialogDescription>
+                                        通过Telegram联系我们的客服团队。
+                                    </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
                                     <div className="flex flex-col items-center justify-center gap-4">
@@ -519,14 +547,14 @@ export default function ProfilePage() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                            <AlertDialogTitle>确定要退出登录吗?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                您随时可以重新登录。
-                            </AlertDialogDescription>
+                                <AlertDialogTitle>确定要退出登录吗?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    您随时可以重新登录。
+                                </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                            <AlertDialogCancel variant="secondary">取消</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleLogout} className="bg-primary hover:bg-primary/90">确认退出</AlertDialogAction>
+                                <AlertDialogCancel variant="secondary">取消</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleLogout} className="bg-primary hover:bg-primary/90">确认退出</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
@@ -535,8 +563,16 @@ export default function ProfilePage() {
         </div>
       </main>
 
-            {/* 头像编辑功能暂时下线 */}
-
+            {/* 头像编辑器 */}
+            {authUser && (
+                <AvatarEditor
+                    open={avatarEditorOpen}
+                    onOpenChange={setAvatarEditorOpen}
+                    userId={authUser.id}
+                    currentUrl={profile.avatar}
+                    onUploaded={handleAvatarUploaded}
+                />
+            )}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border/50 h-16 z-20 flex-shrink-0">
