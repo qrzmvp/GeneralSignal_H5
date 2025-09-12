@@ -362,7 +362,7 @@ export default function PaymentDetailsPage() {
                         <FilterDropdown
                             label="类型"
                             value={typeFilter}
-                            options={['全部类型', '自动跟单', '手动跟单']}
+                            options={['全部类型', '手动跟单']} // 临时移除自动跟单选项
                             onSelect={setTypeFilter}
                         />
                         <FilterDropdown

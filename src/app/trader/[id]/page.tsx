@@ -657,14 +657,17 @@ export default function TraderDetailPage() {
                 {isMetricsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
             </CollapsibleTrigger>
-            <div className="flex w-full justify-center gap-4 pt-2">
-              <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
-                自动跟单
-              </Button>
-              <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1">
-                策略回测
-              </Button>
-            </div>
+            {/* 临时隐藏自动跟单和策略回测功能 - 后续可能会重新启用 */}
+            {false && (
+              <div className="flex w-full justify-center gap-4 pt-2">
+                <Button className="font-bold text-sm h-10 rounded-full px-5 flex-1" onClick={(e) => { e.stopPropagation(); setIsSheetOpen(true); }}>
+                  自动跟单
+                </Button>
+                <Button variant="secondary" className="font-bold text-sm h-10 rounded-full px-5 flex-1">
+                  策略回测
+                </Button>
+              </div>
+            )}
           </div>
 
         </CardContent>

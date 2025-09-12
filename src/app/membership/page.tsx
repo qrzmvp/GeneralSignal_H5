@@ -266,7 +266,7 @@ const TABS = ['auto', 'manual'];
 
 function MembershipPageContent() {
     const router = useRouter();
-    const [selectedTab, setSelectedTab] = useState('auto');
+    const [selectedTab, setSelectedTab] = useState('manual'); // 默认选中手动跟单，因为自动跟单已隐藏
     const [manualSelectedPlan, setManualSelectedPlan] = useState('');
     const [autoSelectedPlan, setAutoSelectedPlan] = useState('');
     const [manualPlans, setManualPlans] = useState<Plan[]>([]);
@@ -392,10 +392,17 @@ function MembershipPageContent() {
 
             <main className="flex-grow overflow-auto p-4 space-y-8">
                 <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="auto">自动跟单</TabsTrigger>
-                        <TabsTrigger value="manual">手动跟单</TabsTrigger>
-                    </TabsList>
+                    {/* 临时隐藏自动跟单功能 - 后续可能会重新启用 */}
+                    {false ? (
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="auto">自动跟单</TabsTrigger>
+                            <TabsTrigger value="manual">手动跟单</TabsTrigger>
+                        </TabsList>
+                    ) : (
+                        <TabsList className="grid w-full grid-cols-1">
+                            <TabsTrigger value="manual">手动跟单</TabsTrigger>
+                        </TabsList>
+                    )}
                     <div {...swipeHandlers}>
                         {loading ? (
                             <div className="flex justify-center items-center py-20">
@@ -413,6 +420,8 @@ function MembershipPageContent() {
                             </div>
                         ) : (
                             <>
+                            {/* 临时隐藏自动跟单功能 - 后续可能会重新启用 */}
+                            {false && (
                                 <TabsContent value="auto" className="mt-6">
                                     {autoPlans.length > 0 ? (
                                         <PlanSelector
@@ -426,6 +435,7 @@ function MembershipPageContent() {
                                         </div>
                                     )}
                                 </TabsContent>
+                            )}
                                 <TabsContent value="manual" className="mt-6">
                                     {manualPlans.length > 0 ? (
                                         <PlanSelector
@@ -443,7 +453,8 @@ function MembershipPageContent() {
                         )}
                     </div>
                 </Tabs>
-                <ComparisonSection />
+                {/* 临时隐藏功能对比表格 - 后续可能会重新启用 */}
+                {false && <ComparisonSection />}
             </main>
         </div>
     )
