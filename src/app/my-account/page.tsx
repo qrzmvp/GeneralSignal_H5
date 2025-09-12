@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2, RefreshCw, Layers, Upload, Bot, ClipboardCopy } from 'lucide-react';
+import { BarChart, User, ArrowRightLeft, Plus, ChevronUp, ChevronDown, Settings, Edit, Loader2, RefreshCw, Layers, Upload, Bot, ClipboardCopy, Hand } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
@@ -53,10 +53,14 @@ function PositionCard({ position, isHistorical }: { position: any, isHistorical:
                     <div className="flex items-center gap-2">
                         <h3 className={cn("font-bold text-base", textColor)}>{position.pair}</h3>
                         <Badge variant={position.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
-                            'text-xs flex items-center gap-1',
-                            position.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+                            'text-xs flex items-center gap-1 transition-all duration-200',
+                            isHistorical && 'opacity-70',
+                            position.sourceType === 'auto' 
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-primary text-primary-foreground shadow-sm hover:shadow-md hover:scale-105 font-semibold rounded-full'
                         )}>
-                            {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
+                            {position.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <Hand className="w-3 h-3" />}
+                            {position.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </div>
                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -154,10 +158,14 @@ function PendingOrderCard({ order, isHistorical }: { order: any, isHistorical: b
                      <h3 className={cn("font-bold text-base flex items-center gap-2", textColor)}>
                         {order.pair}
                         <Badge variant={order.sourceType === 'auto' ? 'default' : 'secondary'} className={cn(
-                            'text-xs flex items-center gap-1',
-                            order.sourceType === 'auto' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+                            'text-xs flex items-center gap-1 transition-all duration-200',
+                            isHistorical && 'opacity-70',
+                            order.sourceType === 'auto' 
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-primary text-primary-foreground shadow-sm hover:shadow-md hover:scale-105 font-semibold rounded-full'
                         )}>
-                            {order.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <ClipboardCopy className="w-3 h-3" />}
+                            {order.sourceType === 'auto' ? <Bot className="w-3 h-3" /> : <Hand className="w-3 h-3" />}
+                            {order.sourceType === 'auto' ? '自动' : '手动'}
                         </Badge>
                     </h3>
                     <div className="text-sm text-muted-foreground flex items-center gap-1.5">

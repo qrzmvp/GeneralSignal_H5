@@ -50,6 +50,7 @@ import { useRealSignals } from '@/hooks/use-real-signals'
 import { METALLIC_RANK_ICONS } from '@/components/ui/rank-icons'
 import ActiveSignalIndicator from '@/components/ActiveSignalIndicator'
 import InfoPill from '@/components/InfoPill'
+import HistoricalBadge from '@/components/HistoricalBadge'
 
 
 const PAGE_SIZE = 5;
@@ -68,6 +69,29 @@ function MetricItem({ label, value, valueClassName }: { label: string; value: st
 }
 
 function SignalCard({ signal }: { signal: CurrentSignal }) {
+  // 数值格式化函数，保留两位小数
+  const formatValue = (value: string | null): string => {
+    if (!value || value === '--') return '--';
+    const numValue = parseFloat(value.toString());
+    if (isNaN(numValue)) return value.toString();
+    return numValue.toFixed(2);
+  };
+
+  // 价格区间格式化函数，处理形如 "68234.50-68456.78" 的价格区间
+  const formatPriceRange = (value: string | null): string => {
+    if (!value || value === '--') return '--';
+    
+    // 检查是否为价格区间
+    if (value.includes('-')) {
+      const [start, end] = value.split('-');
+      const startFormatted = formatValue(start);
+      const endFormatted = formatValue(end);
+      return `${startFormatted}-${endFormatted}`;
+    }
+    
+    return formatValue(value);
+  };
+
   return (
     <Card className="bg-card/80 border-border/50">
       <CardContent className="p-4">
@@ -86,10 +110,10 @@ function SignalCard({ signal }: { signal: CurrentSignal }) {
           <span className={`text-lg font-bold ${signal.directionColor}`}>{signal.direction}</span>
         </div>
         <div className="space-y-2 border-t border-border/50 pt-3">
-          <InfoPill label="入场点位" value={signal.entryPrice} variant="highlighted" />
-          <InfoPill label="止盈点位 1" value={signal.takeProfit1} variant="highlighted" />
-          <InfoPill label="止盈点位 2" value={signal.takeProfit2} variant="highlighted" />
-          <InfoPill label="止损点位" value={signal.stopLoss} variant="highlighted" />
+          <InfoPill label="入场点位" value={formatPriceRange(signal.entryPrice)} variant="highlighted" />
+          <InfoPill label="止盈点位 1" value={formatValue(signal.takeProfit1)} variant="highlighted" />
+          <InfoPill label="止盈点位 2" value={formatValue(signal.takeProfit2)} variant="highlighted" />
+          <InfoPill label="止损点位" value={formatValue(signal.stopLoss)} variant="highlighted" />
           <InfoPill label="建议盈亏比" value={signal.pnlRatio} variant="highlighted" />
         </div>
         <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
@@ -144,9 +168,9 @@ function HistoricalSignalCard({ signal }: { signal: HistoricalSignal }) {
           <div className="flex flex-col gap-2 items-start">
              <div className="font-mono text-base text-muted-foreground">{signal.pair}</div>
              <div className="flex items-center gap-2">
-              <Badge variant="secondary">{signal.orderType}</Badge>
-              <Badge variant="secondary">{signal.contractType}</Badge>
-              <Badge variant="secondary">{signal.marginMode}</Badge>
+              <HistoricalBadge>{signal.orderType}</HistoricalBadge>
+              <HistoricalBadge>{signal.contractType}</HistoricalBadge>
+              <HistoricalBadge>{signal.marginMode}</HistoricalBadge>
             </div>
           </div>
           <span className={`text-lg font-bold ${degradedDirectionColor}`}>{signal.direction}</span>
