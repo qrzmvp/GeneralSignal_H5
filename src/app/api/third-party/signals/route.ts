@@ -1,5 +1,21 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
+
+// CORS 头部配置
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// 创建带 CORS 的响应
+function createCorsResponse(data: any, status: number = 200) {
+  return NextResponse.json(data, {
+    status,
+    headers: corsHeaders
+  });
+}
 import { calculateRealTimeStats } from '@/lib/signals';
 
 // 为API路由创建服务角色客户端，绕过RLS策略
@@ -143,42 +159,91 @@ async function verifyTraderId(traderId: string): Promise<boolean> {
   return !error && !!data;
 }
 
+// 处理 CORS 预检请求
+export async function OPTIONS(request: Request) {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function POST(request: Request) {
   try {
+    // 记录原始请求信息
+    const contentType = request.headers.get('content-type');
+    console.log('接收到的请求:', {
+      method: request.method,
+      contentType,
+      url: request.url
+    });
+
+    // 检查 Content-Type
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('错误的 Content-Type:', contentType);
+      return createCorsResponse({
+        success: false,
+        error: {
+          code: 'INVALID_CONTENT_TYPE',
+          message: 'Content-Type 必须是 application/json'
+        }
+      } as ErrorResponse, 400);
+    }
+
     // 解析请求体
-    const body: SignalRequestBody = await request.json();
+    let body: SignalRequestBody;
+    try {
+      body = await request.json();
+      console.log('解析成功的请求体:', JSON.stringify(body, null, 2));
+    } catch (jsonError) {
+      console.error('JSON 解析错误:', jsonError);
+      const requestText = await request.clone().text();
+      console.error('原始请求文本:', requestText.substring(0, 200));
+      
+      return createCorsResponse({
+        success: false,
+        error: {
+          code: 'INVALID_JSON',
+          message: '请求体必须是有效的 JSON 格式',
+          details: jsonError instanceof Error ? jsonError.message : 'Unknown JSON error'
+        }
+      } as ErrorResponse, 400);
+    }
     
     // 验证请求体
     if (!body.trader_id) {
-      return NextResponse.json({
+      return createCorsResponse({
         success: false,
         error: {
           code: 'MISSING_TRADER_ID',
           message: '缺少交易员ID'
         }
-      } as ErrorResponse, { status: 400 });
+      } as ErrorResponse, 400);
     }
     
     if (!body.signals || !Array.isArray(body.signals) || body.signals.length === 0) {
-      return NextResponse.json({
+      return createCorsResponse({
         success: false,
         error: {
           code: 'MISSING_SIGNALS',
           message: '缺少信号数据或信号数据格式不正确'
         }
-      } as ErrorResponse, { status: 400 });
+      } as ErrorResponse, 400);
     }
     
     // 验证交易员ID是否存在
     const isTraderValid = await verifyTraderId(body.trader_id);
     if (!isTraderValid) {
-      return NextResponse.json({
+      return createCorsResponse({
         success: false,
         error: {
           code: 'TRADER_NOT_FOUND',
           message: '指定的交易员不存在'
         }
-      } as ErrorResponse, { status: 404 });
+      } as ErrorResponse, 404);
     }
     
     // 验证每个信号数据
@@ -193,13 +258,13 @@ export async function POST(request: Request) {
     }
     
     if (validationErrors.length > 0) {
-      return NextResponse.json({
+      return createCorsResponse({
         success: false,
         error: {
           code: 'INVALID_SIGNAL_DATA',
           message: `信号数据验证失败: ${validationErrors.join('; ')}`
         }
-      } as ErrorResponse, { status: 400 });
+      } as ErrorResponse, 400);
     }
     
     // 处理信号数据
@@ -295,24 +360,24 @@ export async function POST(request: Request) {
     }
     
     // 返回成功响应
-    return NextResponse.json({
+    return createCorsResponse({
       success: true,
       data: {
         message: `成功处理 ${processedSignals} 条信号数据`,
         processed_signals: processedSignals,
         errors: insertErrors.length > 0 ? insertErrors : undefined
       }
-    } as SuccessResponse, { status: 200 });
+    } as SuccessResponse, 200);
     
   } catch (error) {
     console.error('处理信号数据时发生错误:', error);
     
-    return NextResponse.json({
+    return createCorsResponse({
       success: false,
       error: {
         code: 'INTERNAL_ERROR',
         message: '服务器内部错误'
       }
-    } as ErrorResponse, { status: 500 });
+    } as ErrorResponse, 500);
   }
 }
