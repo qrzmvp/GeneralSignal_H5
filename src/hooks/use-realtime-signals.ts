@@ -52,7 +52,7 @@ export const useRealtimeSignals = ({
         stopLoss: (entryPrice * (isLong ? 0.99 : 1.01)).toFixed(2),
         pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
         createdAt: `2024-05-2${8-i} 14:0${i % 10}:00`,
-        orderType: '限价单',
+        orderType: Math.random() > 0.6 ? '市价单' : '限价单',
         contractType: '永续合约',
         marginMode: '全仓',
       };
@@ -80,7 +80,7 @@ export const useRealtimeSignals = ({
         pnlRatio: `${(Math.random() * 5 + 1).toFixed(1)}:1`,
         createdAt: formatDate(startDate),
         endedAt: formatDate(endDate),
-        orderType: '限价单',
+        orderType: Math.random() > 0.6 ? '市价单' : '限价单',
         contractType: '永续合约',
         marginMode: '全仓',
         status: Math.random() > 0.3 ? '止盈平仓' : '止损平仓',

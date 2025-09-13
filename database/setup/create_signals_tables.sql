@@ -49,13 +49,19 @@ ALTER TABLE public.trader_signals ENABLE ROW LEVEL SECURITY;
 
 -- 删除可能存在的旧策略
 DROP POLICY IF EXISTS "trader_signals_select_all" ON public.trader_signals;
+DROP POLICY IF EXISTS "trader_signals_insert_api" ON public.trader_signals;
 
 -- 创建策略：所有用户都可以查看信号数据
 CREATE POLICY "trader_signals_select_all" ON public.trader_signals 
 FOR SELECT USING (true);
 
+-- 创建策略：允许第三方API插入信号数据
+CREATE POLICY "trader_signals_insert_api" ON public.trader_signals 
+FOR INSERT WITH CHECK (true);
+
 -- 5. 授权
 GRANT SELECT ON public.trader_signals TO authenticated, anon;
+GRANT INSERT ON public.trader_signals TO authenticated, anon;
 
 -- 6. 插入测试数据
 DO $$

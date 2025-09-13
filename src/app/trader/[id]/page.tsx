@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -20,7 +20,8 @@ import {
   Users,
   ArrowRightLeft,
   BarChart,
-  ChevronUp
+  ChevronUp,
+  RefreshCcw
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -102,7 +103,16 @@ function SignalCard({ signal }: { signal: CurrentSignal }) {
               <ActiveSignalIndicator size="md" showLabel={true} labelText="有效" />
             </div>
              <div className="flex items-center gap-2">
-              <Badge variant="secondary">{signal.orderType}</Badge>
+              <Badge 
+                variant="secondary" 
+                className={
+                  signal.orderType === '市价单' 
+                    ? 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100' 
+                    : 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100'
+                }
+              >
+                {signal.orderType}
+              </Badge>
               <Badge variant="secondary">{signal.contractType}</Badge>
               <Badge variant="secondary">{signal.marginMode}</Badge>
             </div>
@@ -168,7 +178,7 @@ function HistoricalSignalCard({ signal }: { signal: HistoricalSignal }) {
           <div className="flex flex-col gap-2 items-start">
              <div className="font-mono text-base text-muted-foreground">{signal.pair}</div>
              <div className="flex items-center gap-2">
-              <HistoricalBadge>{signal.orderType}</HistoricalBadge>
+              <HistoricalBadge orderType={signal.orderType}>{signal.orderType}</HistoricalBadge>
               <HistoricalBadge>{signal.contractType}</HistoricalBadge>
               <HistoricalBadge>{signal.marginMode}</HistoricalBadge>
             </div>
@@ -298,13 +308,14 @@ export default function TraderDetailPage() {
   const [traderOptions, setTraderOptions] = useState<Array<{ id: string; name: string; avatar: string }>>([])
   const [sheetTraders, setSheetTraders] = useState<Array<{ id: number; name: string }>>([])
   const [defaultSheetTraderId, setDefaultSheetTraderId] = useState<number | null>(null)
-  const badge = rank && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
+  // 暂时注释掉徽章功能，需要先定义 RANK_BADGES
+  // const badge = rank && rank > 0 && rank <= 3 ? RANK_BADGES[rank] : null;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(TABS[0].value);
   const [isMetricsOpen, setIsMetricsOpen] = useState(true);
 
-  // 真实信号数据
+  // 真实信号数据 - 优化刷新频率提升用户体验
   const { 
     signals: allUnifiedSignals, 
     stats: realTimeStats,
@@ -315,16 +326,57 @@ export default function TraderDetailPage() {
   } = useRealSignals({
     traderId,
     enabled: !loadingTrader && !!trader,
-    refreshInterval: 300000 // 5分钟刷新一次
+    refreshInterval: 30000 // 30秒刷新一次，提升实时性
   });
   // 统计数据计算
   const { statistics, isLoading: statisticsLoading } = useTraderStatistics({
     signals: allUnifiedSignals,
     autoUpdate: true,
-    updateInterval: 60000 // 1分钟更新一次
+    updateInterval: 30000 // 30秒更新一次，提升实时性
   });
+
+  // 页面可见性检测 - 当用户回到页面时自动刷新
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && trader && !signalsDataLoading) {
+        console.log('页面可见，刷新信号数据');
+        refreshSignals();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [trader, signalsDataLoading, refreshSignals]);
+
+  // 定期刷新优化 - 当页面在前台时更频繁刷新
+  useEffect(() => {
+    if (!trader || signalsDataLoading) return;
+
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        console.log('定期刷新信号数据');
+        refreshSignals();
+      }
+    }, 60000); // 1分钟刷新一次（当页面可见时）
+
+    return () => clearInterval(interval);
+  }, [trader, signalsDataLoading, refreshSignals]);
+  // 下拉刷新功能 - 参考邀请记录页面的实现
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const touchStartYRef = useRef(0);
+  const pullingRef = useRef(false);
+
+  const doRefresh = useCallback(async () => {
+    if (signalsDataLoading || isRefreshing) return;
+    setIsRefreshing(true);
+    await refreshSignals();
+    setIsRefreshing(false);
+  }, [signalsDataLoading, isRefreshing, refreshSignals]);
+
+  // 跟单用户数据
   const [allFollowers, setAllFollowers] = useState<any[]>([]);
-  const [dataLoading, setDataLoading] = useState(false); // 由于现在使用 useRealtimeSignals，所以不需要手动管理这个状态
 
   // 统一信号列表状态
   const [unifiedSignals, setUnifiedSignals] = useState<UnifiedSignal[]>([]);
@@ -334,9 +386,9 @@ export default function TraderDetailPage() {
   const { ref: signalsLoadMoreRef, inView: signalsInView } = useInView({ threshold: 0.1 });
 
   // 筛选器状态
-  const [signalTypeFilter, setSignalTypeFilter] = useState('全部信号');
-  const [directionFilter, setDirectionFilter] = useState('全部方向');
-  const [pairFilter, setPairFilter] = useState('全部币种');
+  const [signalTypeFilter, setSignalTypeFilter] = useState('信号');
+  const [directionFilter, setDirectionFilter] = useState('方向');
+  const [pairFilter, setPairFilter] = useState('币种');
   const [timeFilter, setTimeFilter] = useState('近三个月');
 
   // load trader detail
@@ -447,15 +499,29 @@ export default function TraderDetailPage() {
   // 数据筛选函数
   const filterSignals = useCallback((signals: UnifiedSignal[]): UnifiedSignal[] => {
     return signals.filter(signal => {
-      // 信号类型筛选
+      // 信号类型 + 订单类型组合筛选
+      if (signalTypeFilter === '当前信号-限价单') {
+        return signal.signalType === 'current' && signal.orderType === '限价单';
+      }
+      if (signalTypeFilter === '当前信号-市价单') {
+        return signal.signalType === 'current' && signal.orderType === '市价单';
+      }
+      if (signalTypeFilter === '历史信号-限价单') {
+        return signal.signalType === 'historical' && signal.orderType === '限价单';
+      }
+      if (signalTypeFilter === '历史信号-市价单') {
+        return signal.signalType === 'historical' && signal.orderType === '市价单';
+      }
+      
+      // 保持原有的简单筛选逻辑（向后兼容）
       if (signalTypeFilter === '当前信号' && signal.signalType !== 'current') return false;
       if (signalTypeFilter === '历史信号' && signal.signalType !== 'historical') return false;
       
       // 方向筛选
-      if (directionFilter !== '全部方向' && signal.direction !== directionFilter) return false;
+      if (directionFilter !== '方向' && signal.direction !== directionFilter) return false;
       
       // 币种筛选
-      if (pairFilter !== '全部币种') {
+      if (pairFilter !== '币种') {
         const coinFromPair = signal.pair.split('-')[0];
         if (coinFromPair !== pairFilter) return false;
       }
@@ -602,7 +668,52 @@ export default function TraderDetailPage() {
       <div className="w-9"></div> {/* Placeholder for spacing */}
     </header>
 
-    <main className="flex-grow overflow-auto p-4 space-y-3 pb-28">
+    <main 
+      ref={scrollRef}
+      className="flex-grow overflow-auto p-4 space-y-3 pb-28"
+      onTouchStart={(e) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        pullingRef.current = el.scrollTop <= 0;
+        touchStartYRef.current = e.touches[0]?.clientY ?? 0;
+      }}
+      onTouchMove={(e) => {
+        if (!pullingRef.current || signalsDataLoading || isRefreshing) return;
+        const currentY = e.touches[0]?.clientY ?? 0;
+        let dy = currentY - touchStartYRef.current;
+        if (dy > 0) {
+          dy = Math.min(80, dy / 2);
+          setPullDistance(dy);
+          e.preventDefault();
+        } else {
+          setPullDistance(0);
+        }
+      }}
+      onTouchEnd={() => {
+        if (!pullingRef.current) return;
+        const threshold = 50;
+        const shouldRefresh = pullDistance >= threshold;
+        setPullDistance(0);
+        pullingRef.current = false;
+        if (shouldRefresh) void doRefresh();
+      }}
+    >
+      {/* 下拉刷新指示器 */}
+      <div
+        aria-hidden
+        style={{ height: pullDistance, transition: pullDistance === 0 ? 'height 150ms ease-out' : 'none' }}
+        className="-mt-4 flex items-center justify-center text-muted-foreground"
+      >
+        {pullDistance > 0 && (
+          <div className="text-xs flex items-center gap-2">
+            {pullDistance < 50 ? (
+              <span>下拉刷新</span>
+            ) : (
+              <span className="text-foreground">松开刷新</span>
+            )}
+          </div>
+        )}
+      </div>
     {/* Basic Info */}
     <Card className="bg-card/80 border-border/50 overflow-hidden relative">
       <Collapsible open={isMetricsOpen} onOpenChange={setIsMetricsOpen} className="w-full">
@@ -613,17 +724,18 @@ export default function TraderDetailPage() {
                 <AvatarImage src={trader.avatar} alt={trader.name} />
                 <AvatarFallback>{trader.name.charAt(0)}</AvatarFallback>
               </Avatar>
+              {/* 暂时注释掉徽章功能
               {badge && (
                 <div className="absolute -top-2 -left-2 transform -rotate-12">
                   <badge.Icon className="w-9 h-9" />
                 </div>
               )}
-              {/* 排名小徽章（显示在右下角） */}
               {badge && (
                 <div className="absolute -bottom-1 -right-1">
                   <badge.Badge />
                 </div>
               )}
+              */}
             </div>
           </div>
           <div className="text-center mt-3">
@@ -704,29 +816,48 @@ export default function TraderDetailPage() {
                   <div className="flex items-center gap-2">
                     <FilterDropdown
                       label={signalTypeFilter}
-                      options={['全部信号', '当前信号', '历史信号']}
+                      options={['信号', '当前信号-限价单', '当前信号-市价单', '历史信号-限价单', '历史信号-市价单']}
                       onSelect={setSignalTypeFilter}
                       setLabel={setSignalTypeFilter}
                     />
                     <FilterDropdown
                       label={directionFilter}
-                      options={['全部方向', '做多', '做空']}
+                      options={['方向', '做多', '做空']}
                       onSelect={setDirectionFilter}
                       setLabel={setDirectionFilter}
                     />
                     <FilterDropdown
                       label={pairFilter}
-                      options={['全部币种', 'BTC', 'ETH', 'SOL', 'DOGE', 'ADA', 'XRP', 'BNB', 'LINK']}
+                      options={['币种', 'BTC', 'ETH', 'SOL', 'DOGE', 'ADA', 'XRP', 'BNB', 'LINK']}
                       onSelect={setPairFilter}
                       setLabel={setPairFilter}
                     />
                   </div>
-                  <FilterDropdown
-                    label={timeFilter}
-                    options={['近三个月', '近半年', '近一年']}
-                    onSelect={setTimeFilter}
-                    setLabel={setTimeFilter}
-                  />
+                  <div className="flex items-center gap-2">
+                    <FilterDropdown
+                      label={timeFilter}
+                      options={['近三个月', '近半年', '近一年']}
+                      onSelect={setTimeFilter}
+                      setLabel={setTimeFilter}
+                    />
+                    {/* 刷新按钮 - 参考挂单列表样式，使用RefreshCcw图标 */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        console.log('手动刷新信号数据');
+                        refreshSignals();
+                      }}
+                      disabled={signalsDataLoading}
+                      className="h-8 w-8 rounded-full hover:bg-muted transition-colors"
+                    >
+                      {signalsDataLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCcw className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   {unifiedSignals.map(signal => (
